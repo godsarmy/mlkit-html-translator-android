@@ -98,24 +98,24 @@ Deliverable:
 
 ## Phase 2 — DOM traversal and eligibility engine
 
-- [ ] Parse input as body fragment.
-- [ ] Build text-node collector in DOM order.
-- [ ] Implement `isTranslatableNode` rules:
-  - [ ] non-blank text node
-  - [ ] not under protected ancestor tags
+- [x] Parse input as body fragment.
+- [x] Build text-node collector in DOM order.
+- [x] Implement `isTranslatableNode` rules:
+  - [x] non-blank text node
+  - [x] not under protected ancestor tags
   - [ ] not under ignored attributes/flags (if configured)
-- [ ] Add protected tag defaults:
-  - [ ] `code`
-  - [ ] `pre`
-  - [ ] `script`
-  - [ ] `style`
-  - [ ] `kbd`
-  - [ ] `samp`
-  - [ ] `var`
-- [ ] Preserve whitespace boundaries per node.
+- [x] Add protected tag defaults:
+  - [x] `code`
+  - [x] `pre`
+  - [x] `script`
+  - [x] `style`
+  - [x] `kbd`
+  - [x] `samp`
+  - [x] `var`
+- [x] Preserve whitespace boundaries per node.
 
 Deliverable:
-- [ ] Deterministic list of eligible text nodes
+- [x] Deterministic list of eligible text nodes
 
 ---
 
