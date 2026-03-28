@@ -69,14 +69,20 @@ public final class HtmlBodyTranslationEngine {
             @NonNull MlTranslationAdapter translationAdapter,
             @NonNull AtomicBoolean cancelled)
             throws TranslationException {
+        long parseWalkStartNs = System.nanoTime();
         Document document = Jsoup.parseBodyFragment(htmlBody);
         List<CollectedTextNode> nodes =
                 nodeCollector.collectEligibleNodes(document.body(), options);
+        long parseWalkDurationMs =
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - parseWalkStartNs);
 
         if (nodes.isEmpty()) {
-            return new PipelineResult(document.body().html(), new Diagnostics(0, 0, 0, 0, 0));
+            return new PipelineResult(
+                    document.body().html(),
+                    new Diagnostics(0, 0, 0, 0, 0, parseWalkDurationMs, 0, 0));
         }
 
+        long maskChunkStartNs = System.nanoTime();
         TokenMasker.MaskingConfig maskingConfig =
                 new TokenMasker.MaskingConfig(
                         options.isMaskUrls(), options.isMaskPlaceholders(), options.isMaskPaths());
@@ -94,7 +100,10 @@ public final class HtmlBodyTranslationEngine {
         List<ChunkBuilder.Chunk> chunks =
                 chunkBuilder.buildChunks(
                         maskedTexts, options.getMaxChunkChars(), null, markerCodec);
+        long maskChunkDurationMs =
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - maskChunkStartNs);
 
+        long translationStartNs = System.nanoTime();
         ChunkAggregate aggregate =
                 translateChunks(
                         chunks,
@@ -104,6 +113,8 @@ public final class HtmlBodyTranslationEngine {
                         translationAdapter,
                         options,
                         cancelled);
+        long translationDurationMs =
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - translationStartNs);
 
         for (int i = 0; i < nodes.size(); i++) {
             CollectedTextNode node = nodes.get(i);
@@ -127,7 +138,10 @@ public final class HtmlBodyTranslationEngine {
                         aggregate.translatedNodes,
                         aggregate.failedNodes,
                         aggregate.retryCount,
-                        chunks.size());
+                        chunks.size(),
+                        parseWalkDurationMs,
+                        maskChunkDurationMs,
+                        translationDurationMs);
         return new PipelineResult(document.body().html(), diagnostics);
     }
 
@@ -388,18 +402,27 @@ public final class HtmlBodyTranslationEngine {
         private final int failedNodes;
         private final int retryCount;
         private final int chunkCount;
+        private final long parseWalkDurationMs;
+        private final long maskChunkDurationMs;
+        private final long translationDurationMs;
 
         Diagnostics(
                 int totalNodes,
                 int translatedNodes,
                 int failedNodes,
                 int retryCount,
-                int chunkCount) {
+                int chunkCount,
+                long parseWalkDurationMs,
+                long maskChunkDurationMs,
+                long translationDurationMs) {
             this.totalNodes = totalNodes;
             this.translatedNodes = translatedNodes;
             this.failedNodes = failedNodes;
             this.retryCount = retryCount;
             this.chunkCount = chunkCount;
+            this.parseWalkDurationMs = parseWalkDurationMs;
+            this.maskChunkDurationMs = maskChunkDurationMs;
+            this.translationDurationMs = translationDurationMs;
         }
 
         public int getTotalNodes() {
@@ -420,6 +443,18 @@ public final class HtmlBodyTranslationEngine {
 
         public int getChunkCount() {
             return chunkCount;
+        }
+
+        public long getParseWalkDurationMs() {
+            return parseWalkDurationMs;
+        }
+
+        public long getMaskChunkDurationMs() {
+            return maskChunkDurationMs;
+        }
+
+        public long getTranslationDurationMs() {
+            return translationDurationMs;
         }
     }
 

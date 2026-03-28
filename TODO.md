@@ -273,23 +273,23 @@ Deliverable:
 
 ## Phase 11 — Performance validation
 
-- [ ] Measure parse/walk time.
-- [ ] Measure masking/chunking time.
-- [ ] Measure translation time by chunk count/size.
+- [x] Measure parse/walk time.
+- [x] Measure masking/chunking time.
+- [x] Measure translation time by chunk count/size.
 - [ ] Compare:
-  - [ ] per-node baseline
-  - [ ] chunked strategy
+  - [x] per-node baseline
+  - [x] chunked strategy
 - [ ] Tune defaults:
-  - [ ] `maxChunkChars`
-  - [ ] in-flight chunk count
+  - [x] `maxChunkChars`
+  - [x] in-flight chunk count
 
 Acceptance targets (adjust per product needs):
-- [ ] at least 40% fewer translation calls vs per-node baseline
-- [ ] no OOM on large manual pages in test corpus
-- [ ] stable runtime for repeated translations with cache
+- [x] at least 40% fewer translation calls vs per-node baseline
+- [x] no OOM on large manual pages in test corpus
+- [x] stable runtime for repeated translations with cache
 
 Deliverable:
-- [ ] Bench report + tuned defaults
+- [x] Bench report + tuned defaults
 
 ---
 
