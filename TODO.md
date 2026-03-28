@@ -212,14 +212,14 @@ Deliverable:
 
 ## Phase 8 — Caching strategy
 
-- [ ] Add in-memory cache key:
-  - [ ] hash(`htmlBody + sourceLang + targetLang + optionsVersion`)
-- [ ] Optional persistent cache interface (pluggable).
-- [ ] Add cache size and eviction policy.
-- [ ] Ensure cache invalidates on options/version change.
+- [x] Add in-memory cache key:
+  - [x] hash(`htmlBody + sourceLang + targetLang + optionsVersion`)
+- [x] Optional persistent cache interface (pluggable).
+- [x] Add cache size and eviction policy.
+- [x] Ensure cache invalidates on options/version change.
 
 Deliverable:
-- [ ] Fast repeat translations via cache hits
+- [x] Fast repeat translations via cache hits
 
 ---
 

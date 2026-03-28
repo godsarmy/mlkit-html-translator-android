@@ -4,30 +4,54 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.github.godsarmy.mlhtmltranslator.backend.IdentityTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
+import io.github.godsarmy.mlhtmltranslator.cache.InMemoryTranslationCache;
+import io.github.godsarmy.mlhtmltranslator.cache.TranslationCache;
+import io.github.godsarmy.mlhtmltranslator.cache.TranslationCacheKeyFactory;
 import io.github.godsarmy.mlhtmltranslator.core.HtmlBodyTranslationEngine;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class MlKitHtmlTranslator implements AutoCloseable {
 
+    private static final int DEFAULT_CACHE_SIZE = 256;
+
     private final HtmlTranslationOptions options;
     private final HtmlBodyTranslationEngine translationEngine;
     private final MlTranslationAdapter translationAdapter;
+    private final TranslationCache translationCache;
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
     public MlKitHtmlTranslator() {
-        this(HtmlTranslationOptions.builder().build(), new IdentityTranslationAdapter());
+        this(
+                HtmlTranslationOptions.builder().build(),
+                new IdentityTranslationAdapter(),
+                new InMemoryTranslationCache(DEFAULT_CACHE_SIZE));
     }
 
     public MlKitHtmlTranslator(@Nullable HtmlTranslationOptions options) {
-        this(options, new IdentityTranslationAdapter());
+        this(
+                options,
+                new IdentityTranslationAdapter(),
+                new InMemoryTranslationCache(DEFAULT_CACHE_SIZE));
     }
 
     MlKitHtmlTranslator(
             @Nullable HtmlTranslationOptions options,
             @NonNull MlTranslationAdapter translationAdapter) {
+        this(options, translationAdapter, new InMemoryTranslationCache(DEFAULT_CACHE_SIZE));
+    }
+
+    MlKitHtmlTranslator(
+            @Nullable HtmlTranslationOptions options,
+            @NonNull MlTranslationAdapter translationAdapter,
+            @NonNull TranslationCache translationCache) {
         this.options = options == null ? HtmlTranslationOptions.builder().build() : options;
         this.translationEngine = new HtmlBodyTranslationEngine();
         this.translationAdapter = translationAdapter;
+        this.translationCache = translationCache;
     }
 
     /**
@@ -58,6 +82,21 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
         }
 
         long startedAt = System.currentTimeMillis();
+        String cacheKey =
+                TranslationCacheKeyFactory.create(
+                        htmlBody, sourceLanguage, targetLanguage, optionsVersion());
+        String cachedResult = translationCache.get(cacheKey);
+        if (cachedResult != null) {
+            callback.onSuccess(cachedResult);
+            if (options.getTimingListener() != null) {
+                options.getTimingListener()
+                        .onTimingReady(
+                                new TranslationTimingReport(
+                                        startedAt, System.currentTimeMillis(), 0));
+            }
+            return;
+        }
+
         try {
             HtmlBodyTranslationEngine.PipelineResult pipelineResult =
                     translationEngine.translateHtmlBodyWithReport(
@@ -67,7 +106,9 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
                             options,
                             translationAdapter,
                             cancelled);
-            callback.onSuccess(pipelineResult.getTranslatedHtml());
+            String translatedHtml = pipelineResult.getTranslatedHtml();
+            translationCache.put(cacheKey, translatedHtml);
+            callback.onSuccess(translatedHtml);
 
             if (options.getTimingListener() != null) {
                 HtmlBodyTranslationEngine.Diagnostics diagnostics = pipelineResult.getDiagnostics();
@@ -84,12 +125,31 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
             }
         } catch (TranslationException translationException) {
             callback.onFailure(translationException);
-            return;
         }
     }
 
     @Override
     public void close() {
         cancelled.set(true);
+        translationCache.clear();
+    }
+
+    @NonNull
+    private String optionsVersion() {
+        List<String> protectedTags = new ArrayList<>(options.getProtectedTags());
+        Collections.sort(protectedTags);
+        return "schema=v1"
+                + "|tags="
+                + String.join(",", protectedTags)
+                + "|maxChunkChars="
+                + options.getMaxChunkChars()
+                + "|failurePolicy="
+                + options.getFailurePolicy().name().toLowerCase(Locale.ROOT)
+                + "|maskUrls="
+                + options.isMaskUrls()
+                + "|maskPlaceholders="
+                + options.isMaskPlaceholders()
+                + "|maskPaths="
+                + options.isMaskPaths();
     }
 }
