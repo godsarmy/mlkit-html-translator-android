@@ -2,17 +2,32 @@ package io.github.godsarmy.mlhtmltranslator.api;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import io.github.godsarmy.mlhtmltranslator.backend.IdentityTranslationAdapter;
+import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
+import io.github.godsarmy.mlhtmltranslator.core.HtmlBodyTranslationEngine;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class MlKitHtmlTranslator implements AutoCloseable {
 
     private final HtmlTranslationOptions options;
+    private final HtmlBodyTranslationEngine translationEngine;
+    private final MlTranslationAdapter translationAdapter;
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
 
     public MlKitHtmlTranslator() {
-        this(HtmlTranslationOptions.builder().build());
+        this(HtmlTranslationOptions.builder().build(), new IdentityTranslationAdapter());
     }
 
     public MlKitHtmlTranslator(@Nullable HtmlTranslationOptions options) {
+        this(options, new IdentityTranslationAdapter());
+    }
+
+    MlKitHtmlTranslator(
+            @Nullable HtmlTranslationOptions options,
+            @NonNull MlTranslationAdapter translationAdapter) {
         this.options = options == null ? HtmlTranslationOptions.builder().build() : options;
+        this.translationEngine = new HtmlBodyTranslationEngine();
+        this.translationAdapter = translationAdapter;
     }
 
     /**
@@ -43,17 +58,37 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
         }
 
         long startedAt = System.currentTimeMillis();
-        callback.onSuccess(htmlBody);
+        try {
+            String translatedHtml =
+                    translationEngine.translateHtmlBody(
+                            htmlBody,
+                            sourceLanguage,
+                            targetLanguage,
+                            options,
+                            translationAdapter,
+                            cancelled);
+            callback.onSuccess(translatedHtml);
+        } catch (TranslationException translationException) {
+            callback.onFailure(translationException);
+            return;
+        }
 
         if (options.getTimingListener() != null) {
             options.getTimingListener()
                     .onTimingReady(
-                            new TranslationTimingReport(startedAt, System.currentTimeMillis(), 0));
+                            new TranslationTimingReport(
+                                    startedAt,
+                                    System.currentTimeMillis(),
+                                    Math.max(0, countTranslatedSegments(htmlBody))));
         }
+    }
+
+    private int countTranslatedSegments(@NonNull String htmlBody) {
+        return translationEngine.collectEligibleTextNodes(htmlBody, options).size();
     }
 
     @Override
     public void close() {
-        // Placeholder. Real implementation will release ML resources.
+        cancelled.set(true);
     }
 }

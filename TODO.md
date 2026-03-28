@@ -155,23 +155,23 @@ Deliverable:
 
 ## Phase 5 — Translation orchestration
 
-- [ ] Implement end-to-end pipeline:
-  - [ ] collect eligible nodes
-  - [ ] mask tokens
-  - [ ] batch nodes
-  - [ ] translate chunks
-  - [ ] split chunk output
-  - [ ] unmask + whitespace restore
-  - [ ] write back text nodes
-  - [ ] serialize body HTML
-- [ ] Add concurrency controls:
-  - [ ] max in-flight chunks (default 2)
-  - [ ] cancellation support
-  - [ ] thread-safe aggregation
-- [ ] Add timeout handling per chunk.
+- [x] Implement end-to-end pipeline:
+  - [x] collect eligible nodes
+  - [x] mask tokens
+  - [x] batch nodes
+  - [x] translate chunks
+  - [x] split chunk output
+  - [x] unmask + whitespace restore
+  - [x] write back text nodes
+  - [x] serialize body HTML
+- [x] Add concurrency controls:
+  - [x] max in-flight chunks (default 2)
+  - [x] cancellation support
+  - [x] thread-safe aggregation
+- [x] Add timeout handling per chunk.
 
 Deliverable:
-- [ ] End-to-end translation pipeline returns translated HTML
+- [x] End-to-end translation pipeline returns translated HTML
 
 ---
 
