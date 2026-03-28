@@ -139,17 +139,17 @@ Deliverable:
 
 ## Phase 4 — Batching/chunking engine
 
-- [ ] Define chunk constraints:
-  - [ ] `maxChunkChars` (default e.g. 3000)
-  - [ ] max units per chunk (optional)
-- [ ] Join node texts with robust segment markers:
-  - [ ] marker format includes random/session prefix
-  - [ ] marker parser tolerant to whitespace
-- [ ] Build chunk builder that preserves node order.
-- [ ] Implement split/restore parser with marker count validation.
+- [x] Define chunk constraints:
+  - [x] `maxChunkChars` (default e.g. 3000)
+  - [x] max units per chunk (optional)
+- [x] Join node texts with robust segment markers:
+  - [x] marker format includes random/session prefix
+  - [x] marker parser tolerant to whitespace
+- [x] Build chunk builder that preserves node order.
+- [x] Implement split/restore parser with marker count validation.
 
 Deliverable:
-- [ ] Working chunk assembly + deterministic re-mapping
+- [x] Working chunk assembly + deterministic re-mapping
 
 ---
 
