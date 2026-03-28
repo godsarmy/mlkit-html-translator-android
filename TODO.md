@@ -295,14 +295,14 @@ Deliverable:
 
 ## Phase 12 — Documentation output
 
-- [ ] `README.md` quickstart for library + sample.
-- [ ] `docs/api.md` with aligned API contracts.
-- [ ] `docs/integration.md` with app-owned model lifecycle steps.
-- [ ] Migration notes from app-local HTML translators.
-- [ ] “How this mirrors markdown translator” section for maintainers.
+- [x] `README.md` quickstart for library + sample.
+- [x] `docs/api.md` with aligned API contracts.
+- [x] `docs/integration.md` with app-owned model lifecycle steps.
+- [x] Migration notes from app-local HTML translators.
+- [x] “How this mirrors markdown translator” section for maintainers.
 
 Deliverable:
-- [ ] Copy-paste-ready integration docs with lifecycle boundary clearly stated
+- [x] Copy-paste-ready integration docs with lifecycle boundary clearly stated
 
 ---
 
@@ -348,12 +348,12 @@ Deliverable:
 
 ## Final completion checklist
 
-- [ ] API finalized and documented (aligned to markdown translator style)
-- [ ] Protected-tag skipping verified
-- [ ] Links/attributes/structure preservation verified
-- [ ] Chunk batching implemented and benchmarked
-- [ ] Fallback behavior verified
-- [ ] Library does **not** manage model lifecycle
-- [ ] Sample app demonstrates app-managed model lifecycle + library translation usage
-- [ ] Test suite green in CI
-- [ ] Integration docs published
+- [x] API finalized and documented (aligned to markdown translator style)
+- [x] Protected-tag skipping verified
+- [x] Links/attributes/structure preservation verified
+- [x] Chunk batching implemented and benchmarked
+- [x] Fallback behavior verified
+- [x] Library does **not** manage model lifecycle
+- [x] Sample app demonstrates app-managed model lifecycle + library translation usage
+- [x] Test suite green in CI
+- [x] Integration docs published

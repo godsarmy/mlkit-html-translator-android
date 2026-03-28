@@ -1,4 +1,4 @@
-# API Draft — mlkit-html-translator-android
+# API Reference — mlkit-html-translator-android
 
 ## Main entry point
 
@@ -26,9 +26,8 @@ Current options:
 
 ## Threading and callback behavior
 
-- Current bootstrap implementation invokes callbacks synchronously on the calling thread.
-- Consumers should avoid heavy/blocking work directly in callback methods.
-- Any future internal async execution will keep callback contract explicit in this document.
+- Current implementation invokes callbacks on the caller thread.
+- Avoid heavy/blocking work directly in callback methods.
 
 ## Error contract
 
@@ -41,11 +40,26 @@ Current options:
 - `CANCELLED`
 - `INTERNAL_ERROR`
 
-Model lifecycle is app-owned. For missing/unavailable model scenarios, integrations should map errors to:
+## Timing report
 
-- `MODEL_UNAVAILABLE`
+When timing is enabled via `TranslationTimingListener`, `TranslationTimingReport` provides:
+
+- `startedAtEpochMs`
+- `completedAtEpochMs`
+- `durationMs`
+- `chunkCount`
+- `totalNodes`
+- `translatedNodes`
+- `failedNodes`
+- `retryCount`
+
+## Cache behavior
+
+- In-memory LRU cache is enabled by default.
+- Key is hash of: `htmlBody + sourceLanguage + targetLanguage + optionsVersion`.
+- Cache invalidates automatically when options version changes.
 
 ## Lifecycle boundary
 
 This library does **not** expose ML Kit model lifecycle APIs.
-Model download/delete/availability checks are owned by app code.
+Model download/delete/availability checks are app-owned responsibilities.
