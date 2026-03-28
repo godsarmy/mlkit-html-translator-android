@@ -38,41 +38,41 @@ Use this checklist to build a reusable Android library that translates HTML **bo
 
 Mirror this style (names adapted for HTML):
 
-- [ ] Main class: `MlKitHtmlTranslator`
-  - [ ] default constructor
-  - [ ] constructor with `HtmlTranslationOptions`
-  - [ ] `translateHtml(String htmlBody, String sourceLanguage, String targetLanguage, TranslationCallback callback)`
-  - [ ] `close()`
-- [ ] Options model: immutable `HtmlTranslationOptions` + `Builder`
-- [ ] Callback contract: `TranslationCallback` with success/failure
-- [ ] Typed error model: `TranslationException` + `TranslationErrorCode`
-- [ ] Optional timing hooks compatible with markdown style:
-  - [ ] `TranslationTimingListener`
-  - [ ] `TranslationTimingReport`
+- [x] Main class: `MlKitHtmlTranslator`
+  - [x] default constructor
+  - [x] constructor with `HtmlTranslationOptions`
+  - [x] `translateHtml(String htmlBody, String sourceLanguage, String targetLanguage, TranslationCallback callback)`
+  - [x] `close()`
+- [x] Options model: immutable `HtmlTranslationOptions` + `Builder`
+- [x] Callback contract: `TranslationCallback` with success/failure
+- [x] Typed error model: `TranslationException` + `TranslationErrorCode`
+- [x] Optional timing hooks compatible with markdown style:
+  - [x] `TranslationTimingListener`
+  - [x] `TranslationTimingReport`
 
 Explicit exclusion:
 
-- [ ] No `ensureLanguageModelDownloaded`, `getDownloadedLanguagePacks`, or `deleteLanguagePack` in library API.
+- [x] No `ensureLanguageModelDownloaded`, `getDownloadedLanguagePacks`, or `deleteLanguagePack` in library API.
 
 ---
 
 ## Phase 0 — Project bootstrap
 
-- [ ] Create/confirm module layout similar to markdown project:
-  - [ ] `library/` (core translator library)
-  - [ ] `sample/` (example app)
-  - [ ] `docs/` (API + integration docs)
-- [ ] Add dependencies:
-  - [ ] HTML parser (Jsoup)
-  - [ ] ML translation backend dependency (or adapter interface)
-  - [ ] Unit test framework
+- [x] Create/confirm module layout similar to markdown project:
+  - [x] `library/` (core translator library)
+  - [x] `sample/` (example app)
+  - [x] `docs/` (API + integration docs)
+- [x] Add dependencies:
+  - [x] HTML parser (Jsoup)
+  - [x] ML translation backend dependency (or adapter interface)
+  - [x] Unit test framework
 - [ ] Configure CI tasks:
   - [ ] lint
   - [ ] unit tests
   - [ ] formatting
 
 Deliverable:
-- [ ] Buildable skeleton with aligned API placeholders
+- [x] Buildable skeleton with aligned API placeholders
 
 ---
 
