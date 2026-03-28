@@ -59,7 +59,7 @@ public final class ChunkBuilder {
         private final List<Integer> nodeIndexes;
         private final List<String> originalNodeTexts;
 
-        Chunk(String payload, List<Integer> nodeIndexes, List<String> originalNodeTexts) {
+        public Chunk(String payload, List<Integer> nodeIndexes, List<String> originalNodeTexts) {
             this.payload = payload;
             this.nodeIndexes = Collections.unmodifiableList(new ArrayList<>(nodeIndexes));
             this.originalNodeTexts =

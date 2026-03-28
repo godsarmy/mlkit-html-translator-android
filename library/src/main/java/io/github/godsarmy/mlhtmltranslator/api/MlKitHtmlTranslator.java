@@ -59,32 +59,33 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
 
         long startedAt = System.currentTimeMillis();
         try {
-            String translatedHtml =
-                    translationEngine.translateHtmlBody(
+            HtmlBodyTranslationEngine.PipelineResult pipelineResult =
+                    translationEngine.translateHtmlBodyWithReport(
                             htmlBody,
                             sourceLanguage,
                             targetLanguage,
                             options,
                             translationAdapter,
                             cancelled);
-            callback.onSuccess(translatedHtml);
+            callback.onSuccess(pipelineResult.getTranslatedHtml());
+
+            if (options.getTimingListener() != null) {
+                HtmlBodyTranslationEngine.Diagnostics diagnostics = pipelineResult.getDiagnostics();
+                options.getTimingListener()
+                        .onTimingReady(
+                                new TranslationTimingReport(
+                                        startedAt,
+                                        System.currentTimeMillis(),
+                                        diagnostics.getChunkCount(),
+                                        diagnostics.getTotalNodes(),
+                                        diagnostics.getTranslatedNodes(),
+                                        diagnostics.getFailedNodes(),
+                                        diagnostics.getRetryCount()));
+            }
         } catch (TranslationException translationException) {
             callback.onFailure(translationException);
             return;
         }
-
-        if (options.getTimingListener() != null) {
-            options.getTimingListener()
-                    .onTimingReady(
-                            new TranslationTimingReport(
-                                    startedAt,
-                                    System.currentTimeMillis(),
-                                    Math.max(0, countTranslatedSegments(htmlBody))));
-        }
-    }
-
-    private int countTranslatedSegments(@NonNull String htmlBody) {
-        return translationEngine.collectEligibleTextNodes(htmlBody, options).size();
     }
 
     @Override

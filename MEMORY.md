@@ -10,3 +10,9 @@
 
 - Work progresses by TODO phases with one commit per completed step.
 - After each step: run format + tests/build, update checkboxes in `TODO.md`, then commit.
+
+## Implementation learnings
+
+- Chunk-size tests must account for segment-marker overhead; tiny `maxChunkChars` can split more than expected.
+- Resilience path should treat marker parse mismatch separately from normal translation failure:
+  retry with smaller chunks first, then fallback per-node for the failing chunk.

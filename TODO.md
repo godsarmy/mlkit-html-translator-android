@@ -178,19 +178,19 @@ Deliverable:
 ## Phase 6 — Fallback and resilience policy
 
 - [ ] If marker parse fails:
-  - [ ] retry with smaller chunks
-  - [ ] fallback to per-node translation for failing chunk
+  - [x] retry with smaller chunks
+  - [x] fallback to per-node translation for failing chunk
 - [ ] If translation fails:
-  - [ ] `BEST_EFFORT`: keep original for failed parts
-  - [ ] `FAIL_FAST`: abort and return error
+  - [x] `BEST_EFFORT`: keep original for failed parts
+  - [x] `FAIL_FAST`: abort and return error
 - [ ] Emit diagnostics metadata:
-  - [ ] total nodes
-  - [ ] translated nodes
-  - [ ] failed nodes
-  - [ ] retry count
+  - [x] total nodes
+  - [x] translated nodes
+  - [x] failed nodes
+  - [x] retry count
 
 Deliverable:
-- [ ] Robust error handling with predictable behavior
+- [x] Robust error handling with predictable behavior
 
 ---
 
