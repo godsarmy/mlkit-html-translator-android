@@ -196,17 +196,17 @@ Deliverable:
 
 ## Phase 7 — App-owned ML Kit model lifecycle contract (no library lifecycle APIs)
 
-- [ ] Document that language model lifecycle is managed by app code via ML Kit APIs (`RemoteModelManager`, `TranslateRemoteModel`, `DownloadConditions`).
-- [ ] Document library precondition: required models should be available before translation call.
-- [ ] Standardize error mapping for missing/unavailable model (typed `TranslationErrorCode`).
-- [ ] Add integration recipe matching markdown project architecture:
-  - [ ] Activity/Fragment
-  - [ ] ViewModel
-  - [ ] Repository wrapping `MlKitHtmlTranslator`
-  - [ ] Model manager utility in app layer
+- [x] Document that language model lifecycle is managed by app code via ML Kit APIs (`RemoteModelManager`, `TranslateRemoteModel`, `DownloadConditions`).
+- [x] Document library precondition: required models should be available before translation call.
+- [x] Standardize error mapping for missing/unavailable model (typed `TranslationErrorCode`).
+- [x] Add integration recipe matching markdown project architecture:
+  - [x] Activity/Fragment
+  - [x] ViewModel
+  - [x] Repository wrapping `MlKitHtmlTranslator`
+  - [x] Model manager utility in app layer
 
 Deliverable:
-- [ ] Clear lifecycle boundary and integration contract published
+- [x] Clear lifecycle boundary and integration contract published
 
 ---
 

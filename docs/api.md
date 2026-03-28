@@ -41,6 +41,10 @@ Current options:
 - `CANCELLED`
 - `INTERNAL_ERROR`
 
+Model lifecycle is app-owned. For missing/unavailable model scenarios, integrations should map errors to:
+
+- `MODEL_UNAVAILABLE`
+
 ## Lifecycle boundary
 
 This library does **not** expose ML Kit model lifecycle APIs.

@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
-import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
-import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -15,21 +13,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         TextView output = findViewById(R.id.output);
-        MlKitHtmlTranslator translator = new MlKitHtmlTranslator();
-        translator.translateHtml(
-                "<p>Hello world</p>",
-                "en",
-                "es",
-                new TranslationCallback() {
-                    @Override
-                    public void onSuccess(String translatedHtml) {
-                        output.setText(translatedHtml);
-                    }
 
-                    @Override
-                    public void onFailure(TranslationException exception) {
-                        output.setText(exception.getMessage());
-                    }
-                });
+        MlKitHtmlTranslator translator = new MlKitHtmlTranslator();
+        TranslationRepository repository = new TranslationRepository(translator);
+        ModelLifecycleManager modelLifecycleManager = new ModelLifecycleManager();
+        TranslationViewModel viewModel =
+                new TranslationViewModel(repository, modelLifecycleManager);
+
+        viewModel.translatedHtml().observe(this, output::setText);
+        viewModel
+                .errorText()
+                .observe(
+                        this,
+                        error -> {
+                            if (error != null) {
+                                output.setText(error);
+                            }
+                        });
+
+        viewModel.translate("<p>Hello world</p>", "en", "es");
     }
 }
