@@ -235,6 +235,13 @@ public final class HtmlBodyTranslationEngine {
                             sourceLanguage,
                             targetLanguage,
                             DEFAULT_CHUNK_TIMEOUT_MS);
+
+            if (cancelled.get()) {
+                throw new TranslationException(
+                        TranslationErrorCode.CANCELLED,
+                        "Translation cancelled during chunk processing");
+            }
+
             Map<Integer, String> mapped =
                     chunkResultMapper.mapChunkResult(chunk, translatedPayload, markerCodec);
             return ChunkTranslationResult.success(

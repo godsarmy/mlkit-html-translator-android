@@ -97,4 +97,52 @@ public class HtmlBodyTranslationResilienceTest {
                         || result.getTranslatedHtml().contains("first"));
         assertTrue(result.getDiagnostics().getRetryCount() > 0);
     }
+
+    @Test
+    public void cancellationMidFlight_surfacesCancelledError() throws Exception {
+        HtmlBodyTranslationEngine engine = new HtmlBodyTranslationEngine();
+        HtmlTranslationOptions options = HtmlTranslationOptions.builder().build();
+        AtomicBoolean cancelled = new AtomicBoolean(false);
+
+        MlTranslationAdapter slowAdapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) -> {
+                    try {
+                        Thread.sleep(200);
+                    } catch (InterruptedException interruptedException) {
+                        Thread.currentThread().interrupt();
+                        throw new TranslationException(
+                                TranslationErrorCode.CANCELLED,
+                                "interrupted",
+                                interruptedException);
+                    }
+                    return text;
+                };
+
+        Thread canceller =
+                new Thread(
+                        () -> {
+                            try {
+                                Thread.sleep(50);
+                            } catch (InterruptedException ignored) {
+                                Thread.currentThread().interrupt();
+                            }
+                            cancelled.set(true);
+                        });
+        canceller.start();
+
+        try {
+            engine.translateHtmlBodyWithReport(
+                    "<p>one</p><p>two</p><p>three</p><p>four</p>",
+                    "en",
+                    "es",
+                    options,
+                    slowAdapter,
+                    cancelled);
+        } catch (TranslationException e) {
+            assertEquals(TranslationErrorCode.CANCELLED, e.getErrorCode());
+            return;
+        }
+
+        throw new AssertionError("Expected cancellation error");
+    }
 }

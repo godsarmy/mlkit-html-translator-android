@@ -41,7 +41,7 @@ public final class TranslationViewModel extends ViewModel {
     public void translate(String htmlBody, String sourceLanguage, String targetLanguage) {
         if (!modelLifecycleManager.isModelAvailable(sourceLanguage)
                 || !modelLifecycleManager.isModelAvailable(targetLanguage)) {
-            errorCode.setValue(TranslationErrorCode.MODEL_UNAVAILABLE.name());
+            errorCode.postValue(TranslationErrorCode.MODEL_UNAVAILABLE.name());
             return;
         }
 
@@ -52,20 +52,20 @@ public final class TranslationViewModel extends ViewModel {
                 new TranslationCallback() {
                     @Override
                     public void onSuccess(@NonNull String translatedHtmlValue) {
-                        translatedHtml.setValue(translatedHtmlValue);
-                        errorCode.setValue(null);
+                        translatedHtml.postValue(translatedHtmlValue);
+                        errorCode.postValue(null);
                     }
 
                     @Override
                     public void onFailure(@NonNull TranslationException exception) {
-                        errorCode.setValue(exception.getErrorCode().name());
+                        errorCode.postValue(exception.getErrorCode().name());
                     }
                 });
     }
 
     public void downloadModel(String languageCode) {
         boolean changed = modelLifecycleManager.downloadModel(languageCode);
-        modelStatus.setValue(
+        modelStatus.postValue(
                 changed
                         ? "Downloaded model: " + languageCode
                         : "Model already downloaded: " + languageCode);
@@ -73,12 +73,12 @@ public final class TranslationViewModel extends ViewModel {
 
     public void deleteModel(String languageCode) {
         boolean changed = modelLifecycleManager.deleteModel(languageCode);
-        modelStatus.setValue(
+        modelStatus.postValue(
                 changed ? "Deleted model: " + languageCode : "Model not found: " + languageCode);
     }
 
     public void checkModel(String languageCode) {
         boolean available = modelLifecycleManager.isModelAvailable(languageCode);
-        modelStatus.setValue((available ? "Available" : "Missing") + " model: " + languageCode);
+        modelStatus.postValue((available ? "Available" : "Missing") + " model: " + languageCode);
     }
 }

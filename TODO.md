@@ -246,28 +246,28 @@ Deliverable:
 ## Phase 10 — Test plan (must-have)
 
 ### Unit tests
-- [ ] Protected tags unchanged (`code/pre/script/style`).
-- [ ] Anchor text translated; `href` unchanged.
-- [ ] Nested tags preserve structure.
-- [ ] Token masking roundtrip correctness.
-- [ ] Chunk marker split/rejoin correctness.
-- [ ] Whitespace preservation around inline elements.
-- [ ] Error code mapping correctness.
+- [x] Protected tags unchanged (`code/pre/script/style`).
+- [x] Anchor text translated; `href` unchanged.
+- [x] Nested tags preserve structure.
+- [x] Token masking roundtrip correctness.
+- [x] Chunk marker split/rejoin correctness.
+- [x] Whitespace preservation around inline elements.
+- [x] Error code mapping correctness.
 
 ### Fixture tests
-- [ ] Long manual-like article with headings/lists/tables.
-- [ ] Mixed prose + code blocks.
-- [ ] Heavy links and inline code.
-- [ ] Multilingual sample inputs.
+- [x] Long manual-like article with headings/lists/tables.
+- [x] Mixed prose + code blocks.
+- [x] Heavy links and inline code.
+- [x] Multilingual sample inputs.
 
 ### Failure tests
-- [ ] Chunk translation failure with `BEST_EFFORT`.
-- [ ] Marker mismatch fallback path.
-- [ ] Cancellation mid-flight.
-- [ ] Missing model precondition error surface.
+- [x] Chunk translation failure with `BEST_EFFORT`.
+- [x] Marker mismatch fallback path.
+- [x] Cancellation mid-flight.
+- [x] Missing model precondition error surface.
 
 Deliverable:
-- [ ] Automated suite with high confidence on correctness
+- [x] Automated suite with high confidence on correctness
 
 ---
 
