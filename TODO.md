@@ -78,21 +78,21 @@ Deliverable:
 
 ## Phase 1 — Public API design (aligned)
 
-- [ ] Define `MlKitHtmlTranslator` API matching markdown lib interaction model.
-- [ ] Define `HtmlTranslationOptions` with builder-only construction.
-- [ ] Define callback + error contracts:
-  - [ ] success returns translated HTML string
-  - [ ] failure returns `TranslationException` with `TranslationErrorCode`
-- [ ] Define options fields (keep concise and practical):
-  - [ ] protected tags set
-  - [ ] max chunk chars
-  - [ ] failure policy (`FAIL_FAST` / `BEST_EFFORT`)
-  - [ ] token masking toggles (URLs/placeholders/paths)
-  - [ ] optional timing listener
-- [ ] Document thread/callback behavior clearly (and keep consistent).
+- [x] Define `MlKitHtmlTranslator` API matching markdown lib interaction model.
+- [x] Define `HtmlTranslationOptions` with builder-only construction.
+- [x] Define callback + error contracts:
+  - [x] success returns translated HTML string
+  - [x] failure returns `TranslationException` with `TranslationErrorCode`
+- [x] Define options fields (keep concise and practical):
+  - [x] protected tags set
+  - [x] max chunk chars
+  - [x] failure policy (`FAIL_FAST` / `BEST_EFFORT`)
+  - [x] token masking toggles (URLs/placeholders/paths)
+  - [x] optional timing listener
+- [x] Document thread/callback behavior clearly (and keep consistent).
 
 Deliverable:
-- [ ] API + options + callback/error contracts finalized in `docs/api.md`
+- [x] API + options + callback/error contracts finalized in `docs/api.md`
 
 ---
 

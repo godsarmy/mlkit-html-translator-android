@@ -15,6 +15,13 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
         this.options = options == null ? HtmlTranslationOptions.builder().build() : options;
     }
 
+    /**
+     * Translates HTML body content from source language to target language.
+     *
+     * <p>Current bootstrap behavior is synchronous and invokes callback methods on the same thread
+     * that calls this method. Future asynchronous internals must preserve a consistent documented
+     * callback contract.
+     */
     public void translateHtml(
             @NonNull String htmlBody,
             @NonNull String sourceLanguage,

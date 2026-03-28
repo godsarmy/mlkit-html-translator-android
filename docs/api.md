@@ -24,6 +24,12 @@ Current options:
 - `onSuccess(String translatedHtml)`
 - `onFailure(TranslationException exception)`
 
+## Threading and callback behavior
+
+- Current bootstrap implementation invokes callbacks synchronously on the calling thread.
+- Consumers should avoid heavy/blocking work directly in callback methods.
+- Any future internal async execution will keep callback contract explicit in this document.
+
 ## Error contract
 
 `TranslationException` exposes typed `TranslationErrorCode`:
