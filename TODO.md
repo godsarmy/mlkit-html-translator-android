@@ -67,9 +67,9 @@ Explicit exclusion:
   - [x] ML translation backend dependency (or adapter interface)
   - [x] Unit test framework
 - [ ] Configure CI tasks:
-  - [ ] lint
-  - [ ] unit tests
-  - [ ] formatting
+  - [x] lint
+  - [x] unit tests
+  - [x] formatting
 
 Deliverable:
 - [x] Buildable skeleton with aligned API placeholders
