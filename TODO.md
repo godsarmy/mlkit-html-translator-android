@@ -121,19 +121,19 @@ Deliverable:
 
 ## Phase 3 — Token masking subsystem
 
-- [ ] Implement token detectors:
-  - [ ] URLs
-  - [ ] emails
-  - [ ] placeholders (`%s`, `{name}`, `${x}`)
-  - [ ] shell flags (`--flag`, `-a`)
-  - [ ] filesystem-like paths
-- [ ] Replace each token with stable placeholder (`@@P0@@`, `@@P1@@`, ...).
-- [ ] Store reversible mapping per node/chunk.
-- [ ] Implement unmask restoration after translation.
-- [ ] Add collision-safe placeholder generation.
+- [x] Implement token detectors:
+  - [x] URLs
+  - [x] emails
+  - [x] placeholders (`%s`, `{name}`, `${x}`)
+  - [x] shell flags (`--flag`, `-a`)
+  - [x] filesystem-like paths
+- [x] Replace each token with stable placeholder (`@@P0@@`, `@@P1@@`, ...).
+- [x] Store reversible mapping per node/chunk.
+- [x] Implement unmask restoration after translation.
+- [x] Add collision-safe placeholder generation.
 
 Deliverable:
-- [ ] Reversible masking/unmasking with unit tests
+- [x] Reversible masking/unmasking with unit tests
 
 ---
 
