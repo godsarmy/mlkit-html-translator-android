@@ -1,5 +1,9 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * App-layer utility for ML model lifecycle ownership.
  *
@@ -8,16 +12,31 @@ package io.github.godsarmy.mlhtmltranslator.sample;
  */
 public final class ModelLifecycleManager {
 
+    private final Set<String> downloadedModels = Collections.synchronizedSet(new HashSet<>());
+
+    public ModelLifecycleManager() {
+        // Sample default: English is present.
+        downloadedModels.add("en");
+    }
+
     public boolean isModelAvailable(String languageCode) {
-        // Placeholder sample behavior.
-        return languageCode != null && !languageCode.trim().isEmpty();
+        if (languageCode == null || languageCode.trim().isEmpty()) {
+            return false;
+        }
+        return downloadedModels.contains(languageCode.trim().toLowerCase());
     }
 
-    public void downloadModel(String languageCode) {
-        // Placeholder sample behavior.
+    public boolean downloadModel(String languageCode) {
+        if (languageCode == null || languageCode.trim().isEmpty()) {
+            return false;
+        }
+        return downloadedModels.add(languageCode.trim().toLowerCase());
     }
 
-    public void deleteModel(String languageCode) {
-        // Placeholder sample behavior.
+    public boolean deleteModel(String languageCode) {
+        if (languageCode == null || languageCode.trim().isEmpty()) {
+            return false;
+        }
+        return downloadedModels.remove(languageCode.trim().toLowerCase());
     }
 }

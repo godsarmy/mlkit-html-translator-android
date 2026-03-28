@@ -13,7 +13,8 @@ public final class TranslationViewModel extends ViewModel {
     private final TranslationRepository repository;
     private final ModelLifecycleManager modelLifecycleManager;
     private final MutableLiveData<String> translatedHtml = new MutableLiveData<>();
-    private final MutableLiveData<String> errorText = new MutableLiveData<>();
+    private final MutableLiveData<String> errorCode = new MutableLiveData<>();
+    private final MutableLiveData<String> modelStatus = new MutableLiveData<>();
 
     public TranslationViewModel(
             @NonNull TranslationRepository repository,
@@ -28,14 +29,19 @@ public final class TranslationViewModel extends ViewModel {
     }
 
     @NonNull
-    public LiveData<String> errorText() {
-        return errorText;
+    public LiveData<String> errorCode() {
+        return errorCode;
+    }
+
+    @NonNull
+    public LiveData<String> modelStatus() {
+        return modelStatus;
     }
 
     public void translate(String htmlBody, String sourceLanguage, String targetLanguage) {
         if (!modelLifecycleManager.isModelAvailable(sourceLanguage)
                 || !modelLifecycleManager.isModelAvailable(targetLanguage)) {
-            errorText.setValue(TranslationErrorCode.MODEL_UNAVAILABLE.name());
+            errorCode.setValue(TranslationErrorCode.MODEL_UNAVAILABLE.name());
             return;
         }
 
@@ -47,13 +53,32 @@ public final class TranslationViewModel extends ViewModel {
                     @Override
                     public void onSuccess(@NonNull String translatedHtmlValue) {
                         translatedHtml.setValue(translatedHtmlValue);
-                        errorText.setValue(null);
+                        errorCode.setValue(null);
                     }
 
                     @Override
                     public void onFailure(@NonNull TranslationException exception) {
-                        errorText.setValue(exception.getErrorCode().name());
+                        errorCode.setValue(exception.getErrorCode().name());
                     }
                 });
+    }
+
+    public void downloadModel(String languageCode) {
+        boolean changed = modelLifecycleManager.downloadModel(languageCode);
+        modelStatus.setValue(
+                changed
+                        ? "Downloaded model: " + languageCode
+                        : "Model already downloaded: " + languageCode);
+    }
+
+    public void deleteModel(String languageCode) {
+        boolean changed = modelLifecycleManager.deleteModel(languageCode);
+        modelStatus.setValue(
+                changed ? "Deleted model: " + languageCode : "Model not found: " + languageCode);
+    }
+
+    public void checkModel(String languageCode) {
+        boolean available = modelLifecycleManager.isModelAvailable(languageCode);
+        modelStatus.setValue((available ? "Available" : "Missing") + " model: " + languageCode);
     }
 }

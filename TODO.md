@@ -30,7 +30,7 @@ Use this checklist to build a reusable Android library that translates HTML **bo
 - [ ] Batching reduces calls vs per-node translation.
 - [ ] Library API is app-agnostic, documented, and test-covered.
 - [ ] API shape is comparable to markdown lib (`translator + options + callback + error codes + close`).
-- [ ] Example app demonstrates translation usage and **app-owned** language model management.
+- [x] Example app demonstrates translation usage and **app-owned** language model management.
 
 ---
 
@@ -227,19 +227,19 @@ Deliverable:
 
 Build a `sample/` app similar to markdown sample and focused on real usage.
 
-- [ ] Provide source/target language selectors.
-- [ ] Provide input HTML and translated output preview.
-- [ ] Include sample HTML assets (manual-like docs, mixed code/prose).
+- [x] Provide source/target language selectors.
+- [x] Provide input HTML and translated output preview.
+- [x] Include sample HTML assets (manual-like docs, mixed code/prose).
 - [ ] Demonstrate model operations in app layer (not library):
-  - [ ] download model
-  - [ ] delete model
-  - [ ] check model availability
-- [ ] Demonstrate translation call through `MlKitHtmlTranslator`.
-- [ ] Display structured errors by `TranslationErrorCode`.
-- [ ] Optionally display timing report when enabled.
+  - [x] download model
+  - [x] delete model
+  - [x] check model availability
+- [x] Demonstrate translation call through `MlKitHtmlTranslator`.
+- [x] Display structured errors by `TranslationErrorCode`.
+- [x] Optionally display timing report when enabled.
 
 Deliverable:
-- [ ] Runnable demo app proving integration pattern and lifecycle separation
+- [x] Runnable demo app proving integration pattern and lifecycle separation
 
 ---
 
