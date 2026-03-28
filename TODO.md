@@ -23,13 +23,13 @@ Use this checklist to build a reusable Android library that translates HTML **bo
 
 ## Success Criteria
 
-- [ ] Output HTML renders with same structure as input.
-- [ ] Protected zones (`code`, `pre`, `script`, `style`, etc.) remain unchanged.
-- [ ] Link attributes (`href`, `src`) remain unchanged.
+- [x] Output HTML renders with same structure as input.
+- [x] Protected zones (`code`, `pre`, `script`, `style`, etc.) remain unchanged.
+- [x] Link attributes (`href`, `src`) remain unchanged.
 - [ ] Translation quality is acceptable on long manual pages.
-- [ ] Batching reduces calls vs per-node translation.
-- [ ] Library API is app-agnostic, documented, and test-covered.
-- [ ] API shape is comparable to markdown lib (`translator + options + callback + error codes + close`).
+- [x] Batching reduces calls vs per-node translation.
+- [x] Library API is app-agnostic, documented, and test-covered.
+- [x] API shape is comparable to markdown lib (`translator + options + callback + error codes + close`).
 - [x] Example app demonstrates translation usage and **app-owned** language model management.
 
 ---
@@ -66,7 +66,7 @@ Explicit exclusion:
   - [x] HTML parser (Jsoup)
   - [x] ML translation backend dependency (or adapter interface)
   - [x] Unit test framework
-- [ ] Configure CI tasks:
+- [x] Configure CI tasks:
   - [x] lint
   - [x] unit tests
   - [x] formatting
@@ -177,13 +177,13 @@ Deliverable:
 
 ## Phase 6 — Fallback and resilience policy
 
-- [ ] If marker parse fails:
+- [x] If marker parse fails:
   - [x] retry with smaller chunks
   - [x] fallback to per-node translation for failing chunk
-- [ ] If translation fails:
+- [x] If translation fails:
   - [x] `BEST_EFFORT`: keep original for failed parts
   - [x] `FAIL_FAST`: abort and return error
-- [ ] Emit diagnostics metadata:
+- [x] Emit diagnostics metadata:
   - [x] total nodes
   - [x] translated nodes
   - [x] failed nodes
@@ -230,7 +230,7 @@ Build a `sample/` app similar to markdown sample and focused on real usage.
 - [x] Provide source/target language selectors.
 - [x] Provide input HTML and translated output preview.
 - [x] Include sample HTML assets (manual-like docs, mixed code/prose).
-- [ ] Demonstrate model operations in app layer (not library):
+- [x] Demonstrate model operations in app layer (not library):
   - [x] download model
   - [x] delete model
   - [x] check model availability
@@ -276,10 +276,10 @@ Deliverable:
 - [x] Measure parse/walk time.
 - [x] Measure masking/chunking time.
 - [x] Measure translation time by chunk count/size.
-- [ ] Compare:
+- [x] Compare:
   - [x] per-node baseline
   - [x] chunked strategy
-- [ ] Tune defaults:
+- [x] Tune defaults:
   - [x] `maxChunkChars`
   - [x] in-flight chunk count
 
@@ -308,31 +308,31 @@ Deliverable:
 
 ## Suggested package structure
 
-- [ ] `library/src/main/java/.../api/`
-  - [ ] `MlKitHtmlTranslator`
-  - [ ] `HtmlTranslationOptions`
-  - [ ] `TranslationCallback`
-  - [ ] `TranslationException`
-  - [ ] `TranslationErrorCode`
-  - [ ] `TranslationTimingListener`
-  - [ ] `TranslationTimingReport`
-- [ ] `library/src/main/java/.../core/`
-  - [ ] `HtmlBodyTranslationEngine`
-  - [ ] `NodeCollector`
-  - [ ] `ProtectedTagPolicy`
-- [ ] `library/src/main/java/.../batch/`
-  - [ ] `ChunkBuilder`
-  - [ ] `SegmentMarkerCodec`
-  - [ ] `ChunkResultMapper`
-- [ ] `library/src/main/java/.../mask/`
-  - [ ] `TokenMasker`
-  - [ ] `TokenPatternRegistry`
-- [ ] `library/src/main/java/.../backend/`
-  - [ ] `MlTranslationAdapter`
-- [ ] `library/src/main/java/.../cache/`
-  - [ ] `TranslationCache`
-- [ ] `sample/` (demo app with app-side model manager usage)
-- [ ] `docs/` (API + integration)
+- [x] `library/src/main/java/.../api/`
+  - [x] `MlKitHtmlTranslator`
+  - [x] `HtmlTranslationOptions`
+  - [x] `TranslationCallback`
+  - [x] `TranslationException`
+  - [x] `TranslationErrorCode`
+  - [x] `TranslationTimingListener`
+  - [x] `TranslationTimingReport`
+- [x] `library/src/main/java/.../core/`
+  - [x] `HtmlBodyTranslationEngine`
+  - [x] `NodeCollector`
+  - [x] `ProtectedTagPolicy`
+- [x] `library/src/main/java/.../batch/`
+  - [x] `ChunkBuilder`
+  - [x] `SegmentMarkerCodec`
+  - [x] `ChunkResultMapper`
+- [x] `library/src/main/java/.../mask/`
+  - [x] `TokenMasker`
+  - [x] `TokenPatternRegistry`
+- [x] `library/src/main/java/.../backend/`
+  - [x] `MlTranslationAdapter`
+- [x] `library/src/main/java/.../cache/`
+  - [x] `TranslationCache`
+- [x] `sample/` (demo app with app-side model manager usage)
+- [x] `docs/` (API + integration)
 
 ---
 
