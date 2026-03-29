@@ -243,16 +243,32 @@ public class MainActivity extends AppCompatActivity {
 
     private void renderHtml(WebView webView, String htmlBody) {
         String safeBody = htmlBody == null ? "" : htmlBody;
+        String textColor = toCssColor(getColor(R.color.mlkit_on_background));
+        String linkColor = toCssColor(getColor(R.color.mlkit_primary));
         String wrappedHtml =
                 "<!doctype html><html><head><meta charset=\"utf-8\" />"
                         + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
                         + "<style>"
-                        + "html,body{margin:0;padding:0;background:transparent !important;color:inherit;}"
+                        + "html,body{margin:0;padding:0;background:transparent !important;color:"
+                        + textColor
+                        + " !important;}"
+                        + "a{color:"
+                        + linkColor
+                        + ";}"
                         + "img,table{max-width:100%;height:auto;}"
                         + "</style></head><body>"
                         + safeBody
                         + "</body></html>";
         webView.loadDataWithBaseURL("about:blank", wrappedHtml, "text/html", "UTF-8", null);
+    }
+
+    private String toCssColor(int color) {
+        return String.format(
+                "rgba(%d,%d,%d,%.3f)",
+                android.graphics.Color.red(color),
+                android.graphics.Color.green(color),
+                android.graphics.Color.blue(color),
+                android.graphics.Color.alpha(color) / 255f);
     }
 
     private void setupWebView(WebView webView) {
