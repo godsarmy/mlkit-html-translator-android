@@ -13,7 +13,7 @@ public final class TranslationViewModel extends ViewModel {
     private final TranslationRepository repository;
     private final ModelLifecycleManager modelLifecycleManager;
     private final MutableLiveData<String> translatedHtml = new MutableLiveData<>();
-    private final MutableLiveData<String> errorCode = new MutableLiveData<>();
+    private final MutableLiveData<String> errorReason = new MutableLiveData<>();
     private final MutableLiveData<String> modelStatus = new MutableLiveData<>();
 
     public TranslationViewModel(
@@ -29,8 +29,8 @@ public final class TranslationViewModel extends ViewModel {
     }
 
     @NonNull
-    public LiveData<String> errorCode() {
-        return errorCode;
+    public LiveData<String> errorReason() {
+        return errorReason;
     }
 
     @NonNull
@@ -41,7 +41,7 @@ public final class TranslationViewModel extends ViewModel {
     public void translate(String htmlBody, String sourceLanguage, String targetLanguage) {
         if (!modelLifecycleManager.isModelAvailable(sourceLanguage)
                 || !modelLifecycleManager.isModelAvailable(targetLanguage)) {
-            errorCode.postValue(TranslationErrorCode.MODEL_UNAVAILABLE.name());
+            errorReason.postValue(TranslationErrorCode.MODEL_UNAVAILABLE.name());
             return;
         }
 
@@ -53,12 +53,16 @@ public final class TranslationViewModel extends ViewModel {
                     @Override
                     public void onSuccess(@NonNull String translatedHtmlValue) {
                         translatedHtml.postValue(translatedHtmlValue);
-                        errorCode.postValue(null);
+                        errorReason.postValue(null);
                     }
 
                     @Override
                     public void onFailure(@NonNull TranslationException exception) {
-                        errorCode.postValue(exception.getErrorCode().name());
+                        String reason = exception.getMessage();
+                        if (reason == null || reason.trim().isEmpty()) {
+                            reason = exception.getErrorCode().name();
+                        }
+                        errorReason.postValue(reason);
                     }
                 });
     }

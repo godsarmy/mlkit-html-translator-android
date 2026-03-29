@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.AdapterView;
@@ -18,6 +19,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingListener;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingReport;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,14 +31,19 @@ public class MainActivity extends AppCompatActivity {
     private static final long MODEL_DOWNLOAD_DELAY_MS = 2200L;
 
     private TranslationViewModel viewModel;
-    private TextView timingText;
     private Button modelActionButton;
+    private Button translateButton;
     private Spinner targetSpinner;
     private EditText inputHtmlText;
     private TextView outputHtmlText;
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private CheckBox renderModeToggle;
+    private View translationProgressContainer;
+    private TextView translationResultText;
+    private boolean isTranslating;
+    private int currentRequestCharCount;
+    private TranslationTimingReport latestTimingReport;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable pendingDownloadRunnable;
@@ -56,9 +63,10 @@ public class MainActivity extends AppCompatActivity {
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
-        TextView errorCode = findViewById(R.id.errorCode);
-        timingText = findViewById(R.id.timingReport);
+        translationProgressContainer = findViewById(R.id.translationProgressContainer);
+        translationResultText = findViewById(R.id.translationResultText);
         modelActionButton = findViewById(R.id.downloadModelButton);
+        translateButton = findViewById(R.id.translateButton);
 
         setupWebView(inputRenderedHtml);
         setupWebView(outputRenderedHtml);
@@ -69,25 +77,7 @@ public class MainActivity extends AppCompatActivity {
         sourceSpinner.setSelection(0);
         targetSpinner.setSelection(1);
 
-        TranslationTimingListener timingListener =
-                report ->
-                        runOnUiThread(
-                                () -> {
-                                    String timingSummary =
-                                            "durationMs="
-                                                    + report.getDurationMs()
-                                                    + ", chunks="
-                                                    + report.getChunkCount()
-                                                    + ", totalNodes="
-                                                    + report.getTotalNodes()
-                                                    + ", translatedNodes="
-                                                    + report.getTranslatedNodes()
-                                                    + ", failedNodes="
-                                                    + report.getFailedNodes()
-                                                    + ", retries="
-                                                    + report.getRetryCount();
-                                    timingText.setText(timingSummary);
-                                });
+        TranslationTimingListener timingListener = report -> latestTimingReport = report;
 
         MlKitHtmlTranslator translator =
                 new MlKitHtmlTranslator(
@@ -102,28 +92,26 @@ public class MainActivity extends AppCompatActivity {
                 .observe(
                         this,
                         translatedHtml -> {
+                            if (!isTranslating) {
+                                return;
+                            }
                             outputHtmlText.setText(translatedHtml);
                             refreshRenderedPreviewIfNeeded();
+                            showSuccessStatus();
                         });
         viewModel
-                .errorCode()
+                .errorReason()
                 .observe(
                         this,
-                        code -> {
-                            if (code == null) {
-                                errorCode.setText(getString(R.string.error_none));
-                            } else {
-                                errorCode.setText(code);
+                        reason -> {
+                            if (!isTranslating || reason == null) {
+                                return;
                             }
+                            showFailureStatus(reason);
                         });
 
-        Button translateButton = findViewById(R.id.translateButton);
         translateButton.setOnClickListener(
-                v ->
-                        viewModel.translate(
-                                inputHtmlText.getText().toString(),
-                                sourceSpinner.getSelectedItem().toString(),
-                                targetSpinner.getSelectedItem().toString()));
+                v -> startTranslation(sourceSpinner.getSelectedItem().toString()));
 
         modelActionButton.setOnClickListener(v -> onModelActionClicked());
 
@@ -161,8 +149,68 @@ public class MainActivity extends AppCompatActivity {
                 (buttonView, isChecked) -> applyRenderMode(isChecked));
 
         inputHtmlText.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
-        timingText.setText("");
+        translationResultText.setText("");
+        translationResultText.setVisibility(View.GONE);
+        translationProgressContainer.setVisibility(View.GONE);
         applyRenderMode(renderModeToggle.isChecked());
+        updateModelActionCaption();
+    }
+
+    private void startTranslation(String sourceLanguage) {
+        String htmlBody = inputHtmlText.getText().toString();
+        String targetLanguage = targetSpinner.getSelectedItem().toString();
+
+        currentRequestCharCount = htmlBody.length();
+        latestTimingReport = null;
+        isTranslating = true;
+        translationResultText.setText("");
+        translationResultText.setVisibility(View.GONE);
+        translationProgressContainer.setVisibility(View.VISIBLE);
+        translateButton.setEnabled(false);
+        modelActionButton.setEnabled(false);
+
+        viewModel.translate(htmlBody, sourceLanguage, targetLanguage);
+    }
+
+    private void showSuccessStatus() {
+        TranslationTimingReport report = latestTimingReport;
+        long durationMs = report != null ? report.getDurationMs() : 0L;
+        int chunkCount = report != null ? report.getChunkCount() : 0;
+        int translatedNodes = report != null ? report.getTranslatedNodes() : 0;
+        int totalNodes = report != null ? report.getTotalNodes() : 0;
+        int failedNodes = report != null ? report.getFailedNodes() : 0;
+        int retries = report != null ? report.getRetryCount() : 0;
+
+        translationResultText.setText(
+                getString(
+                        R.string.translation_result_success,
+                        currentRequestCharCount,
+                        durationMs,
+                        chunkCount,
+                        translatedNodes,
+                        totalNodes,
+                        failedNodes,
+                        retries));
+        finishTranslationState(false);
+    }
+
+    private void showFailureStatus(String reason) {
+        String failureReason =
+                "MODEL_UNAVAILABLE".equals(reason)
+                        ? getString(R.string.translation_model_unavailable)
+                        : reason;
+        translationResultText.setText(
+                getString(R.string.translation_result_failure, failureReason));
+        finishTranslationState(true);
+    }
+
+    private void finishTranslationState(boolean failed) {
+        isTranslating = false;
+        translationProgressContainer.setVisibility(View.GONE);
+        translationResultText.setVisibility(View.VISIBLE);
+        translationResultText.setTextColor(
+                getColor(failed ? R.color.mlkit_error : R.color.mlkit_on_surface_variant));
+        translateButton.setEnabled(true);
         updateModelActionCaption();
     }
 
@@ -283,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateModelActionCaption() {
-        if (isDownloadingModel) {
+        if (isDownloadingModel || isTranslating) {
             modelActionButton.setEnabled(false);
             return;
         }
