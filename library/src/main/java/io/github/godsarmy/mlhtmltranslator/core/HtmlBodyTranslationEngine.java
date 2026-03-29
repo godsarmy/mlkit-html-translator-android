@@ -21,6 +21,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
@@ -28,6 +29,10 @@ public final class HtmlBodyTranslationEngine {
 
     private static final int DEFAULT_MAX_IN_FLIGHT_CHUNKS = 2;
     private static final long DEFAULT_CHUNK_TIMEOUT_MS = 10_000L;
+    private static final Pattern LEGACY_MARKER_ARTIFACT_PATTERN =
+            Pattern.compile("\\[\\[\\[(?:\\s*SEG\\b[^\\]]*)?\\]?\\]?\\]?");
+    private static final Pattern COMPACT_MARKER_ARTIFACT_PATTERN =
+            Pattern.compile("⟦\\s*M\\b[^⟧]*⟧?");
 
     private final NodeCollector nodeCollector = new NodeCollector();
     private final TokenMasker tokenMasker = new TokenMasker();
@@ -125,9 +130,11 @@ public final class HtmlBodyTranslationEngine {
                         "Missing translated segment for node index " + i);
             }
 
+            String sanitizedMaskedText = stripMarkerArtifacts(translatedMaskedText);
+
             String unmasked =
                     tokenMasker.unmask(
-                            translatedMaskedText, maskingResults.get(i).getPlaceholderToOriginal());
+                            sanitizedMaskedText, maskingResults.get(i).getPlaceholderToOriginal());
             String restored = node.getLeadingWhitespace() + unmasked + node.getTrailingWhitespace();
             node.getTextNode().text(restored);
         }
@@ -242,6 +249,39 @@ public final class HtmlBodyTranslationEngine {
                     "Translation cancelled during chunk processing");
         }
 
+        if (chunk.getNodeIndexes().size() == 1) {
+            int nodeIndex = chunk.getNodeIndexes().get(0);
+            String originalText = chunk.getOriginalNodeTexts().get(0);
+            try {
+                String translated =
+                        translationAdapter.translate(
+                                originalText,
+                                sourceLanguage,
+                                targetLanguage,
+                                DEFAULT_CHUNK_TIMEOUT_MS);
+
+                if (cancelled.get()) {
+                    throw new TranslationException(
+                            TranslationErrorCode.CANCELLED,
+                            "Translation cancelled during chunk processing");
+                }
+
+                Map<Integer, String> mapped = new LinkedHashMap<>();
+                mapped.put(nodeIndex, translated);
+                return ChunkTranslationResult.success(mapped, 1, retryDepth);
+            } catch (TranslationException translationException) {
+                if (translationException.getErrorCode() == TranslationErrorCode.CANCELLED) {
+                    throw translationException;
+                }
+
+                if (options.getFailurePolicy() == HtmlTranslationOptions.FailurePolicy.FAIL_FAST) {
+                    throw translationException;
+                }
+
+                return ChunkTranslationResult.bestEffortOriginal(chunk, retryDepth);
+            }
+        }
+
         try {
             String translatedPayload =
                     translationAdapter.translate(
@@ -341,6 +381,14 @@ public final class HtmlBodyTranslationEngine {
 
             return ChunkTranslationResult.bestEffortOriginal(chunk, retryDepth + 1);
         }
+    }
+
+    @NonNull
+    private static String stripMarkerArtifacts(@NonNull String translatedMaskedText) {
+        String sanitized =
+                LEGACY_MARKER_ARTIFACT_PATTERN.matcher(translatedMaskedText).replaceAll("");
+        sanitized = COMPACT_MARKER_ARTIFACT_PATTERN.matcher(sanitized).replaceAll("");
+        return sanitized;
     }
 
     @NonNull

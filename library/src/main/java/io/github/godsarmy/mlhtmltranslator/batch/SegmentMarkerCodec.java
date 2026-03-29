@@ -20,11 +20,7 @@ public final class SegmentMarkerCodec {
     public SegmentMarkerCodec(@NonNull String sessionPrefix) {
         this.sessionPrefix = sessionPrefix;
         String escapedPrefix = Pattern.quote(sessionPrefix);
-        this.markerPattern =
-                Pattern.compile(
-                        "\\[\\[\\[\\s*SEG\\s*\\|\\s*"
-                                + escapedPrefix
-                                + "\\s*\\|\\s*(\\d+)\\s*\\]\\]\\]");
+        this.markerPattern = Pattern.compile("⟦\\s*M\\s*" + escapedPrefix + "\\s*:\\s*(\\d+)\\s*⟧");
     }
 
     @NonNull
@@ -32,7 +28,7 @@ public final class SegmentMarkerCodec {
         if (segmentIndex < 0) {
             throw new IllegalArgumentException("segmentIndex must be >= 0");
         }
-        return "[[[SEG|" + sessionPrefix + "|" + segmentIndex + "]]]";
+        return "⟦M" + sessionPrefix + ":" + segmentIndex + "⟧";
     }
 
     @NonNull

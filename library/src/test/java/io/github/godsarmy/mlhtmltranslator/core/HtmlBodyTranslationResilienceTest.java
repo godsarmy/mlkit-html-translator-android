@@ -1,6 +1,7 @@
 package io.github.godsarmy.mlhtmltranslator.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
@@ -76,8 +77,8 @@ public class HtmlBodyTranslationResilienceTest {
 
         MlTranslationAdapter markerBreakingAdapter =
                 (text, sourceLanguage, targetLanguage, timeoutMs) -> {
-                    if (text.contains("[[[SEG|")) {
-                        return text.replace("[[[SEG|", "BROKEN|");
+                    if (text.contains("⟦M")) {
+                        return text.replace("⟦M", "BROKEN|");
                     }
                     return text.toUpperCase();
                 };
@@ -144,5 +145,56 @@ public class HtmlBodyTranslationResilienceTest {
         }
 
         throw new AssertionError("Expected cancellation error");
+    }
+
+    @Test
+    public void singleNodeChunk_doesNotSendSegmentMarkerToTranslator() throws Exception {
+        HtmlBodyTranslationEngine engine = new HtmlBodyTranslationEngine();
+        HtmlTranslationOptions options = HtmlTranslationOptions.builder().build();
+
+        MlTranslationAdapter markerSensitiveAdapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) -> {
+                    if (text.contains("⟦M") || text.contains("[[[SEG|")) {
+                        throw new TranslationException(
+                                TranslationErrorCode.TRANSLATION_FAILED,
+                                "marker leaked into single-node translation");
+                    }
+                    return "HOLA";
+                };
+
+        HtmlBodyTranslationEngine.PipelineResult result =
+                engine.translateHtmlBodyWithReport(
+                        "<p>hello</p>",
+                        "en",
+                        "es",
+                        options,
+                        markerSensitiveAdapter,
+                        new AtomicBoolean(false));
+
+        assertTrue(result.getTranslatedHtml().contains("HOLA"));
+        assertEquals(1, result.getDiagnostics().getTranslatedNodes());
+        assertEquals(0, result.getDiagnostics().getRetryCount());
+    }
+
+    @Test
+    public void markerArtifacts_areStrippedFromFinalText() throws Exception {
+        HtmlBodyTranslationEngine engine = new HtmlBodyTranslationEngine();
+        HtmlTranslationOptions options = HtmlTranslationOptions.builder().build();
+
+        MlTranslationAdapter artifactAdapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) -> "hola [[[SEG|BROKEN";
+
+        HtmlBodyTranslationEngine.PipelineResult result =
+                engine.translateHtmlBodyWithReport(
+                        "<p>hello</p>",
+                        "en",
+                        "es",
+                        options,
+                        artifactAdapter,
+                        new AtomicBoolean(false));
+
+        assertTrue(result.getTranslatedHtml().contains("hola"));
+        assertFalse(result.getTranslatedHtml().contains("[[["));
+        assertFalse(result.getTranslatedHtml().contains("SEG|"));
     }
 }
