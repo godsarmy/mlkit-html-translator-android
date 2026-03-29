@@ -1,71 +1,146 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import androidx.annotation.NonNull;
-import java.util.Collections;
+import com.google.mlkit.common.model.DownloadConditions;
+import com.google.mlkit.common.model.RemoteModelManager;
+import com.google.mlkit.nl.translate.TranslateLanguage;
+import com.google.mlkit.nl.translate.TranslateRemoteModel;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * App-layer utility for ML model lifecycle ownership.
- *
- * <p>In production this should wrap ML Kit APIs: RemoteModelManager, TranslateRemoteModel, and
- * DownloadConditions.
- */
 public final class ModelLifecycleManager {
 
-    private static final String PREFS_NAME = "mlhtmltranslator_sample_models";
-    private static final String KEY_DOWNLOADED_MODELS = "downloaded_models";
+    public interface RefreshCallback {
+        void onComplete();
 
-    private final Set<String> downloadedModels = Collections.synchronizedSet(new HashSet<>());
-    private final SharedPreferences preferences;
+        void onError(@NonNull String reason);
+    }
 
-    public ModelLifecycleManager(@NonNull Context context) {
-        preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        Set<String> savedModels = preferences.getStringSet(KEY_DOWNLOADED_MODELS, null);
-        if (savedModels != null && !savedModels.isEmpty()) {
-            downloadedModels.addAll(savedModels);
-        } else {
-            // Sample default: English is present.
-            downloadedModels.add("en");
-            persistModels();
-        }
+    public interface ActionCallback {
+        void onSuccess();
+
+        void onFailure(@NonNull String reason);
+    }
+
+    private final RemoteModelManager remoteModelManager = RemoteModelManager.getInstance();
+    private final DownloadConditions downloadConditions = new DownloadConditions.Builder().build();
+    private final Set<String> downloadedModels = new HashSet<>();
+
+    public ModelLifecycleManager() {
+        downloadedModels.add(TranslateLanguage.ENGLISH);
     }
 
     public boolean isModelAvailable(String languageCode) {
-        if (languageCode == null || languageCode.trim().isEmpty()) {
+        String normalized = normalizeLanguageCode(languageCode);
+        if (normalized == null) {
             return false;
         }
-        return downloadedModels.contains(languageCode.trim().toLowerCase());
+        return isBuiltInLanguage(normalized) || downloadedModels.contains(normalized);
     }
 
-    public boolean downloadModel(String languageCode) {
+    public void refreshDownloadedModels(@NonNull RefreshCallback callback) {
+        remoteModelManager
+                .getDownloadedModels(TranslateRemoteModel.class)
+                .addOnSuccessListener(
+                        models -> {
+                            synchronized (downloadedModels) {
+                                downloadedModels.clear();
+                                downloadedModels.add(TranslateLanguage.ENGLISH);
+                                for (TranslateRemoteModel model : models) {
+                                    downloadedModels.add(model.getLanguage());
+                                }
+                            }
+                            callback.onComplete();
+                        })
+                .addOnFailureListener(
+                        error ->
+                                callback.onError(messageOrDefault(error, "Failed to load models")));
+    }
+
+    public void downloadModel(@NonNull String languageCode, @NonNull ActionCallback callback) {
+        String normalized = normalizeLanguageCode(languageCode);
+        if (normalized == null) {
+            callback.onFailure("Unsupported language code");
+            return;
+        }
+        if (isBuiltInLanguage(normalized) || isModelAvailable(normalized)) {
+            callback.onSuccess();
+            return;
+        }
+
+        TranslateRemoteModel model = new TranslateRemoteModel.Builder(normalized).build();
+        remoteModelManager
+                .download(model, downloadConditions)
+                .addOnSuccessListener(
+                        unused -> {
+                            synchronized (downloadedModels) {
+                                downloadedModels.add(normalized);
+                            }
+                            callback.onSuccess();
+                        })
+                .addOnFailureListener(
+                        error ->
+                                callback.onFailure(
+                                        messageOrDefault(
+                                                error, "Failed to download language model")));
+    }
+
+    public void deleteModel(@NonNull String languageCode, @NonNull ActionCallback callback) {
+        String normalized = normalizeLanguageCode(languageCode);
+        if (normalized == null) {
+            callback.onFailure("Unsupported language code");
+            return;
+        }
+        if (isBuiltInLanguage(normalized)) {
+            callback.onFailure("Built-in model cannot be deleted");
+            return;
+        }
+
+        TranslateRemoteModel model = new TranslateRemoteModel.Builder(normalized).build();
+        remoteModelManager
+                .deleteDownloadedModel(model)
+                .addOnSuccessListener(
+                        unused -> {
+                            synchronized (downloadedModels) {
+                                downloadedModels.remove(normalized);
+                            }
+                            callback.onSuccess();
+                        })
+                .addOnFailureListener(
+                        error ->
+                                callback.onFailure(
+                                        messageOrDefault(
+                                                error, "Failed to delete language model")));
+    }
+
+    private static boolean isBuiltInLanguage(@NonNull String languageCode) {
+        return TranslateLanguage.ENGLISH.equals(languageCode);
+    }
+
+    private static String normalizeLanguageCode(String languageCode) {
         if (languageCode == null || languageCode.trim().isEmpty()) {
-            return false;
+            return null;
         }
-        boolean changed = downloadedModels.add(languageCode.trim().toLowerCase());
-        if (changed) {
-            persistModels();
+
+        String normalizedInput = languageCode.trim();
+        String translatedLanguage = TranslateLanguage.fromLanguageTag(normalizedInput);
+        if (translatedLanguage != null) {
+            return translatedLanguage;
         }
-        return changed;
+
+        int separatorIndex = normalizedInput.indexOf('-');
+        if (separatorIndex < 0) {
+            separatorIndex = normalizedInput.indexOf('_');
+        }
+        if (separatorIndex > 0) {
+            return TranslateLanguage.fromLanguageTag(normalizedInput.substring(0, separatorIndex));
+        }
+
+        return null;
     }
 
-    public boolean deleteModel(String languageCode) {
-        if (languageCode == null || languageCode.trim().isEmpty()) {
-            return false;
-        }
-        boolean changed = downloadedModels.remove(languageCode.trim().toLowerCase());
-        if (changed) {
-            persistModels();
-        }
-        return changed;
-    }
-
-    private void persistModels() {
-        preferences
-                .edit()
-                .putStringSet(KEY_DOWNLOADED_MODELS, new HashSet<>(downloadedModels))
-                .apply();
+    private static String messageOrDefault(@NonNull Exception error, @NonNull String fallback) {
+        String message = error.getMessage();
+        return message == null || message.trim().isEmpty() ? fallback : message;
     }
 }

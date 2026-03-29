@@ -30,7 +30,10 @@ android {
 }
 
 dependencies {
+    def mlkitTranslateVersion = project.findProperty('mlkitTranslateVersion') ?: '17.0.3'
+
     implementation project(':library')
+    implementation "com.google.mlkit:translate:${mlkitTranslateVersion}"
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel:2.8.6'
     implementation 'androidx.lifecycle:lifecycle-livedata:2.8.6'

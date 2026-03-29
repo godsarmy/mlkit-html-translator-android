@@ -2,8 +2,6 @@ package io.github.godsarmy.mlhtmltranslator.sample;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -14,8 +12,10 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.mlkit.nl.translate.TranslateLanguage;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingListener;
@@ -27,8 +27,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
-
-    private static final long MODEL_DOWNLOAD_DELAY_MS = 2200L;
 
     private TranslationViewModel viewModel;
     private Button modelActionButton;
@@ -45,8 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private int currentRequestCharCount;
     private TranslationTimingReport latestTimingReport;
 
-    private final Handler handler = new Handler(Looper.getMainLooper());
-    private Runnable pendingDownloadRunnable;
+    private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
     private boolean isDownloadingModel;
 
@@ -81,10 +78,10 @@ public class MainActivity extends AppCompatActivity {
 
         MlKitHtmlTranslator translator =
                 new MlKitHtmlTranslator(
+                        getApplicationContext(),
                         HtmlTranslationOptions.builder().setTimingListener(timingListener).build());
         TranslationRepository repository = new TranslationRepository(translator);
-        ModelLifecycleManager modelLifecycleManager =
-                new ModelLifecycleManager(getApplicationContext());
+        ModelLifecycleManager modelLifecycleManager = new ModelLifecycleManager();
         viewModel = new TranslationViewModel(repository, modelLifecycleManager);
 
         viewModel
@@ -120,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(
                             AdapterView<?> parent, android.view.View view, int position, long id) {
-                        updateModelActionCaption();
+                        refreshDownloadedModels();
                     }
 
                     @Override
@@ -153,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         translationResultText.setVisibility(View.GONE);
         translationProgressContainer.setVisibility(View.GONE);
         applyRenderMode(renderModeToggle.isChecked());
-        updateModelActionCaption();
+        refreshDownloadedModels();
     }
 
     private void startTranslation(String sourceLanguage) {
@@ -270,8 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
         String targetLanguage = targetSpinner.getSelectedItem().toString();
         if (viewModel.isModelAvailable(targetLanguage)) {
-            viewModel.deleteModel(targetLanguage);
-            updateModelActionCaption();
+            deleteModel(targetLanguage);
             return;
         }
 
@@ -279,22 +275,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startModelDownload(String targetLanguage) {
+        int requestId = ++activeDownloadRequestId;
         isDownloadingModel = true;
-        modelActionButton.setEnabled(false);
-        showDownloadProgressDialog(targetLanguage);
+        updateModelActionCaption();
+        showDownloadProgressDialog(targetLanguage, requestId);
 
-        pendingDownloadRunnable =
-                () -> {
-                    pendingDownloadRunnable = null;
-                    dismissDownloadProgressDialog();
-                    viewModel.downloadModel(targetLanguage);
-                    isDownloadingModel = false;
-                    updateModelActionCaption();
-                };
-        handler.postDelayed(pendingDownloadRunnable, MODEL_DOWNLOAD_DELAY_MS);
+        viewModel.downloadModel(
+                targetLanguage,
+                new ModelLifecycleManager.ActionCallback() {
+                    @Override
+                    public void onSuccess() {
+                        if (requestId != activeDownloadRequestId) {
+                            return;
+                        }
+                        activeDownloadRequestId = 0;
+                        isDownloadingModel = false;
+                        dismissDownloadProgressDialog();
+                        refreshDownloadedModels();
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull String reason) {
+                        if (requestId != activeDownloadRequestId) {
+                            return;
+                        }
+                        activeDownloadRequestId = 0;
+                        isDownloadingModel = false;
+                        dismissDownloadProgressDialog();
+                        showFailureStatus(reason);
+                    }
+                });
     }
 
-    private void showDownloadProgressDialog(String targetLanguage) {
+    private void deleteModel(String targetLanguage) {
+        isDownloadingModel = true;
+        updateModelActionCaption();
+        viewModel.deleteModel(
+                targetLanguage,
+                new ModelLifecycleManager.ActionCallback() {
+                    @Override
+                    public void onSuccess() {
+                        isDownloadingModel = false;
+                        refreshDownloadedModels();
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull String reason) {
+                        isDownloadingModel = false;
+                        showFailureStatus(reason);
+                    }
+                });
+    }
+
+    private void showDownloadProgressDialog(String targetLanguage, int requestId) {
         dismissDownloadProgressDialog();
         downloadProgressDialog =
                 new AlertDialog.Builder(this)
@@ -304,23 +337,35 @@ public class MainActivity extends AppCompatActivity {
                         .setCancelable(true)
                         .setNegativeButton(
                                 R.string.cancel_download,
-                                (dialog, which) -> cancelModelDownload(targetLanguage))
-                        .setOnCancelListener(dialog -> cancelModelDownload(targetLanguage))
+                                (dialog, which) -> cancelModelDownload(requestId))
+                        .setOnCancelListener(dialog -> cancelModelDownload(requestId))
                         .create();
         downloadProgressDialog.show();
     }
 
-    private void cancelModelDownload(String targetLanguage) {
-        if (!isDownloadingModel) {
+    private void cancelModelDownload(int requestId) {
+        if (!isDownloadingModel || requestId != activeDownloadRequestId) {
             return;
         }
-        if (pendingDownloadRunnable != null) {
-            handler.removeCallbacks(pendingDownloadRunnable);
-            pendingDownloadRunnable = null;
-        }
+        activeDownloadRequestId = 0;
         isDownloadingModel = false;
         dismissDownloadProgressDialog();
         updateModelActionCaption();
+    }
+
+    private void refreshDownloadedModels() {
+        viewModel.refreshDownloadedModels(
+                new ModelLifecycleManager.RefreshCallback() {
+                    @Override
+                    public void onComplete() {
+                        updateModelActionCaption();
+                    }
+
+                    @Override
+                    public void onError(@NonNull String reason) {
+                        updateModelActionCaption();
+                    }
+                });
     }
 
     private void dismissDownloadProgressDialog() {
@@ -341,9 +386,11 @@ public class MainActivity extends AppCompatActivity {
                         ? ""
                         : targetSpinner.getSelectedItem().toString();
         boolean available = viewModel.isModelAvailable(targetLanguage);
+        String normalizedTarget = TranslateLanguage.fromLanguageTag(targetLanguage);
+        boolean builtIn = TranslateLanguage.ENGLISH.equals(normalizedTarget);
         modelActionButton.setText(
                 available ? R.string.action_delete_model : R.string.action_download_model);
-        modelActionButton.setEnabled(true);
+        modelActionButton.setEnabled(!builtIn);
     }
 
     private void setupSpinner(Spinner spinner, int arrayRes) {
@@ -372,10 +419,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if (pendingDownloadRunnable != null) {
-            handler.removeCallbacks(pendingDownloadRunnable);
-            pendingDownloadRunnable = null;
-        }
         dismissDownloadProgressDialog();
         if (inputRenderedHtml != null) {
             inputRenderedHtml.destroy();

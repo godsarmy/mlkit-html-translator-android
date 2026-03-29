@@ -14,7 +14,6 @@ public final class TranslationViewModel extends ViewModel {
     private final ModelLifecycleManager modelLifecycleManager;
     private final MutableLiveData<String> translatedHtml = new MutableLiveData<>();
     private final MutableLiveData<String> errorReason = new MutableLiveData<>();
-    private final MutableLiveData<String> modelStatus = new MutableLiveData<>();
 
     public TranslationViewModel(
             @NonNull TranslationRepository repository,
@@ -31,11 +30,6 @@ public final class TranslationViewModel extends ViewModel {
     @NonNull
     public LiveData<String> errorReason() {
         return errorReason;
-    }
-
-    @NonNull
-    public LiveData<String> modelStatus() {
-        return modelStatus;
     }
 
     public void translate(String htmlBody, String sourceLanguage, String targetLanguage) {
@@ -67,26 +61,21 @@ public final class TranslationViewModel extends ViewModel {
                 });
     }
 
-    public void downloadModel(String languageCode) {
-        boolean changed = modelLifecycleManager.downloadModel(languageCode);
-        modelStatus.postValue(
-                changed
-                        ? "Downloaded model: " + languageCode
-                        : "Model already downloaded: " + languageCode);
+    public void refreshDownloadedModels(@NonNull ModelLifecycleManager.RefreshCallback callback) {
+        modelLifecycleManager.refreshDownloadedModels(callback);
+    }
+
+    public void downloadModel(
+            @NonNull String languageCode, @NonNull ModelLifecycleManager.ActionCallback callback) {
+        modelLifecycleManager.downloadModel(languageCode, callback);
     }
 
     public boolean isModelAvailable(String languageCode) {
         return modelLifecycleManager.isModelAvailable(languageCode);
     }
 
-    public void deleteModel(String languageCode) {
-        boolean changed = modelLifecycleManager.deleteModel(languageCode);
-        modelStatus.postValue(
-                changed ? "Deleted model: " + languageCode : "Model not found: " + languageCode);
-    }
-
-    public void checkModel(String languageCode) {
-        boolean available = modelLifecycleManager.isModelAvailable(languageCode);
-        modelStatus.postValue((available ? "Available" : "Missing") + " model: " + languageCode);
+    public void deleteModel(
+            @NonNull String languageCode, @NonNull ModelLifecycleManager.ActionCallback callback) {
+        modelLifecycleManager.deleteModel(languageCode, callback);
     }
 }

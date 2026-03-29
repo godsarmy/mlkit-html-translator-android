@@ -1,8 +1,10 @@
 package io.github.godsarmy.mlhtmltranslator.api;
 
+import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import io.github.godsarmy.mlhtmltranslator.backend.IdentityTranslationAdapter;
+import io.github.godsarmy.mlhtmltranslator.backend.MlKitTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.cache.InMemoryTranslationCache;
 import io.github.godsarmy.mlhtmltranslator.cache.TranslationCache;
@@ -35,6 +37,13 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
         this(
                 options,
                 new IdentityTranslationAdapter(),
+                new InMemoryTranslationCache(DEFAULT_CACHE_SIZE));
+    }
+
+    public MlKitHtmlTranslator(@NonNull Context context, @Nullable HtmlTranslationOptions options) {
+        this(
+                options,
+                new MlKitTranslationAdapter(context),
                 new InMemoryTranslationCache(DEFAULT_CACHE_SIZE));
     }
 
@@ -138,6 +147,13 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
     public void close() {
         cancelled.set(true);
         translationCache.clear();
+        if (translationAdapter instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable) translationAdapter).close();
+            } catch (Exception ignored) {
+                // no-op
+            }
+        }
     }
 
     @NonNull
