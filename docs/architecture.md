@@ -6,7 +6,7 @@ This library translates **HTML body content** while preserving structure and pro
 
 High-level flow:
 
-1. Validate request + cache lookup (`MlKitHtmlTranslator`)
+1. Validate request (`MlKitHtmlTranslator`)
 2. Parse/traverse DOM and collect eligible text nodes (`NodeCollector`)
 3. Mask sensitive tokens (`TokenMasker`)
 4. Build markerized chunks (`ChunkBuilder`, `SegmentMarkerCodec`)
@@ -26,8 +26,6 @@ High-level flow:
   - Segment markers, chunk creation, result mapping
 - `mask/`
   - URL/placeholder/path token masking and restoration
-- `cache/`
-  - Cache abstraction + in-memory LRU + cache-key hashing
 - `backend/`
   - Translation backend contract (`MlTranslationAdapter`)
 
@@ -40,9 +38,7 @@ High-level flow:
 `MlKitHtmlTranslator.translateHtml(...)`:
 
 - validates non-blank input/language params
-- computes cache key (`html + src + tgt + optionsVersion` → SHA-256)
-- returns cache hit immediately when available
-- delegates misses to `HtmlBodyTranslationEngine`
+- delegates to `HtmlBodyTranslationEngine`
 - maps failures into `TranslationException` callback paths
 
 ### 2) DOM collection
@@ -89,17 +85,6 @@ Diagnostics include: total/translated/failed nodes, retries, chunk count, and st
 
 ---
 
-## Caching model
-
-- Interface: `TranslationCache`
-- Default: `InMemoryTranslationCache` (synchronized LRU)
-- Key generation: `TranslationCacheKeyFactory`
-  - includes source/target language and options version
-  - options version normalizes protected-tag order
-- `close()` clears cache and marks translator cancelled
-
----
-
 ## Architecture boundaries
 
 This library intentionally does **not** manage ML Kit model lifecycle.
@@ -114,12 +99,11 @@ Library owns:
 
 - HTML-safe translation pipeline
 - fallback/cancellation behavior
-- cache + diagnostics/timing
+- diagnostics/timing
 
 ---
 
 ## Extension points
 
 - Swap backend by providing custom `MlTranslationAdapter`
-- Provide custom cache implementation via `TranslationCache`
 - Tune behavior via `HtmlTranslationOptions` (masking, chunking, failure policy, protected tags)

@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
-import io.github.godsarmy.mlhtmltranslator.cache.InMemoryTranslationCache;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Test;
 
@@ -23,49 +22,41 @@ public class MlKitHtmlTranslatorLifecycleTest {
     }
 
     @Test
-    public void close_clearsCacheSoNextTranslatorDoesNotReuseOldEntries() {
+    public void close_thenNewTranslatorStillTranslates() {
         AtomicInteger callCount = new AtomicInteger(0);
         MlTranslationAdapter adapter =
                 (text, sourceLanguage, targetLanguage, timeoutMs) -> {
                     callCount.incrementAndGet();
                     return text;
                 };
-        InMemoryTranslationCache sharedCache = new InMemoryTranslationCache(16);
 
         MlKitHtmlTranslator first =
-                new MlKitHtmlTranslator(
-                        HtmlTranslationOptions.builder().build(), adapter, sharedCache);
+                new MlKitHtmlTranslator(HtmlTranslationOptions.builder().build(), adapter);
         first.translateHtml("<p>Hello</p>", "en", "es", new CapturingCallback());
         first.close();
 
         MlKitHtmlTranslator second =
-                new MlKitHtmlTranslator(
-                        HtmlTranslationOptions.builder().build(), adapter, sharedCache);
+                new MlKitHtmlTranslator(HtmlTranslationOptions.builder().build(), adapter);
         second.translateHtml("<p>Hello</p>", "en", "es", new CapturingCallback());
 
         assertEquals(2, callCount.get());
     }
 
     @Test
-    public void sharedCache_differentMaskOptionsUseDifferentCacheKeys() {
+    public void differentMaskOptionsDoNotShareTranslatorState() {
         AtomicInteger callCount = new AtomicInteger(0);
         MlTranslationAdapter adapter =
                 (text, sourceLanguage, targetLanguage, timeoutMs) -> {
                     callCount.incrementAndGet();
                     return text;
                 };
-        InMemoryTranslationCache sharedCache = new InMemoryTranslationCache(16);
 
         MlKitHtmlTranslator maskPathsOn =
                 new MlKitHtmlTranslator(
-                        HtmlTranslationOptions.builder().setMaskPaths(true).build(),
-                        adapter,
-                        sharedCache);
+                        HtmlTranslationOptions.builder().setMaskPaths(true).build(), adapter);
         MlKitHtmlTranslator maskPathsOff =
                 new MlKitHtmlTranslator(
-                        HtmlTranslationOptions.builder().setMaskPaths(false).build(),
-                        adapter,
-                        sharedCache);
+                        HtmlTranslationOptions.builder().setMaskPaths(false).build(), adapter);
 
         String html = "<p>Path: /tmp/data.txt</p>";
         maskPathsOn.translateHtml(html, "en", "es", new CapturingCallback());

@@ -53,11 +53,11 @@ When timing is enabled via `TranslationTimingListener`, `TranslationTimingReport
 - `failedNodes`
 - `retryCount`
 
-## Cache behavior
+## Translation behavior
 
-- In-memory LRU cache is enabled by default.
-- Key is hash of: `htmlBody + sourceLanguage + targetLanguage + optionsVersion`.
-- Cache invalidates automatically when options version changes.
+- The library executes the translation pipeline for each request.
+- It does not cache translated results internally.
+- If caching is needed, implement it at the app/repository layer.
 
 ## Lifecycle boundary
 

@@ -8,7 +8,6 @@ Measured via unit benchmarks in `HtmlTranslationPerformanceTest`:
 - masking/chunking duration
 - translation duration
 - translation call reduction: per-node baseline vs chunked
-- repeated translation stability with cache hits
 
 ## Defaults used
 
@@ -19,7 +18,6 @@ Measured via unit benchmarks in `HtmlTranslationPerformanceTest`:
 
 - Chunked flow produced at least **40% fewer translation calls** than per-node baseline on large HTML fixtures.
 - Large manual-like HTML fixture translation completed in unit tests without OOM.
-- Repeated translation calls were stable with cache hits (adapter invocation stayed constant after warm-up).
 
 ## Notes
 

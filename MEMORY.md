@@ -20,3 +20,8 @@
 - `LiveData` unit tests require `InstantTaskExecutorRule`; using `postValue` keeps ViewModel updates safe across test/runtime threads.
 - ML translation can mutate structural marker text; avoid relying on verbose natural-language marker tokens for chunk reassembly.
 - For reliability, use marker-free translation for single-node chunks and sanitize orphan marker fragments before final DOM write-back.
+
+## Product decision: translation result caching is app-owned, not library-owned
+
+- `MlKitHtmlTranslator` should execute translation per request without internal result caching.
+- If caching is desired, implement it in app/repository logic so each app controls lifetime and eviction policy.

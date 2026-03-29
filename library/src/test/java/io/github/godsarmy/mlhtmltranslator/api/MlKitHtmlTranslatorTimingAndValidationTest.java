@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
-import io.github.godsarmy.mlhtmltranslator.cache.InMemoryTranslationCache;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,8 +37,7 @@ public class MlKitHtmlTranslatorTimingAndValidationTest {
         List<TranslationTimingReport> reports = new ArrayList<>();
         HtmlTranslationOptions options =
                 HtmlTranslationOptions.builder().setTimingListener(reports::add).build();
-        MlKitHtmlTranslator translator =
-                new MlKitHtmlTranslator(options, adapter, new InMemoryTranslationCache(16));
+        MlKitHtmlTranslator translator = new MlKitHtmlTranslator(options, adapter);
 
         CapturingCallback callback = new CapturingCallback();
         translator.translateHtml("<p>Hello world</p>", "en", "es", callback);
@@ -52,22 +50,26 @@ public class MlKitHtmlTranslatorTimingAndValidationTest {
     }
 
     @Test
-    public void translateHtml_cacheHitReportsZeroChunkCount() {
+    public void translateHtml_repeatedRequestsStillRunTranslationPipeline() {
+        AtomicInteger adapterCalls = new AtomicInteger(0);
         MlTranslationAdapter adapter =
-                (text, sourceLanguage, targetLanguage, timeoutMs) -> text.replace("Hello", "Hola");
+                (text, sourceLanguage, targetLanguage, timeoutMs) -> {
+                    adapterCalls.incrementAndGet();
+                    return text.replace("Hello", "Hola");
+                };
 
         List<TranslationTimingReport> reports = new ArrayList<>();
         HtmlTranslationOptions options =
                 HtmlTranslationOptions.builder().setTimingListener(reports::add).build();
-        MlKitHtmlTranslator translator =
-                new MlKitHtmlTranslator(options, adapter, new InMemoryTranslationCache(16));
+        MlKitHtmlTranslator translator = new MlKitHtmlTranslator(options, adapter);
 
         translator.translateHtml("<p>Hello world</p>", "en", "es", new CapturingCallback());
         translator.translateHtml("<p>Hello world</p>", "en", "es", new CapturingCallback());
 
+        assertEquals(2, adapterCalls.get());
         assertEquals(2, reports.size());
         assertTrue(reports.get(0).getChunkCount() > 0);
-        assertEquals(0, reports.get(1).getChunkCount());
+        assertTrue(reports.get(1).getChunkCount() > 0);
     }
 
     private static final class CapturingCallback implements TranslationCallback {

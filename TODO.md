@@ -210,16 +210,13 @@ Deliverable:
 
 ---
 
-## Phase 8 — Caching strategy
+## Phase 8 — Caching policy (app-owned)
 
-- [x] Add in-memory cache key:
-  - [x] hash(`htmlBody + sourceLang + targetLang + optionsVersion`)
-- [x] Optional persistent cache interface (pluggable).
-- [x] Add cache size and eviction policy.
-- [x] Ensure cache invalidates on options/version change.
+- [x] Remove library-owned translation result cache from `MlKitHtmlTranslator`.
+- [x] Document that any caching should be implemented in app/repository layer.
 
 Deliverable:
-- [x] Fast repeat translations via cache hits
+- [x] Library remains stateless per request with app-controlled caching strategy
 
 ---
 
@@ -286,7 +283,7 @@ Deliverable:
 Acceptance targets (adjust per product needs):
 - [x] at least 40% fewer translation calls vs per-node baseline
 - [x] no OOM on large manual pages in test corpus
-- [x] stable runtime for repeated translations with cache
+- [x] stable runtime for repeated translations without library-owned cache
 
 Deliverable:
 - [x] Bench report + tuned defaults
@@ -329,8 +326,6 @@ Deliverable:
   - [x] `TokenPatternRegistry`
 - [x] `library/src/main/java/.../backend/`
   - [x] `MlTranslationAdapter`
-- [x] `library/src/main/java/.../cache/`
-  - [x] `TranslationCache`
 - [x] `sample/` (demo app with app-side model manager usage)
 - [x] `docs/` (API + integration)
 
