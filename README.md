@@ -127,7 +127,7 @@ The `sample/` app demonstrates:
 
 ## User documentation
 
-- API reference: `docs/api.md`
-- Integration guide: `docs/integration.md`
-- Benchmark summary: `docs/bench-report.md`
-- Architecture details: `docs/architecture.md`
+- API reference: [docs/api.md](docs/api.md)
+- Integration guide: [docs/integration.md](docs/integration.md)
+- Benchmark summary: [docs/bench-report.md](docs/bench-report.md)
+- Architecture details: [docs/architecture.md](docs/architecture.md)

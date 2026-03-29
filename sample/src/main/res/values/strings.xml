@@ -31,6 +31,8 @@
 	<string name="translation_model_unavailable">Model unavailable for source or target language</string>
 	<string name="model_download_progress_title">Downloading language pack</string>
 	<string name="model_download_progress_message">Downloading %1$s language pack…</string>
+	<string name="model_delete_confirmation_title">Delete language pack?</string>
+	<string name="model_delete_confirmation_message">Delete downloaded model for %1$s?</string>
 	<string name="cancel_download">Cancel</string>
 	<string name="explain_html_screen_title">Explain HTML preprocess</string>
 	<string name="explain_loading">Preparing explain result...</string>

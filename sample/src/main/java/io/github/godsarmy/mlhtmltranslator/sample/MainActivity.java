@@ -441,7 +441,7 @@ public class MainActivity extends AppCompatActivity {
 
         String targetLanguage = targetSpinner.getSelectedItem().toString();
         if (viewModel.isModelAvailable(targetLanguage)) {
-            deleteModel(targetLanguage);
+            showDeleteModelConfirmationDialog(targetLanguage);
             return;
         }
 
@@ -499,6 +499,17 @@ public class MainActivity extends AppCompatActivity {
                         showFailureStatus(reason);
                     }
                 });
+    }
+
+    private void showDeleteModelConfirmationDialog(@NonNull String targetLanguage) {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.model_delete_confirmation_title)
+                .setMessage(getString(R.string.model_delete_confirmation_message, targetLanguage))
+                .setNegativeButton(R.string.cancel_download, null)
+                .setPositiveButton(
+                        R.string.action_delete_model,
+                        (dialog, which) -> deleteModel(targetLanguage))
+                .show();
     }
 
     private void showDownloadProgressDialog(String targetLanguage, int requestId) {
