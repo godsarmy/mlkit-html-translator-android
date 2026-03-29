@@ -6,8 +6,8 @@
 	<string name="label_target_language">Target language</string>
 	<string name="label_sample_asset">Sample HTML asset</string>
 	<string name="label_render_html_mode">Render HTML preview mode</string>
-	<string name="label_input_html">Input HTML body</string>
-	<string name="label_output_html">Translated output preview</string>
+	<string name="label_input_html">Original HTML body</string>
+	<string name="label_output_html">Translated HTML body</string>
 	<string name="action_translate">Translate HTML</string>
 	<string name="action_download_model">Download model</string>
 	<string name="action_delete_model">Delete model</string>

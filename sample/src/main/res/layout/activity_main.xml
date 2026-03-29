@@ -19,12 +19,6 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" />
 
-		<CheckBox android:id="@+id/renderModeToggle"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="8dp"
-			android:checked="false" android:text="@string/label_render_html_mode"
-			android:textColor="@color/mlkit_on_background" />
-
 		<TextView android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="16dp"
 			android:text="@string/label_input_html"
@@ -78,6 +72,12 @@
 				android:layout_height="match_parent" android:visibility="gone" />
 		</FrameLayout>
 
+		<CheckBox android:id="@+id/renderModeToggle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="8dp"
+			android:checked="false" android:text="@string/label_render_html_mode"
+			android:textColor="@color/mlkit_on_background" />
+
 		<LinearLayout android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="14dp"
 			android:orientation="horizontal">
@@ -120,9 +120,11 @@
 			<com.google.android.material.button.MaterialButton
 				android:id="@+id/downloadModelButton" android:layout_width="0dp"
 				android:layout_height="52dp" android:layout_weight="1"
+				android:elevation="0dp" android:stateListAnimator="@null"
 				android:text="@string/action_download_model"
 				android:textAllCaps="false"
 				android:textColor="@color/mlkit_on_background"
+				android:translationZ="0dp"
 				app:backgroundTint="@color/mlkit_bg_elevated"
 				app:cornerRadius="14dp" app:strokeColor="@color/mlkit_outline"
 				app:strokeWidth="1dp" />
@@ -132,8 +134,9 @@
 			<com.google.android.material.button.MaterialButton
 				android:id="@+id/translateButton" android:layout_width="0dp"
 				android:layout_height="52dp" android:layout_weight="1"
+				android:elevation="0dp" android:stateListAnimator="@null"
 				android:text="@string/action_translate" android:textAllCaps="false"
-				android:textColor="@android:color/white"
+				android:textColor="@android:color/white" android:translationZ="0dp"
 				app:backgroundTint="@color/mlkit_primary" app:cornerRadius="14dp" />
 		</LinearLayout>
 
