@@ -17,5 +17,19 @@ public class HtmlTranslationOptionsTest {
         assertTrue(options.getProtectedTags().contains("pre"));
         assertTrue(options.getProtectedTags().contains("script"));
         assertTrue(options.getProtectedTags().contains("style"));
+        assertEquals("[{[", options.getPlaceholderMarkerStart());
+        assertEquals("]}]", options.getPlaceholderMarkerEnd());
+    }
+
+    @Test
+    public void placeholderMarkers_areConfigurable() {
+        HtmlTranslationOptions options =
+                HtmlTranslationOptions.builder()
+                        .setPlaceholderMarkerStart("@[@")
+                        .setPlaceholderMarkerEnd("@]@")
+                        .build();
+
+        assertEquals("@[@", options.getPlaceholderMarkerStart());
+        assertEquals("@]@", options.getPlaceholderMarkerEnd());
     }
 }

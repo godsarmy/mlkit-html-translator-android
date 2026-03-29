@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content" android:orientation="vertical"
+	android:paddingTop="8dp">
+
+	<TextView android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="@string/label_placeholder_marker_start"
+		android:textColor="@color/mlkit_on_surface_variant" />
+
+	<EditText android:id="@+id/markerStartInput"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" android:layout_marginTop="4dp"
+		android:hint="@string/hint_placeholder_marker_start"
+		android:inputType="text" android:singleLine="true"
+		android:textColor="@color/mlkit_on_background"
+		android:textColorHint="@color/mlkit_on_surface_variant" />
+
+	<TextView android:layout_width="match_parent"
+		android:layout_height="wrap_content" android:layout_marginTop="10dp"
+		android:text="@string/label_placeholder_marker_end"
+		android:textColor="@color/mlkit_on_surface_variant" />
+
+	<EditText android:id="@+id/markerEndInput"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" android:layout_marginTop="4dp"
+		android:hint="@string/hint_placeholder_marker_end"
+		android:inputType="text" android:singleLine="true"
+		android:textColor="@color/mlkit_on_background"
+		android:textColorHint="@color/mlkit_on_surface_variant" />
+</LinearLayout>

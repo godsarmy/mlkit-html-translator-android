@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlChunk;
 import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlNode;
 import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlResult;
+import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,8 @@ import java.util.concurrent.Executors;
 
 public final class ExplainHtmlActivity extends AppCompatActivity {
     private static final String EXTRA_HTML_BODY = "extra_html_body";
+    private static final String EXTRA_MARKER_START = "extra_marker_start";
+    private static final String EXTRA_MARKER_END = "extra_marker_end";
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -30,9 +33,12 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     private TextView chunksValue;
     private TextView nodesValue;
 
-    public static Intent createIntent(Context context, String htmlBody) {
+    public static Intent createIntent(
+            Context context, String htmlBody, String markerStart, String markerEnd) {
         Intent intent = new Intent(context, ExplainHtmlActivity.class);
         intent.putExtra(EXTRA_HTML_BODY, htmlBody);
+        intent.putExtra(EXTRA_MARKER_START, markerStart);
+        intent.putExtra(EXTRA_MARKER_END, markerEnd);
         return intent;
     }
 
@@ -42,7 +48,16 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
         setContentView(R.layout.activity_explain_html);
 
         bindViews();
-        translator = new MlKitHtmlTranslator();
+        String markerStart = getIntent().getStringExtra(EXTRA_MARKER_START);
+        String markerEnd = getIntent().getStringExtra(EXTRA_MARKER_END);
+        HtmlTranslationOptions.Builder optionsBuilder = HtmlTranslationOptions.builder();
+        if (markerStart != null && !markerStart.trim().isEmpty()) {
+            optionsBuilder.setPlaceholderMarkerStart(markerStart);
+        }
+        if (markerEnd != null && !markerEnd.trim().isEmpty()) {
+            optionsBuilder.setPlaceholderMarkerEnd(markerEnd);
+        }
+        translator = new MlKitHtmlTranslator(optionsBuilder.build());
 
         String htmlBody = getIntent().getStringExtra(EXTRA_HTML_BODY);
         if (htmlBody == null) {

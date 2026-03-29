@@ -1,10 +1,12 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TranslationViewModel viewModel;
     private MaterialButton modelActionButton;
+    private MaterialButton markerConfigButton;
     private Button translateButton;
     private Button explainButton;
     private Spinner targetSpinner;
@@ -48,6 +51,13 @@ public class MainActivity extends AppCompatActivity {
     private boolean isTranslating;
     private int currentRequestCharCount;
     private TranslationTimingReport latestTimingReport;
+    private TranslationTimingListener timingListener;
+    private TranslationRepository translationRepository;
+    private SharedPreferences markerPreferences;
+
+    private static final String PREFS_NAME = "marker_config";
+    private static final String KEY_MARKER_START = "marker_start";
+    private static final String KEY_MARKER_END = "marker_end";
 
     private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
@@ -60,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         Spinner sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetSpinner = findViewById(R.id.targetLanguageSpinner);
+        markerConfigButton = findViewById(R.id.markerConfigButton);
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
         inputHtmlText = findViewById(R.id.inputHtml);
         outputHtmlText = findViewById(R.id.outputHtml);
@@ -71,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
         modelActionButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
         explainButton = findViewById(R.id.explainButton);
+        markerPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
         setupWebView(inputRenderedHtml);
         setupWebView(outputRenderedHtml);
@@ -82,15 +94,12 @@ public class MainActivity extends AppCompatActivity {
         sourceSpinner.setSelection(0);
         targetSpinner.setSelection(1);
 
-        TranslationTimingListener timingListener = report -> latestTimingReport = report;
+        timingListener = report -> latestTimingReport = report;
 
-        MlKitHtmlTranslator translator =
-                new MlKitHtmlTranslator(
-                        getApplicationContext(),
-                        HtmlTranslationOptions.builder().setTimingListener(timingListener).build());
-        TranslationRepository repository = new TranslationRepository(translator);
+        MlKitHtmlTranslator translator = buildTranslator(readMarkerStart(), readMarkerEnd());
+        translationRepository = new TranslationRepository(translator);
         ModelLifecycleManager modelLifecycleManager = new ModelLifecycleManager();
-        viewModel = new TranslationViewModel(repository, modelLifecycleManager);
+        viewModel = new TranslationViewModel(translationRepository, modelLifecycleManager);
 
         viewModel
                 .translatedHtml()
@@ -120,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
         explainButton.setOnClickListener(v -> openExplainScreen());
 
         modelActionButton.setOnClickListener(v -> onModelActionClicked());
+        markerConfigButton.setOnClickListener(v -> showMarkerConfigDialog());
 
         targetSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
@@ -184,6 +194,10 @@ public class MainActivity extends AppCompatActivity {
     private void startTranslation(String sourceLanguage) {
         String htmlBody = inputHtmlText.getText().toString();
         String targetLanguage = targetSpinner.getSelectedItem().toString();
+        String markerStart = readMarkerStart();
+        String markerEnd = readMarkerEnd();
+
+        translationRepository.setTranslator(buildTranslator(markerStart, markerEnd));
 
         currentRequestCharCount = htmlBody.length();
         latestTimingReport = null;
@@ -254,7 +268,80 @@ public class MainActivity extends AppCompatActivity {
         if (htmlBody.trim().isEmpty()) {
             return;
         }
-        startActivity(ExplainHtmlActivity.createIntent(this, htmlBody));
+        startActivity(
+                ExplainHtmlActivity.createIntent(
+                        this, htmlBody, readMarkerStart(), readMarkerEnd()));
+    }
+
+    @NonNull
+    private MlKitHtmlTranslator buildTranslator(
+            @NonNull String markerStart, @NonNull String markerEnd) {
+        HtmlTranslationOptions options =
+                HtmlTranslationOptions.builder()
+                        .setTimingListener(timingListener)
+                        .setPlaceholderMarkerStart(markerStart)
+                        .setPlaceholderMarkerEnd(markerEnd)
+                        .build();
+        return new MlKitHtmlTranslator(getApplicationContext(), options);
+    }
+
+    @NonNull
+    private String readMarkerStart() {
+        String marker =
+                markerPreferences.getString(
+                        KEY_MARKER_START, getString(R.string.default_placeholder_marker_start));
+        if (marker == null) {
+            marker = getString(R.string.default_placeholder_marker_start);
+        }
+        marker = marker.trim();
+        return marker.isEmpty() ? getString(R.string.default_placeholder_marker_start) : marker;
+    }
+
+    @NonNull
+    private String readMarkerEnd() {
+        String marker =
+                markerPreferences.getString(
+                        KEY_MARKER_END, getString(R.string.default_placeholder_marker_end));
+        if (marker == null) {
+            marker = getString(R.string.default_placeholder_marker_end);
+        }
+        marker = marker.trim();
+        return marker.isEmpty() ? getString(R.string.default_placeholder_marker_end) : marker;
+    }
+
+    private void showMarkerConfigDialog() {
+        View dialogView =
+                LayoutInflater.from(this).inflate(R.layout.dialog_marker_config, null, false);
+        EditText startInput = dialogView.findViewById(R.id.markerStartInput);
+        EditText endInput = dialogView.findViewById(R.id.markerEndInput);
+
+        startInput.setText(readMarkerStart());
+        endInput.setText(readMarkerEnd());
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.marker_config_dialog_title)
+                .setView(dialogView)
+                .setNegativeButton(R.string.cancel_download, null)
+                .setPositiveButton(
+                        R.string.save,
+                        (dialog, which) -> {
+                            String markerStart = startInput.getText().toString().trim();
+                            String markerEnd = endInput.getText().toString().trim();
+
+                            if (markerStart.isEmpty()) {
+                                markerStart = getString(R.string.default_placeholder_marker_start);
+                            }
+                            if (markerEnd.isEmpty()) {
+                                markerEnd = getString(R.string.default_placeholder_marker_end);
+                            }
+
+                            markerPreferences
+                                    .edit()
+                                    .putString(KEY_MARKER_START, markerStart)
+                                    .putString(KEY_MARKER_END, markerEnd)
+                                    .apply();
+                        })
+                .show();
     }
 
     private void applyRenderMode(boolean renderModeEnabled) {

@@ -25,6 +25,8 @@ public final class HtmlTranslationOptions {
     private final boolean maskUrls;
     private final boolean maskPlaceholders;
     private final boolean maskPaths;
+    private final String placeholderMarkerStart;
+    private final String placeholderMarkerEnd;
     private final TranslationTimingListener timingListener;
 
     private HtmlTranslationOptions(Builder builder) {
@@ -35,6 +37,8 @@ public final class HtmlTranslationOptions {
         this.maskUrls = builder.maskUrls;
         this.maskPlaceholders = builder.maskPlaceholders;
         this.maskPaths = builder.maskPaths;
+        this.placeholderMarkerStart = builder.placeholderMarkerStart;
+        this.placeholderMarkerEnd = builder.placeholderMarkerEnd;
         this.timingListener = builder.timingListener;
     }
 
@@ -69,6 +73,16 @@ public final class HtmlTranslationOptions {
         return maskPaths;
     }
 
+    @NonNull
+    public String getPlaceholderMarkerStart() {
+        return placeholderMarkerStart;
+    }
+
+    @NonNull
+    public String getPlaceholderMarkerEnd() {
+        return placeholderMarkerEnd;
+    }
+
     @Nullable
     public TranslationTimingListener getTimingListener() {
         return timingListener;
@@ -81,6 +95,8 @@ public final class HtmlTranslationOptions {
         private boolean maskUrls = true;
         private boolean maskPlaceholders = true;
         private boolean maskPaths = true;
+        private String placeholderMarkerStart = "[{[";
+        private String placeholderMarkerEnd = "]}]";
         private TranslationTimingListener timingListener;
 
         private Builder() {}
@@ -118,6 +134,24 @@ public final class HtmlTranslationOptions {
         @NonNull
         public Builder setMaskPaths(boolean maskPaths) {
             this.maskPaths = maskPaths;
+            return this;
+        }
+
+        @NonNull
+        public Builder setPlaceholderMarkerStart(@NonNull String placeholderMarkerStart) {
+            if (placeholderMarkerStart.trim().isEmpty()) {
+                throw new IllegalArgumentException("placeholderMarkerStart cannot be blank");
+            }
+            this.placeholderMarkerStart = placeholderMarkerStart;
+            return this;
+        }
+
+        @NonNull
+        public Builder setPlaceholderMarkerEnd(@NonNull String placeholderMarkerEnd) {
+            if (placeholderMarkerEnd.trim().isEmpty()) {
+                throw new IllegalArgumentException("placeholderMarkerEnd cannot be blank");
+            }
+            this.placeholderMarkerEnd = placeholderMarkerEnd;
             return this;
         }
 

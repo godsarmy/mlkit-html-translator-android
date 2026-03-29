@@ -47,14 +47,42 @@ public class TokenMaskerTest {
         TokenMasker masker = new TokenMasker();
         TokenMasker.MaskingConfig config = new TokenMasker.MaskingConfig(true, true, true);
 
-        String input = "Literal @@P0@@ and token https://example.com";
+        String input = "Literal [{[PH0]}] and token https://example.com";
         TokenMasker.MaskingResult masked = masker.mask(input, config);
 
-        assertTrue(masked.getMaskedText().contains("@@P0@@"));
+        assertTrue(masked.getMaskedText().contains("[{[PH0]}]"));
         assertTrue(
                 masked.getPlaceholderToOriginal().keySet().stream()
-                        .anyMatch(key -> !"@@P0@@".equals(key)));
+                        .anyMatch(key -> !"[{[PH0]}]".equals(key)));
         assertEquals(
                 input, masker.unmask(masked.getMaskedText(), masked.getPlaceholderToOriginal()));
+    }
+
+    @Test
+    public void unmask_handlesDetachedIdWithOrphanWrapper() {
+        TokenMasker masker = new TokenMasker();
+
+        TokenMasker.MaskingResult masked =
+                masker.mask(
+                        "Email admin@example.com", new TokenMasker.MaskingConfig(true, true, true));
+        String translated = "メールはP0[{[ ]}]です";
+
+        String restored = masker.unmask(translated, masked.getPlaceholderToOriginal());
+
+        assertEquals("メールはadmin@example.comです", restored);
+    }
+
+    @Test
+    public void unmask_handlesLowercaseAngledPlaceholder() {
+        TokenMasker masker = new TokenMasker();
+
+        TokenMasker.MaskingResult masked =
+                masker.mask(
+                        "Email admin@example.com", new TokenMasker.MaskingConfig(true, true, true));
+        String translated = "メールは[{[ph0]}]です";
+
+        String restored = masker.unmask(translated, masked.getPlaceholderToOriginal());
+
+        assertEquals("メールはadmin@example.comです", restored);
     }
 }

@@ -115,6 +115,21 @@
 			<Space android:layout_width="10dp" android:layout_height="1dp" />
 
 			<com.google.android.material.button.MaterialButton
+				android:id="@+id/markerConfigButton" android:layout_width="48dp"
+				android:layout_height="48dp" android:elevation="0dp"
+				android:insetTop="0dp" android:insetBottom="0dp"
+				android:minWidth="48dp" android:minHeight="48dp"
+				android:stateListAnimator="@null"
+				android:contentDescription="@string/marker_config_icon_content_description"
+				app:backgroundTint="@android:color/transparent"
+				app:cornerRadius="24dp" app:icon="@drawable/ic_marker_config"
+				app:iconPadding="0dp" app:iconSize="24dp"
+				app:iconTint="@color/mlkit_primary"
+				app:rippleColor="@color/mlkit_primary" app:strokeWidth="0dp" />
+
+			<Space android:layout_width="10dp" android:layout_height="1dp" />
+
+			<com.google.android.material.button.MaterialButton
 				android:id="@+id/downloadModelButton" android:layout_width="48dp"
 				android:layout_height="48dp" android:elevation="0dp"
 				android:insetTop="0dp" android:insetBottom="0dp"

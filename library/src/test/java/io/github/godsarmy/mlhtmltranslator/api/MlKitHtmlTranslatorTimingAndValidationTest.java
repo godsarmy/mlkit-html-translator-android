@@ -92,7 +92,7 @@ public class MlKitHtmlTranslatorTimingAndValidationTest {
         assertEquals(0, adapterCalls.get());
         assertEquals(2, result.getTotalNodeCount());
         assertEquals(2, result.getTotalChunkCount());
-        assertTrue(result.getNodes().get(0).getMaskedText().contains("@@P"));
+        assertTrue(result.getNodes().get(0).getMaskedText().contains("[{[PH"));
         assertTrue(result.getChunks().get(0).getPayload().contains("@@MLHT"));
     }
 

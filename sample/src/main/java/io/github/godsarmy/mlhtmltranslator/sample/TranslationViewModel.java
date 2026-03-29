@@ -69,6 +69,7 @@ public final class TranslationViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         translationExecutor.shutdownNow();
+        repository.close();
         super.onCleared();
     }
 

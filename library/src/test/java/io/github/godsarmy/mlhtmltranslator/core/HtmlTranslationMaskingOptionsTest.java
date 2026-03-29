@@ -88,6 +88,30 @@ public class HtmlTranslationMaskingOptionsTest {
     }
 
     @Test
+    public void customPlaceholderMarkers_restoreEmailWhenCaseMutates() throws Exception {
+        MlTranslationAdapter mutatingAdapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) ->
+                        text.replace("@[@PH0@]@", "@[@Ph0@]@");
+
+        HtmlTranslationOptions options =
+                HtmlTranslationOptions.builder()
+                        .setPlaceholderMarkerStart("@[@")
+                        .setPlaceholderMarkerEnd("@]@")
+                        .build();
+
+        String translated =
+                engine.translateHtmlBody(
+                        "<p>email admin@example.com</p>",
+                        "en",
+                        "ja",
+                        options,
+                        mutatingAdapter,
+                        new AtomicBoolean(false));
+
+        assertTrue(translated.contains("admin@example.com"));
+    }
+
+    @Test
     public void noEligibleNodes_returnsOriginalBodyAndZeroDiagnostics() throws Exception {
         MlTranslationAdapter passThroughAdapter =
                 (text, sourceLanguage, targetLanguage, timeoutMs) -> text;

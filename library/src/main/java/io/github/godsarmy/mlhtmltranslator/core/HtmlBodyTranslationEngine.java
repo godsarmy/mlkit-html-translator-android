@@ -173,7 +173,11 @@ public final class HtmlBodyTranslationEngine {
         long maskChunkStartNs = System.nanoTime();
         TokenMasker.MaskingConfig maskingConfig =
                 new TokenMasker.MaskingConfig(
-                        options.isMaskUrls(), options.isMaskPlaceholders(), options.isMaskPaths());
+                        options.isMaskUrls(),
+                        options.isMaskPlaceholders(),
+                        options.isMaskPaths(),
+                        options.getPlaceholderMarkerStart(),
+                        options.getPlaceholderMarkerEnd());
 
         List<TokenMasker.MaskingResult> maskingResults = new ArrayList<>(nodes.size());
         List<String> maskedTexts = new ArrayList<>(nodes.size());

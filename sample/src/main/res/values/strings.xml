@@ -8,6 +8,15 @@
 	<string name="label_render_html_mode">Render HTML preview mode</string>
 	<string name="label_input_html">Original HTML body</string>
 	<string name="label_output_html">Translated HTML body</string>
+	<string name="label_placeholder_marker_start">Placeholder marker start</string>
+	<string name="label_placeholder_marker_end">Placeholder marker end</string>
+	<string name="hint_placeholder_marker_start">e.g. [{[</string>
+	<string name="hint_placeholder_marker_end">e.g. ]}]</string>
+	<string name="default_placeholder_marker_start">[{[</string>
+	<string name="default_placeholder_marker_end">]}]</string>
+	<string name="marker_config_icon_content_description">Configure placeholder markers</string>
+	<string name="marker_config_dialog_title">Placeholder markers</string>
+	<string name="save">Save</string>
 	<string name="action_translate">Translate</string>
 	<string name="action_explain">Explain</string>
 	<string name="action_download_model">Download model</string>
