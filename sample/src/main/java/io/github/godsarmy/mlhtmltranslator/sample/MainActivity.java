@@ -1,12 +1,16 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
@@ -19,9 +23,19 @@ import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final long MODEL_DOWNLOAD_DELAY_MS = 2200L;
+
     private TranslationViewModel viewModel;
     private TextView timingText;
     private CheckBox timingCheckbox;
+    private Button modelActionButton;
+    private Spinner targetSpinner;
+    private TextView modelStatusText;
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Runnable pendingDownloadRunnable;
+    private AlertDialog downloadProgressDialog;
+    private boolean isDownloadingModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,14 +43,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Spinner sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
-        Spinner targetSpinner = findViewById(R.id.targetLanguageSpinner);
+        targetSpinner = findViewById(R.id.targetLanguageSpinner);
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
         EditText inputHtml = findViewById(R.id.inputHtml);
         TextView outputHtml = findViewById(R.id.outputHtml);
         TextView errorCode = findViewById(R.id.errorCode);
-        TextView modelStatus = findViewById(R.id.modelStatus);
+        modelStatusText = findViewById(R.id.modelStatus);
         timingText = findViewById(R.id.timingReport);
         timingCheckbox = findViewById(R.id.enableTimingCheckbox);
+        modelActionButton = findViewById(R.id.downloadModelButton);
 
         setupSpinner(sourceSpinner, R.array.language_codes);
         setupSpinner(targetSpinner, R.array.language_codes);
@@ -88,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
                                 errorCode.setText(code);
                             }
                         });
-        viewModel.modelStatus().observe(this, modelStatus::setText);
+        viewModel.modelStatus().observe(this, modelStatusText::setText);
 
         Button translateButton = findViewById(R.id.translateButton);
         translateButton.setOnClickListener(
@@ -98,24 +113,124 @@ public class MainActivity extends AppCompatActivity {
                                 sourceSpinner.getSelectedItem().toString(),
                                 targetSpinner.getSelectedItem().toString()));
 
-        Button downloadButton = findViewById(R.id.downloadModelButton);
-        downloadButton.setOnClickListener(
-                v -> viewModel.downloadModel(targetSpinner.getSelectedItem().toString()));
+        modelActionButton.setOnClickListener(v -> onModelActionClicked());
 
-        Button deleteButton = findViewById(R.id.deleteModelButton);
-        deleteButton.setOnClickListener(
-                v -> viewModel.deleteModel(targetSpinner.getSelectedItem().toString()));
+        targetSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent, android.view.View view, int position, long id) {
+                        updateModelActionCaption();
+                    }
 
-        Button checkButton = findViewById(R.id.checkModelButton);
-        checkButton.setOnClickListener(
-                v -> viewModel.checkModel(targetSpinner.getSelectedItem().toString()));
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        updateModelActionCaption();
+                    }
+                });
 
-        Button loadSampleButton = findViewById(R.id.loadSampleButton);
-        loadSampleButton.setOnClickListener(
-                v -> inputHtml.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString())));
+        sampleSpinner.setOnItemSelectedListener(
+                new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(
+                            AdapterView<?> parent, android.view.View view, int position, long id) {
+                        inputHtml.setText(
+                                loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
+                    }
 
-        inputHtml.setText(loadAssetHtml("manual-like.html"));
+                    @Override
+                    public void onNothingSelected(AdapterView<?> parent) {
+                        // no-op
+                    }
+                });
+
+        inputHtml.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
         timingText.setText(getString(R.string.timing_disabled_message));
+        updateModelActionCaption();
+    }
+
+    private void onModelActionClicked() {
+        if (isDownloadingModel) {
+            return;
+        }
+
+        String targetLanguage = targetSpinner.getSelectedItem().toString();
+        if (viewModel.isModelAvailable(targetLanguage)) {
+            viewModel.deleteModel(targetLanguage);
+            updateModelActionCaption();
+            return;
+        }
+
+        startModelDownload(targetLanguage);
+    }
+
+    private void startModelDownload(String targetLanguage) {
+        isDownloadingModel = true;
+        modelActionButton.setEnabled(false);
+        showDownloadProgressDialog(targetLanguage);
+
+        pendingDownloadRunnable =
+                () -> {
+                    pendingDownloadRunnable = null;
+                    dismissDownloadProgressDialog();
+                    viewModel.downloadModel(targetLanguage);
+                    isDownloadingModel = false;
+                    updateModelActionCaption();
+                };
+        handler.postDelayed(pendingDownloadRunnable, MODEL_DOWNLOAD_DELAY_MS);
+    }
+
+    private void showDownloadProgressDialog(String targetLanguage) {
+        dismissDownloadProgressDialog();
+        downloadProgressDialog =
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.model_download_progress_title)
+                        .setMessage(
+                                getString(R.string.model_download_progress_message, targetLanguage))
+                        .setCancelable(true)
+                        .setNegativeButton(
+                                R.string.cancel_download,
+                                (dialog, which) -> cancelModelDownload(targetLanguage))
+                        .setOnCancelListener(dialog -> cancelModelDownload(targetLanguage))
+                        .create();
+        downloadProgressDialog.show();
+    }
+
+    private void cancelModelDownload(String targetLanguage) {
+        if (!isDownloadingModel) {
+            return;
+        }
+        if (pendingDownloadRunnable != null) {
+            handler.removeCallbacks(pendingDownloadRunnable);
+            pendingDownloadRunnable = null;
+        }
+        isDownloadingModel = false;
+        dismissDownloadProgressDialog();
+        modelStatusText.setText(getString(R.string.model_download_cancelled, targetLanguage));
+        updateModelActionCaption();
+    }
+
+    private void dismissDownloadProgressDialog() {
+        if (downloadProgressDialog != null && downloadProgressDialog.isShowing()) {
+            downloadProgressDialog.dismiss();
+        }
+        downloadProgressDialog = null;
+    }
+
+    private void updateModelActionCaption() {
+        if (isDownloadingModel) {
+            modelActionButton.setEnabled(false);
+            return;
+        }
+
+        String targetLanguage =
+                targetSpinner.getSelectedItem() == null
+                        ? ""
+                        : targetSpinner.getSelectedItem().toString();
+        boolean available = viewModel.isModelAvailable(targetLanguage);
+        modelActionButton.setText(
+                available ? R.string.action_delete_model : R.string.action_download_model);
+        modelActionButton.setEnabled(true);
     }
 
     private void setupSpinner(Spinner spinner, int arrayRes) {
@@ -140,5 +255,15 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             return "<p>Failed to load sample asset: " + fileName + "</p>";
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (pendingDownloadRunnable != null) {
+            handler.removeCallbacks(pendingDownloadRunnable);
+            pendingDownloadRunnable = null;
+        }
+        dismissDownloadProgressDialog();
+        super.onDestroy();
     }
 }

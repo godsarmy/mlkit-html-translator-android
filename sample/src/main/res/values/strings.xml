@@ -13,8 +13,11 @@
 	<string name="action_translate">Translate HTML</string>
 	<string name="action_download_model">Download</string>
 	<string name="action_delete_model">Delete</string>
-	<string name="action_check_model">Check</string>
 	<string name="action_load_sample">Load sample HTML</string>
+	<string name="model_download_progress_title">Downloading language pack</string>
+	<string name="model_download_progress_message">Downloading %1$s language pack…</string>
+	<string name="cancel_download">Cancel</string>
+	<string name="model_download_cancelled">Download cancelled: %1$s</string>
 	<string name="model_status_placeholder">Model status: not checked</string>
 	<string name="error_none">NONE</string>
 	<string name="timing_disabled_message">Timing display is disabled</string>

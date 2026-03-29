@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<color name="mlkit_bg_canvas">#0B1220</color>
+	<color name="mlkit_bg_elevated">#111A2B</color>
+	<color name="mlkit_surface">#16233A</color>
+	<color name="mlkit_outline">#2A3B5F</color>
+	<color name="mlkit_primary">#4285F4</color>
+	<color name="mlkit_on_background">#EAF2FF</color>
+	<color name="mlkit_on_surface_variant">#AFC3E8</color>
+	<color name="mlkit_error">#EA4335</color>
+</resources>

@@ -71,6 +71,10 @@ public final class TranslationViewModel extends ViewModel {
                         : "Model already downloaded: " + languageCode);
     }
 
+    public boolean isModelAvailable(String languageCode) {
+        return modelLifecycleManager.isModelAvailable(languageCode);
+    }
+
     public void deleteModel(String languageCode) {
         boolean changed = modelLifecycleManager.deleteModel(languageCode);
         modelStatus.postValue(
