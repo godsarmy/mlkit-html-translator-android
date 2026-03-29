@@ -1,0 +1,51 @@
+<main>
+  <header>
+    <h1>Complex Structure Fixture</h1>
+    <p>Nested markup with inline nodes, lists, tables, and protected tags.</p>
+  </header>
+
+  <section>
+    <h2>Inline and nested content</h2>
+    <p>
+      Release <strong>checklist</strong> includes
+      <em>pre-flight validation</em>,
+      <a href="https://example.com/playbook">playbook review</a>, and
+      command execution in <code>safe mode</code>.
+    </p>
+    <blockquote>
+      <p>Always verify rollback steps before irreversible operations.</p>
+    </blockquote>
+  </section>
+
+  <section>
+    <h2>Ordered operations</h2>
+    <ol>
+      <li><p>Confirm maintenance window and notify affected teams.</p></li>
+      <li><p>Deploy candidate build and monitor p95 latency metrics.</p></li>
+      <li><p>Validate business KPIs and audit sample transactions.</p></li>
+      <li><p>Promote release globally once confidence thresholds are met.</p></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Tables and mixed fields</h2>
+    <table>
+      <thead>
+        <tr><th>Region</th><th>Status</th><th>Owner</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>us-central</td><td>healthy</td><td>ops@example.com</td></tr>
+        <tr><td>eu-west</td><td>watch</td><td>platform@example.com</td></tr>
+        <tr><td>ap-south</td><td>healthy</td><td>sre@example.com</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Protected blocks</h2>
+    <pre>kubectl rollout status deploy/gateway --namespace prod</pre>
+    <script>const state = { ready: true };</script>
+    <style>.chip { border-radius: 8px; }</style>
+    <p>Visible text after protected blocks should still be translated.</p>
+  </section>
+</main>
