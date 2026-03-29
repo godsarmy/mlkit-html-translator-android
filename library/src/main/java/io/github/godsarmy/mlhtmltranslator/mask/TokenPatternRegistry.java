@@ -13,7 +13,7 @@ final class TokenPatternRegistry {
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b");
     private static final Pattern PLACEHOLDER_PATTERN =
-            Pattern.compile("(?:%\\d*\\$?[a-zA-Z]|\\{[A-Za-z0-9_.-]+}|\\$\\{[A-Za-z0-9_.-]+})");
+            Pattern.compile("(?:%\\d*\\$?[a-zA-Z]|\\{[A-Za-z0-9_.-]+\\}|\\$\\{[A-Za-z0-9_.-]+\\})");
     private static final Pattern SHELL_FLAG_PATTERN =
             Pattern.compile("(?<!\\w)(?:--[A-Za-z0-9][A-Za-z0-9-]*|-{1}[A-Za-z])(?!\\w)");
     private static final Pattern PATH_PATTERN =

@@ -125,6 +125,12 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
             }
         } catch (TranslationException translationException) {
             callback.onFailure(translationException);
+        } catch (RuntimeException runtimeException) {
+            callback.onFailure(
+                    new TranslationException(
+                            TranslationErrorCode.INTERNAL_ERROR,
+                            "Unexpected runtime failure during translation",
+                            runtimeException));
         }
     }
 
