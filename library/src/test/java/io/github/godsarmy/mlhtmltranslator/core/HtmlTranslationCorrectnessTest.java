@@ -168,4 +168,36 @@ public class HtmlTranslationCorrectnessTest {
         assertTrue(translated.contains("مرحبا"));
         assertFalse(translated.isEmpty());
     }
+
+    @Test
+    public void malformedHtml_isRecoveredAndTranslatedWithoutBreakingStructure() throws Exception {
+        MlTranslationAdapter adapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) -> text.replace("Hello", "Hola");
+
+        String html = "<div><p>Hello <b>world</div>";
+
+        String translated =
+                engine.translateHtmlBody(
+                        html, "en", "es", options, adapter, new AtomicBoolean(false));
+
+        Document doc = Jsoup.parseBodyFragment(translated);
+        assertEquals("Hola", doc.selectFirst("p").ownText().trim());
+        assertEquals("world", doc.selectFirst("b").text());
+    }
+
+    @Test
+    public void htmlCommentsAndEntities_arePreservedWhileTextIsTranslated() throws Exception {
+        MlTranslationAdapter adapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) ->
+                        text.replace("Welcome", "Bienvenido");
+
+        String html = "<!-- keep comment --><p>Welcome &amp; enjoy 😊</p>";
+
+        String translated =
+                engine.translateHtmlBody(
+                        html, "en", "es", options, adapter, new AtomicBoolean(false));
+
+        assertTrue(translated.contains("<!-- keep comment -->"));
+        assertTrue(translated.contains("Bienvenido &amp; enjoy 😊"));
+    }
 }

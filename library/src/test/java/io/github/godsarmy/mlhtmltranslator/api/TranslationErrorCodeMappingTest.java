@@ -41,6 +41,27 @@ public class TranslationErrorCodeMappingTest {
         assertEquals(TranslationErrorCode.TRANSLATION_FAILED, callback.exception.getErrorCode());
     }
 
+    @Test
+    public void unexpectedAdapterRuntimeFailureMapsToTranslationFailedCode() {
+        MlTranslationAdapter crashingAdapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) -> {
+                    throw new IllegalStateException("runtime crash");
+                };
+
+        MlKitHtmlTranslator translator =
+                new MlKitHtmlTranslator(
+                        HtmlTranslationOptions.builder()
+                                .setFailurePolicy(HtmlTranslationOptions.FailurePolicy.FAIL_FAST)
+                                .build(),
+                        crashingAdapter);
+        CapturingCallback callback = new CapturingCallback();
+
+        translator.translateHtml("<p>Hello</p>", "en", "es", callback);
+
+        assertNotNull(callback.exception);
+        assertEquals(TranslationErrorCode.TRANSLATION_FAILED, callback.exception.getErrorCode());
+    }
+
     private static final class CapturingCallback implements TranslationCallback {
         private String translated;
         private TranslationException exception;
