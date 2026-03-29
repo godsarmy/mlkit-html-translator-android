@@ -32,7 +32,8 @@ public class ChunkBuilderTest {
                 builder.buildChunks(Arrays.asList("alpha", "beta", "gamma"), 100, null, codec);
 
         ChunkBuilder.Chunk chunk = chunks.get(0);
-        String translatedPayload = "⟦MABCD1234:0⟧uno⟦MABCD1234:1⟧dos⟦MABCD1234:2⟧tres";
+        String translatedPayload =
+                "@@MLHTABCD1234:0@@uno@@MLHTABCD1234:1@@dos@@MLHTABCD1234:2@@tres";
 
         assertEquals("uno", mapper.mapChunkResult(chunk, translatedPayload, codec).get(0));
         assertEquals("dos", mapper.mapChunkResult(chunk, translatedPayload, codec).get(1));

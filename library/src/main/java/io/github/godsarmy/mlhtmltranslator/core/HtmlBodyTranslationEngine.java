@@ -34,6 +34,8 @@ public final class HtmlBodyTranslationEngine {
             Pattern.compile("\\[\\[\\[(?:\\s*SEG\\b[^\\]]*)?\\]?\\]?\\]?");
     private static final Pattern COMPACT_MARKER_ARTIFACT_PATTERN =
             Pattern.compile("⟦\\s*M\\b[^⟧]*⟧?");
+    private static final Pattern ASCII_MARKER_ARTIFACT_PATTERN =
+            Pattern.compile("@@\\s*MLHT\\b[^@]*(?:@@)?");
 
     private final NodeCollector nodeCollector = new NodeCollector();
     private final TokenMasker tokenMasker = new TokenMasker();
@@ -435,6 +437,7 @@ public final class HtmlBodyTranslationEngine {
         String sanitized =
                 LEGACY_MARKER_ARTIFACT_PATTERN.matcher(translatedMaskedText).replaceAll("");
         sanitized = COMPACT_MARKER_ARTIFACT_PATTERN.matcher(sanitized).replaceAll("");
+        sanitized = ASCII_MARKER_ARTIFACT_PATTERN.matcher(sanitized).replaceAll("");
         return sanitized;
     }
 

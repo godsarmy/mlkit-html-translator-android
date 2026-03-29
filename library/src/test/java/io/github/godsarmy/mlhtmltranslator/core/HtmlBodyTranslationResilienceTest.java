@@ -77,8 +77,8 @@ public class HtmlBodyTranslationResilienceTest {
 
         MlTranslationAdapter markerBreakingAdapter =
                 (text, sourceLanguage, targetLanguage, timeoutMs) -> {
-                    if (text.contains("⟦M")) {
-                        return text.replace("⟦M", "BROKEN|");
+                    if (text.contains("@@MLHT") || text.contains("⟦M")) {
+                        return text.replace("@@MLHT", "BROKEN|").replace("⟦M", "BROKEN|");
                     }
                     return text.toUpperCase();
                 };
@@ -154,7 +154,9 @@ public class HtmlBodyTranslationResilienceTest {
 
         MlTranslationAdapter markerSensitiveAdapter =
                 (text, sourceLanguage, targetLanguage, timeoutMs) -> {
-                    if (text.contains("⟦M") || text.contains("[[[SEG|")) {
+                    if (text.contains("@@MLHT")
+                            || text.contains("⟦M")
+                            || text.contains("[[[SEG|")) {
                         throw new TranslationException(
                                 TranslationErrorCode.TRANSLATION_FAILED,
                                 "marker leaked into single-node translation");

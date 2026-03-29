@@ -10,6 +10,8 @@ import java.util.regex.Pattern;
 
 public final class SegmentMarkerCodec {
 
+    private static final String ASCII_MARKER_PREFIX = "@@MLHT";
+
     private final String sessionPrefix;
     private final Pattern markerPattern;
 
@@ -20,7 +22,13 @@ public final class SegmentMarkerCodec {
     public SegmentMarkerCodec(@NonNull String sessionPrefix) {
         this.sessionPrefix = sessionPrefix;
         String escapedPrefix = Pattern.quote(sessionPrefix);
-        this.markerPattern = Pattern.compile("⟦\\s*M\\s*" + escapedPrefix + "\\s*:\\s*(\\d+)\\s*⟧");
+        this.markerPattern =
+                Pattern.compile(
+                        "(?:⟦\\s*M\\s*"
+                                + escapedPrefix
+                                + "\\s*:\\s*(\\d+)\\s*⟧|@@\\s*MLHT\\s*"
+                                + escapedPrefix
+                                + "\\s*:\\s*(\\d+)\\s*@@)");
     }
 
     @NonNull
@@ -28,7 +36,7 @@ public final class SegmentMarkerCodec {
         if (segmentIndex < 0) {
             throw new IllegalArgumentException("segmentIndex must be >= 0");
         }
-        return "⟦M" + sessionPrefix + ":" + segmentIndex + "⟧";
+        return ASCII_MARKER_PREFIX + sessionPrefix + ":" + segmentIndex + "@@";
     }
 
     @NonNull
@@ -48,7 +56,8 @@ public final class SegmentMarkerCodec {
         Matcher matcher = markerPattern.matcher(chunkText);
         List<MarkerMatch> markers = new ArrayList<>();
         while (matcher.find()) {
-            int segmentIndex = Integer.parseInt(matcher.group(1));
+            String segmentGroup = matcher.group(1) != null ? matcher.group(1) : matcher.group(2);
+            int segmentIndex = Integer.parseInt(segmentGroup);
             markers.add(new MarkerMatch(segmentIndex, matcher.start(), matcher.end()));
         }
 
