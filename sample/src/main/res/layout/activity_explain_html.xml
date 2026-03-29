@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/mlkit_bg_canvas" android:fillViewport="true">
+
+	<LinearLayout android:layout_width="match_parent"
+		android:layout_height="wrap_content" android:orientation="vertical"
+		android:padding="16dp">
+
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/explain_html_screen_title"
+			android:textColor="@color/mlkit_on_background"
+			android:textSize="20sp" android:textStyle="bold" />
+
+		<LinearLayout android:id="@+id/explainLoadingContainer"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="10dp"
+			android:gravity="center_vertical" android:orientation="horizontal">
+
+			<ProgressBar android:layout_width="20dp"
+				android:layout_height="20dp" android:indeterminate="true" />
+
+			<TextView android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_marginStart="8dp"
+				android:text="@string/explain_loading"
+				android:textColor="@color/mlkit_on_surface_variant" />
+		</LinearLayout>
+
+		<TextView android:id="@+id/explainErrorText"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="10dp"
+			android:textColor="@color/mlkit_error" android:visibility="gone" />
+
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="10dp"
+			android:text="@string/explain_counts_label"
+			android:textColor="@color/mlkit_on_surface_variant" />
+
+		<TextView android:id="@+id/explainCountsValue"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="4dp"
+			android:textColor="@color/mlkit_on_background" />
+
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="10dp"
+			android:text="@string/explain_options_label"
+			android:textColor="@color/mlkit_on_surface_variant" />
+
+		<TextView android:id="@+id/explainOptionsValue"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="4dp"
+			android:textColor="@color/mlkit_on_background" />
+
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="14dp"
+			android:text="@string/explain_prepared_html_label"
+			android:textColor="@color/mlkit_on_surface_variant" />
+
+		<TextView android:id="@+id/explainNormalizedHtmlValue"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="4dp"
+			android:background="@drawable/preview_box_background"
+			android:padding="12dp" android:textColor="@color/mlkit_on_background"
+			android:textIsSelectable="true" />
+
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="14dp"
+			android:text="@string/explain_chunks_label"
+			android:textColor="@color/mlkit_on_surface_variant" />
+
+		<TextView android:id="@+id/explainChunksValue"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="4dp"
+			android:background="@drawable/preview_box_background"
+			android:padding="12dp" android:textColor="@color/mlkit_on_background"
+			android:textIsSelectable="true" />
+
+		<TextView android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="14dp"
+			android:text="@string/explain_nodes_label"
+			android:textColor="@color/mlkit_on_surface_variant" />
+
+		<TextView android:id="@+id/explainNodesValue"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="4dp"
+			android:background="@drawable/preview_box_background"
+			android:padding="12dp" android:textColor="@color/mlkit_on_background"
+			android:textIsSelectable="true" />
+	</LinearLayout>
+</ScrollView>

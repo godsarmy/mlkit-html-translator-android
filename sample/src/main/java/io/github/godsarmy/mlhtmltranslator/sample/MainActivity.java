@@ -2,6 +2,8 @@ package io.github.godsarmy.mlhtmltranslator.sample;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
 import android.view.MotionEvent;
 import android.view.View;
@@ -17,6 +19,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.button.MaterialButton;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
@@ -31,8 +34,9 @@ import java.nio.charset.StandardCharsets;
 public class MainActivity extends AppCompatActivity {
 
     private TranslationViewModel viewModel;
-    private Button modelActionButton;
+    private MaterialButton modelActionButton;
     private Button translateButton;
+    private Button explainButton;
     private Spinner targetSpinner;
     private EditText inputHtmlText;
     private TextView outputHtmlText;
@@ -66,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         translationResultText = findViewById(R.id.translationResultText);
         modelActionButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
+        explainButton = findViewById(R.id.explainButton);
 
         setupWebView(inputRenderedHtml);
         setupWebView(outputRenderedHtml);
@@ -112,6 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
         translateButton.setOnClickListener(
                 v -> startTranslation(sourceSpinner.getSelectedItem().toString()));
+        explainButton.setOnClickListener(v -> openExplainScreen());
 
         modelActionButton.setOnClickListener(v -> onModelActionClicked());
 
@@ -148,12 +154,31 @@ public class MainActivity extends AppCompatActivity {
         renderModeToggle.setOnCheckedChangeListener(
                 (buttonView, isChecked) -> applyRenderMode(isChecked));
 
+        inputHtmlText.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        // no-op
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        updateExplainButtonState();
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        // no-op
+                    }
+                });
+
         inputHtmlText.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
         translationResultText.setText("");
         translationResultText.setVisibility(View.GONE);
         translationProgressContainer.setVisibility(View.GONE);
         applyRenderMode(renderModeToggle.isChecked());
         refreshDownloadedModels();
+        updateExplainButtonState();
     }
 
     private void startTranslation(String sourceLanguage) {
@@ -168,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         translationProgressContainer.setVisibility(View.VISIBLE);
         translateButton.setEnabled(false);
         modelActionButton.setEnabled(false);
+        updateExplainButtonState();
 
         viewModel.translate(htmlBody, sourceLanguage, targetLanguage);
     }
@@ -212,6 +238,23 @@ public class MainActivity extends AppCompatActivity {
                 getColor(failed ? R.color.mlkit_error : R.color.mlkit_on_surface_variant));
         translateButton.setEnabled(true);
         updateModelActionCaption();
+        updateExplainButtonState();
+    }
+
+    private void updateExplainButtonState() {
+        if (explainButton == null || inputHtmlText == null) {
+            return;
+        }
+        String htmlBody = inputHtmlText.getText().toString();
+        explainButton.setEnabled(!isTranslating && !htmlBody.trim().isEmpty());
+    }
+
+    private void openExplainScreen() {
+        String htmlBody = inputHtmlText.getText().toString();
+        if (htmlBody.trim().isEmpty()) {
+            return;
+        }
+        startActivity(ExplainHtmlActivity.createIntent(this, htmlBody));
     }
 
     private void applyRenderMode(boolean renderModeEnabled) {
@@ -420,8 +463,13 @@ public class MainActivity extends AppCompatActivity {
         boolean available = viewModel.isModelAvailable(targetLanguage);
         String normalizedTarget = TranslateLanguage.fromLanguageTag(targetLanguage);
         boolean builtIn = TranslateLanguage.ENGLISH.equals(normalizedTarget);
-        modelActionButton.setText(
-                available ? R.string.action_delete_model : R.string.action_download_model);
+        modelActionButton.setIconResource(
+                available ? R.drawable.ic_model_delete : R.drawable.ic_model_download);
+        modelActionButton.setContentDescription(
+                getString(
+                        available
+                                ? R.string.delete_model_icon_content_description
+                                : R.string.download_model_icon_content_description));
         modelActionButton.setEnabled(!builtIn);
     }
 

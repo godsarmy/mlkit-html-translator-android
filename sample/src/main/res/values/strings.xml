@@ -8,9 +8,12 @@
 	<string name="label_render_html_mode">Render HTML preview mode</string>
 	<string name="label_input_html">Original HTML body</string>
 	<string name="label_output_html">Translated HTML body</string>
-	<string name="action_translate">Translate HTML</string>
+	<string name="action_translate">Translate</string>
+	<string name="action_explain">Explain</string>
 	<string name="action_download_model">Download model</string>
 	<string name="action_delete_model">Delete model</string>
+	<string name="download_model_icon_content_description">Download model</string>
+	<string name="delete_model_icon_content_description">Delete model</string>
 	<string name="status_translating">Translating...</string>
 	<string name="translation_result_success">%1$d chars in %2$d ms • chunks: %3$d • nodes:
 		%4$d/%5$d • failed: %6$d • retries: %7$d</string>
@@ -19,6 +22,20 @@
 	<string name="model_download_progress_title">Downloading language pack</string>
 	<string name="model_download_progress_message">Downloading %1$s language pack…</string>
 	<string name="cancel_download">Cancel</string>
+	<string name="explain_html_screen_title">Explain HTML preprocess</string>
+	<string name="explain_loading">Preparing explain result...</string>
+	<string name="explain_counts_label">Counts</string>
+	<string name="explain_options_label">Options</string>
+	<string name="explain_prepared_html_label">Normalized HTML body</string>
+	<string name="explain_chunks_label">Chunks</string>
+	<string name="explain_nodes_label">Nodes</string>
+	<string name="explain_none">(none)</string>
+	<string name="explain_error_missing_html">No HTML provided.</string>
+	<string name="explain_error_template">Explain failed: %1$s</string>
+	<string name="explain_html_counts_value">nodes: %1$d • chunks: %2$d</string>
+	<string name="explain_html_options_value">maskUrls=%1$b • maskPlaceholders=%2$b •
+		maskPaths=%3$b
+		• protectedTags=%4$s</string>
 
 	<string-array name="language_codes">
 		<item>en</item>

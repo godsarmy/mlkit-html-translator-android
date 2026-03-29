@@ -7,6 +7,9 @@
 		android:label="@string/app_name" android:supportsRtl="true"
 		android:roundIcon="@drawable/ic_project_icon"
 		android:theme="@style/Theme.MlKitHtmlTranslator.Sample">
+		<activity android:name=".ExplainHtmlActivity"
+			android:exported="false"
+			android:label="@string/explain_html_screen_title" />
 		<activity android:name=".MainActivity"
 			android:exported="true">
 			<intent-filter>
