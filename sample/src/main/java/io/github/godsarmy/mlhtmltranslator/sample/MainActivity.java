@@ -2,6 +2,8 @@ package io.github.godsarmy.mlhtmltranslator.sample;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -67,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupWebView(inputRenderedHtml);
         setupWebView(outputRenderedHtml);
+        setupRawOutputScrolling();
 
         setupSpinner(sourceSpinner, R.array.language_codes);
         setupSpinner(targetSpinner, R.array.language_codes);
@@ -258,6 +261,19 @@ public class MainActivity extends AppCompatActivity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         webView.setBackgroundColor(Color.TRANSPARENT);
+    }
+
+    private void setupRawOutputScrolling() {
+        outputHtmlText.setMovementMethod(new ScrollingMovementMethod());
+        outputHtmlText.setOnTouchListener(
+                (view, event) -> {
+                    view.getParent().requestDisallowInterceptTouchEvent(true);
+                    if (event.getAction() == MotionEvent.ACTION_UP
+                            || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                        view.getParent().requestDisallowInterceptTouchEvent(false);
+                    }
+                    return false;
+                });
     }
 
     private void onModelActionClicked() {
