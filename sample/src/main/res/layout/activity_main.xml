@@ -165,10 +165,12 @@
 			android:gravity="center_vertical" android:orientation="horizontal"
 			android:visibility="gone">
 
-			<ProgressBar android:id="@+id/translationProgressBar"
-				style="?android:attr/progressBarStyleSmall"
-				android:layout_width="20dp" android:layout_height="20dp"
-				android:indeterminate="true" />
+			<com.google.android.material.progressindicator.CircularProgressIndicator
+				android:id="@+id/translationProgressBar" android:layout_width="20dp"
+				android:layout_height="20dp" android:indeterminate="true"
+				app:indicatorColor="@color/mlkit_primary" app:indicatorInset="0dp"
+				app:indicatorSize="20dp" app:trackColor="@color/mlkit_outline"
+				app:trackThickness="2dp" />
 
 			<TextView android:layout_width="wrap_content"
 				android:layout_height="wrap_content"

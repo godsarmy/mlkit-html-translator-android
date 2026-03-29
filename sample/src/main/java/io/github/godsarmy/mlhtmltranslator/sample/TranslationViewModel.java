@@ -7,11 +7,14 @@ import androidx.lifecycle.ViewModel;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class TranslationViewModel extends ViewModel {
 
     private final TranslationRepository repository;
     private final ModelLifecycleManager modelLifecycleManager;
+    private final ExecutorService translationExecutor = Executors.newSingleThreadExecutor();
     private final MutableLiveData<String> translatedHtml = new MutableLiveData<>();
     private final MutableLiveData<String> errorReason = new MutableLiveData<>();
 
@@ -39,26 +42,34 @@ public final class TranslationViewModel extends ViewModel {
             return;
         }
 
-        repository.translate(
-                htmlBody,
-                sourceLanguage,
-                targetLanguage,
-                new TranslationCallback() {
-                    @Override
-                    public void onSuccess(@NonNull String translatedHtmlValue) {
-                        translatedHtml.postValue(translatedHtmlValue);
-                        errorReason.postValue(null);
-                    }
+        translationExecutor.execute(
+                () ->
+                        repository.translate(
+                                htmlBody,
+                                sourceLanguage,
+                                targetLanguage,
+                                new TranslationCallback() {
+                                    @Override
+                                    public void onSuccess(@NonNull String translatedHtmlValue) {
+                                        translatedHtml.postValue(translatedHtmlValue);
+                                        errorReason.postValue(null);
+                                    }
 
-                    @Override
-                    public void onFailure(@NonNull TranslationException exception) {
-                        String reason = exception.getMessage();
-                        if (reason == null || reason.trim().isEmpty()) {
-                            reason = exception.getErrorCode().name();
-                        }
-                        errorReason.postValue(reason);
-                    }
-                });
+                                    @Override
+                                    public void onFailure(@NonNull TranslationException exception) {
+                                        String reason = exception.getMessage();
+                                        if (reason == null || reason.trim().isEmpty()) {
+                                            reason = exception.getErrorCode().name();
+                                        }
+                                        errorReason.postValue(reason);
+                                    }
+                                }));
+    }
+
+    @Override
+    protected void onCleared() {
+        translationExecutor.shutdownNow();
+        super.onCleared();
     }
 
     public void refreshDownloadedModels(@NonNull ModelLifecycleManager.RefreshCallback callback) {
