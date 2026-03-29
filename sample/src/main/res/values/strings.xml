@@ -5,6 +5,7 @@
 	<string name="label_source_language">Source language</string>
 	<string name="label_target_language">Target language</string>
 	<string name="label_sample_asset">Sample HTML asset</string>
+	<string name="label_render_html_mode">Render HTML preview mode</string>
 	<string name="label_input_html">Input HTML body</string>
 	<string name="label_output_html">Translated output preview</string>
 	<string name="label_error_code">Structured error code</string>

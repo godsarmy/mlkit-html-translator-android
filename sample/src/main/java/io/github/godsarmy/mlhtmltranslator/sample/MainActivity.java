@@ -1,11 +1,15 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -28,6 +32,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView timingText;
     private Button modelActionButton;
     private Spinner targetSpinner;
+    private EditText inputHtmlText;
+    private TextView outputHtmlText;
+    private WebView inputRenderedHtml;
+    private WebView outputRenderedHtml;
+    private CheckBox renderModeToggle;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable pendingDownloadRunnable;
@@ -42,11 +51,17 @@ public class MainActivity extends AppCompatActivity {
         Spinner sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetSpinner = findViewById(R.id.targetLanguageSpinner);
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
-        EditText inputHtml = findViewById(R.id.inputHtml);
-        TextView outputHtml = findViewById(R.id.outputHtml);
+        inputHtmlText = findViewById(R.id.inputHtml);
+        outputHtmlText = findViewById(R.id.outputHtml);
+        inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
+        outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
+        renderModeToggle = findViewById(R.id.renderModeToggle);
         TextView errorCode = findViewById(R.id.errorCode);
         timingText = findViewById(R.id.timingReport);
         modelActionButton = findViewById(R.id.downloadModelButton);
+
+        setupWebView(inputRenderedHtml);
+        setupWebView(outputRenderedHtml);
 
         setupSpinner(sourceSpinner, R.array.language_codes);
         setupSpinner(targetSpinner, R.array.language_codes);
@@ -82,7 +97,14 @@ public class MainActivity extends AppCompatActivity {
                 new ModelLifecycleManager(getApplicationContext());
         viewModel = new TranslationViewModel(repository, modelLifecycleManager);
 
-        viewModel.translatedHtml().observe(this, outputHtml::setText);
+        viewModel
+                .translatedHtml()
+                .observe(
+                        this,
+                        translatedHtml -> {
+                            outputHtmlText.setText(translatedHtml);
+                            refreshRenderedPreviewIfNeeded();
+                        });
         viewModel
                 .errorCode()
                 .observe(
@@ -99,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         translateButton.setOnClickListener(
                 v ->
                         viewModel.translate(
-                                inputHtml.getText().toString(),
+                                inputHtmlText.getText().toString(),
                                 sourceSpinner.getSelectedItem().toString(),
                                 targetSpinner.getSelectedItem().toString()));
 
@@ -124,8 +146,9 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onItemSelected(
                             AdapterView<?> parent, android.view.View view, int position, long id) {
-                        inputHtml.setText(
+                        inputHtmlText.setText(
                                 loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
+                        refreshRenderedPreviewIfNeeded();
                     }
 
                     @Override
@@ -134,9 +157,62 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        inputHtml.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
+        renderModeToggle.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> applyRenderMode(isChecked));
+
+        inputHtmlText.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
         timingText.setText("");
+        applyRenderMode(renderModeToggle.isChecked());
         updateModelActionCaption();
+    }
+
+    private void applyRenderMode(boolean renderModeEnabled) {
+        if (renderModeEnabled) {
+            inputHtmlText.setVisibility(android.view.View.GONE);
+            outputHtmlText.setVisibility(android.view.View.GONE);
+            inputRenderedHtml.setVisibility(android.view.View.VISIBLE);
+            outputRenderedHtml.setVisibility(android.view.View.VISIBLE);
+            refreshRenderedPreview();
+            return;
+        }
+
+        inputRenderedHtml.setVisibility(android.view.View.GONE);
+        outputRenderedHtml.setVisibility(android.view.View.GONE);
+        inputHtmlText.setVisibility(android.view.View.VISIBLE);
+        outputHtmlText.setVisibility(android.view.View.VISIBLE);
+    }
+
+    private void refreshRenderedPreviewIfNeeded() {
+        if (renderModeToggle != null && renderModeToggle.isChecked()) {
+            refreshRenderedPreview();
+        }
+    }
+
+    private void refreshRenderedPreview() {
+        renderHtml(inputRenderedHtml, inputHtmlText.getText().toString());
+        renderHtml(outputRenderedHtml, outputHtmlText.getText().toString());
+    }
+
+    private void renderHtml(WebView webView, String htmlBody) {
+        String safeBody = htmlBody == null ? "" : htmlBody;
+        String wrappedHtml =
+                "<!doctype html><html><head><meta charset=\"utf-8\" />"
+                        + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />"
+                        + "<style>"
+                        + "html,body{margin:0;padding:0;background:transparent !important;color:inherit;}"
+                        + "img,table{max-width:100%;height:auto;}"
+                        + "</style></head><body>"
+                        + safeBody
+                        + "</body></html>";
+        webView.loadDataWithBaseURL("about:blank", wrappedHtml, "text/html", "UTF-8", null);
+    }
+
+    private void setupWebView(WebView webView) {
+        WebSettings settings = webView.getSettings();
+        settings.setJavaScriptEnabled(false);
+        settings.setBuiltInZoomControls(false);
+        settings.setDisplayZoomControls(false);
+        webView.setBackgroundColor(Color.TRANSPARENT);
     }
 
     private void onModelActionClicked() {
@@ -253,6 +329,12 @@ public class MainActivity extends AppCompatActivity {
             pendingDownloadRunnable = null;
         }
         dismissDownloadProgressDialog();
+        if (inputRenderedHtml != null) {
+            inputRenderedHtml.destroy();
+        }
+        if (outputRenderedHtml != null) {
+            outputRenderedHtml.destroy();
+        }
         super.onDestroy();
     }
 }

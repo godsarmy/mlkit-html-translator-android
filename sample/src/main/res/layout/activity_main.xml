@@ -19,6 +19,12 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" />
 
+		<CheckBox android:id="@+id/renderModeToggle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="8dp"
+			android:checked="false" android:text="@string/label_render_html_mode"
+			android:textColor="@color/mlkit_on_background" />
+
 		<TextView android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="16dp"
 			android:text="@string/label_input_html"
@@ -40,6 +46,10 @@
 				android:scrollbars="vertical"
 				android:textColor="@color/mlkit_on_background"
 				android:textColorHint="@color/mlkit_on_surface_variant" />
+
+			<WebView android:id="@+id/inputRenderedHtml"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent" android:visibility="gone" />
 		</FrameLayout>
 
 		<TextView android:layout_width="match_parent"
@@ -60,6 +70,10 @@
 				android:scrollbarStyle="insideInset" android:scrollbars="vertical"
 				android:text="@string/sample_output_placeholder"
 				android:textColor="@color/mlkit_on_background" />
+
+			<WebView android:id="@+id/outputRenderedHtml"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent" android:visibility="gone" />
 		</FrameLayout>
 
 		<LinearLayout android:layout_width="match_parent"
