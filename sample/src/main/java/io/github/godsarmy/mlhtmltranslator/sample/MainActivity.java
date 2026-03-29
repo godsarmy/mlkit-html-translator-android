@@ -78,7 +78,8 @@ public class MainActivity extends AppCompatActivity {
                 new MlKitHtmlTranslator(
                         HtmlTranslationOptions.builder().setTimingListener(timingListener).build());
         TranslationRepository repository = new TranslationRepository(translator);
-        ModelLifecycleManager modelLifecycleManager = new ModelLifecycleManager();
+        ModelLifecycleManager modelLifecycleManager =
+                new ModelLifecycleManager(getApplicationContext());
         viewModel = new TranslationViewModel(repository, modelLifecycleManager);
 
         viewModel.translatedHtml().observe(this, outputHtml::setText);

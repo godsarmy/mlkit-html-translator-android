@@ -1,5 +1,8 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import androidx.annotation.NonNull;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,11 +15,22 @@ import java.util.Set;
  */
 public final class ModelLifecycleManager {
 
-    private final Set<String> downloadedModels = Collections.synchronizedSet(new HashSet<>());
+    private static final String PREFS_NAME = "mlhtmltranslator_sample_models";
+    private static final String KEY_DOWNLOADED_MODELS = "downloaded_models";
 
-    public ModelLifecycleManager() {
-        // Sample default: English is present.
-        downloadedModels.add("en");
+    private final Set<String> downloadedModels = Collections.synchronizedSet(new HashSet<>());
+    private final SharedPreferences preferences;
+
+    public ModelLifecycleManager(@NonNull Context context) {
+        preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        Set<String> savedModels = preferences.getStringSet(KEY_DOWNLOADED_MODELS, null);
+        if (savedModels != null && !savedModels.isEmpty()) {
+            downloadedModels.addAll(savedModels);
+        } else {
+            // Sample default: English is present.
+            downloadedModels.add("en");
+            persistModels();
+        }
     }
 
     public boolean isModelAvailable(String languageCode) {
@@ -30,13 +44,28 @@ public final class ModelLifecycleManager {
         if (languageCode == null || languageCode.trim().isEmpty()) {
             return false;
         }
-        return downloadedModels.add(languageCode.trim().toLowerCase());
+        boolean changed = downloadedModels.add(languageCode.trim().toLowerCase());
+        if (changed) {
+            persistModels();
+        }
+        return changed;
     }
 
     public boolean deleteModel(String languageCode) {
         if (languageCode == null || languageCode.trim().isEmpty()) {
             return false;
         }
-        return downloadedModels.remove(languageCode.trim().toLowerCase());
+        boolean changed = downloadedModels.remove(languageCode.trim().toLowerCase());
+        if (changed) {
+            persistModels();
+        }
+        return changed;
+    }
+
+    private void persistModels() {
+        preferences
+                .edit()
+                .putStringSet(KEY_DOWNLOADED_MODELS, new HashSet<>(downloadedModels))
+                .apply();
     }
 }

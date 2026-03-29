@@ -97,22 +97,29 @@
 			</LinearLayout>
 		</LinearLayout>
 
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/downloadModelButton"
-			android:layout_width="match_parent" android:layout_height="50dp"
-			android:layout_marginTop="12dp"
-			android:text="@string/action_download_model"
-			android:textAllCaps="false"
-			android:textColor="@color/mlkit_on_background"
-			app:backgroundTint="@color/mlkit_bg_elevated" app:cornerRadius="14dp"
-			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp" />
+		<LinearLayout android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="12dp"
+			android:orientation="horizontal">
 
-		<com.google.android.material.button.MaterialButton
-			android:id="@+id/translateButton" android:layout_width="match_parent"
-			android:layout_height="52dp" android:layout_marginTop="12dp"
-			android:text="@string/action_translate" android:textAllCaps="false"
-			android:textColor="@android:color/white"
-			app:backgroundTint="@color/mlkit_primary" app:cornerRadius="14dp" />
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/downloadModelButton" android:layout_width="0dp"
+				android:layout_height="52dp" android:layout_weight="1"
+				android:text="@string/action_download_model"
+				android:textAllCaps="false"
+				android:textColor="@color/mlkit_on_background"
+				app:backgroundTint="@color/mlkit_bg_elevated"
+				app:cornerRadius="14dp" app:strokeColor="@color/mlkit_outline"
+				app:strokeWidth="1dp" />
+
+			<Space android:layout_width="12dp" android:layout_height="1dp" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/translateButton" android:layout_width="0dp"
+				android:layout_height="52dp" android:layout_weight="1"
+				android:text="@string/action_translate" android:textAllCaps="false"
+				android:textColor="@android:color/white"
+				app:backgroundTint="@color/mlkit_primary" app:cornerRadius="14dp" />
+		</LinearLayout>
 
 		<TextView android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="16dp"
