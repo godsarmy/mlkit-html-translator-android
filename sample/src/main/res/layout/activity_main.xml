@@ -107,21 +107,9 @@
 			app:backgroundTint="@color/mlkit_bg_elevated" app:cornerRadius="14dp"
 			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp" />
 
-		<TextView android:id="@+id/modelStatus"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="8dp"
-			android:text="@string/model_status_placeholder"
-			android:textColor="@color/mlkit_on_surface_variant" />
-
-		<CheckBox android:id="@+id/enableTimingCheckbox"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="12dp"
-			android:checked="false" android:text="@string/label_enable_timing"
-			android:textColor="@color/mlkit_on_background" />
-
 		<com.google.android.material.button.MaterialButton
 			android:id="@+id/translateButton" android:layout_width="match_parent"
-			android:layout_height="52dp" android:layout_marginTop="8dp"
+			android:layout_height="52dp" android:layout_marginTop="12dp"
 			android:text="@string/action_translate" android:textAllCaps="false"
 			android:textColor="@android:color/white"
 			app:backgroundTint="@color/mlkit_primary" app:cornerRadius="14dp" />
@@ -145,8 +133,7 @@
 		<TextView android:id="@+id/timingReport"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_marginBottom="4dp"
-			android:text="@string/timing_disabled_message"
+			android:layout_marginBottom="4dp" android:text=""
 			android:textColor="@color/mlkit_on_surface_variant" />
 	</LinearLayout>
 </ScrollView>

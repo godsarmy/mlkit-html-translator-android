@@ -6,7 +6,6 @@ import android.os.Looper;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -27,10 +26,8 @@ public class MainActivity extends AppCompatActivity {
 
     private TranslationViewModel viewModel;
     private TextView timingText;
-    private CheckBox timingCheckbox;
     private Button modelActionButton;
     private Spinner targetSpinner;
-    private TextView modelStatusText;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable pendingDownloadRunnable;
@@ -48,9 +45,7 @@ public class MainActivity extends AppCompatActivity {
         EditText inputHtml = findViewById(R.id.inputHtml);
         TextView outputHtml = findViewById(R.id.outputHtml);
         TextView errorCode = findViewById(R.id.errorCode);
-        modelStatusText = findViewById(R.id.modelStatus);
         timingText = findViewById(R.id.timingReport);
-        timingCheckbox = findViewById(R.id.enableTimingCheckbox);
         modelActionButton = findViewById(R.id.downloadModelButton);
 
         setupSpinner(sourceSpinner, R.array.language_codes);
@@ -63,11 +58,6 @@ public class MainActivity extends AppCompatActivity {
                 report ->
                         runOnUiThread(
                                 () -> {
-                                    if (!timingCheckbox.isChecked()) {
-                                        timingText.setText(
-                                                getString(R.string.timing_disabled_message));
-                                        return;
-                                    }
                                     String timingSummary =
                                             "durationMs="
                                                     + report.getDurationMs()
@@ -103,7 +93,6 @@ public class MainActivity extends AppCompatActivity {
                                 errorCode.setText(code);
                             }
                         });
-        viewModel.modelStatus().observe(this, modelStatusText::setText);
 
         Button translateButton = findViewById(R.id.translateButton);
         translateButton.setOnClickListener(
@@ -145,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         inputHtml.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
-        timingText.setText(getString(R.string.timing_disabled_message));
+        timingText.setText("");
         updateModelActionCaption();
     }
 
@@ -206,7 +195,6 @@ public class MainActivity extends AppCompatActivity {
         }
         isDownloadingModel = false;
         dismissDownloadProgressDialog();
-        modelStatusText.setText(getString(R.string.model_download_cancelled, targetLanguage));
         updateModelActionCaption();
     }
 
