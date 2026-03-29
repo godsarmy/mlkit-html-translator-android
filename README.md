@@ -48,6 +48,19 @@ translator.translateHtml(
 translator.close();
 ```
 
+### Optional: explain preprocessing without translation
+
+```java
+ExplainHtmlResult explain = translator.explainHtml(
+        "<p>Hello <a href=\"https://example.com\">world</a></p>");
+
+for (ExplainHtmlChunk chunk : explain.getChunks()) {
+    // inspect markerized payload, node indexes, and plain-text length
+}
+```
+
+`explainHtml(...)` runs parse/collection/masking/chunking diagnostics only and does not call ML translation.
+
 ## App-owned model lifecycle
 
 This library intentionally **does not** expose model download/list/delete APIs.

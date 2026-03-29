@@ -10,6 +10,7 @@ import io.github.godsarmy.mlhtmltranslator.batch.ChunkResultMapper;
 import io.github.godsarmy.mlhtmltranslator.batch.SegmentMarkerCodec;
 import io.github.godsarmy.mlhtmltranslator.mask.TokenMasker;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +48,28 @@ public final class HtmlBodyTranslationEngine {
     }
 
     @NonNull
+    public PreprocessResult explainHtmlPreprocess(
+            @NonNull String htmlBody, @NonNull HtmlTranslationOptions options) {
+        Preparation preparation = preparePipeline(htmlBody, options);
+        List<PreprocessedNode> preprocessedNodes = new ArrayList<>(preparation.nodes.size());
+        for (int i = 0; i < preparation.nodes.size(); i++) {
+            CollectedTextNode node = preparation.nodes.get(i);
+            TokenMasker.MaskingResult maskingResult = preparation.maskingResults.get(i);
+            preprocessedNodes.add(
+                    new PreprocessedNode(
+                            i,
+                            node.getLeadingWhitespace(),
+                            node.getTranslatableText(),
+                            node.getTrailingWhitespace(),
+                            maskingResult.getMaskedText(),
+                            maskingResult.getPlaceholderToOriginal()));
+        }
+
+        return new PreprocessResult(
+                preparation.document.body().html(), preprocessedNodes, preparation.chunks);
+    }
+
+    @NonNull
     public String translateHtmlBody(
             @NonNull String htmlBody,
             @NonNull String sourceLanguage,
@@ -74,18 +97,76 @@ public final class HtmlBodyTranslationEngine {
             @NonNull MlTranslationAdapter translationAdapter,
             @NonNull AtomicBoolean cancelled)
             throws TranslationException {
+        Preparation preparation = preparePipeline(htmlBody, options);
+
+        if (preparation.nodes.isEmpty()) {
+            return new PipelineResult(
+                    preparation.document.body().html(),
+                    new Diagnostics(
+                            0,
+                            0,
+                            0,
+                            0,
+                            0,
+                            preparation.parseWalkDurationMs,
+                            preparation.maskChunkDurationMs,
+                            0));
+        }
+
+        long translationStartNs = System.nanoTime();
+        ChunkAggregate aggregate =
+                translateChunks(
+                        preparation.chunks,
+                        sourceLanguage,
+                        targetLanguage,
+                        preparation.markerCodec,
+                        translationAdapter,
+                        options,
+                        cancelled);
+        long translationDurationMs =
+                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - translationStartNs);
+
+        for (int i = 0; i < preparation.nodes.size(); i++) {
+            CollectedTextNode node = preparation.nodes.get(i);
+            String translatedMaskedText = aggregate.translatedMaskedByNodeIndex.get(i);
+            if (translatedMaskedText == null) {
+                throw new TranslationException(
+                        TranslationErrorCode.INTERNAL_ERROR,
+                        "Missing translated segment for node index " + i);
+            }
+
+            String sanitizedMaskedText = stripMarkerArtifacts(translatedMaskedText);
+
+            String unmasked =
+                    tokenMasker.unmask(
+                            sanitizedMaskedText,
+                            preparation.maskingResults.get(i).getPlaceholderToOriginal());
+            String restored = node.getLeadingWhitespace() + unmasked + node.getTrailingWhitespace();
+            node.getTextNode().text(restored);
+        }
+
+        Diagnostics diagnostics =
+                new Diagnostics(
+                        preparation.nodes.size(),
+                        aggregate.translatedNodes,
+                        aggregate.failedNodes,
+                        aggregate.retryCount,
+                        preparation.chunks.size(),
+                        preparation.parseWalkDurationMs,
+                        preparation.maskChunkDurationMs,
+                        translationDurationMs);
+        return new PipelineResult(preparation.document.body().html(), diagnostics);
+    }
+
+    @NonNull
+    private Preparation preparePipeline(
+            @NonNull String htmlBody, @NonNull HtmlTranslationOptions options) {
         long parseWalkStartNs = System.nanoTime();
         Document document = Jsoup.parseBodyFragment(htmlBody);
         List<CollectedTextNode> nodes =
                 nodeCollector.collectEligibleNodes(document.body(), options);
         long parseWalkDurationMs =
                 TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - parseWalkStartNs);
-
-        if (nodes.isEmpty()) {
-            return new PipelineResult(
-                    document.body().html(),
-                    new Diagnostics(0, 0, 0, 0, 0, parseWalkDurationMs, 0, 0));
-        }
 
         long maskChunkStartNs = System.nanoTime();
         TokenMasker.MaskingConfig maskingConfig =
@@ -108,48 +189,14 @@ public final class HtmlBodyTranslationEngine {
         long maskChunkDurationMs =
                 TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - maskChunkStartNs);
 
-        long translationStartNs = System.nanoTime();
-        ChunkAggregate aggregate =
-                translateChunks(
-                        chunks,
-                        sourceLanguage,
-                        targetLanguage,
-                        markerCodec,
-                        translationAdapter,
-                        options,
-                        cancelled);
-        long translationDurationMs =
-                TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - translationStartNs);
-
-        for (int i = 0; i < nodes.size(); i++) {
-            CollectedTextNode node = nodes.get(i);
-            String translatedMaskedText = aggregate.translatedMaskedByNodeIndex.get(i);
-            if (translatedMaskedText == null) {
-                throw new TranslationException(
-                        TranslationErrorCode.INTERNAL_ERROR,
-                        "Missing translated segment for node index " + i);
-            }
-
-            String sanitizedMaskedText = stripMarkerArtifacts(translatedMaskedText);
-
-            String unmasked =
-                    tokenMasker.unmask(
-                            sanitizedMaskedText, maskingResults.get(i).getPlaceholderToOriginal());
-            String restored = node.getLeadingWhitespace() + unmasked + node.getTrailingWhitespace();
-            node.getTextNode().text(restored);
-        }
-
-        Diagnostics diagnostics =
-                new Diagnostics(
-                        nodes.size(),
-                        aggregate.translatedNodes,
-                        aggregate.failedNodes,
-                        aggregate.retryCount,
-                        chunks.size(),
-                        parseWalkDurationMs,
-                        maskChunkDurationMs,
-                        translationDurationMs);
-        return new PipelineResult(document.body().html(), diagnostics);
+        return new Preparation(
+                document,
+                nodes,
+                maskingResults,
+                chunks,
+                markerCodec,
+                parseWalkDurationMs,
+                maskChunkDurationMs);
     }
 
     @NonNull
@@ -444,6 +491,89 @@ public final class HtmlBodyTranslationEngine {
         }
     }
 
+    public static final class PreprocessResult {
+        private final String normalizedHtmlBody;
+        private final List<PreprocessedNode> nodes;
+        private final List<ChunkBuilder.Chunk> chunks;
+
+        PreprocessResult(
+                @NonNull String normalizedHtmlBody,
+                @NonNull List<PreprocessedNode> nodes,
+                @NonNull List<ChunkBuilder.Chunk> chunks) {
+            this.normalizedHtmlBody = normalizedHtmlBody;
+            this.nodes = Collections.unmodifiableList(new ArrayList<>(nodes));
+            this.chunks = Collections.unmodifiableList(new ArrayList<>(chunks));
+        }
+
+        @NonNull
+        public String getNormalizedHtmlBody() {
+            return normalizedHtmlBody;
+        }
+
+        @NonNull
+        public List<PreprocessedNode> getNodes() {
+            return nodes;
+        }
+
+        @NonNull
+        public List<ChunkBuilder.Chunk> getChunks() {
+            return chunks;
+        }
+    }
+
+    public static final class PreprocessedNode {
+        private final int index;
+        private final String leadingWhitespace;
+        private final String translatableText;
+        private final String trailingWhitespace;
+        private final String maskedText;
+        private final Map<String, String> placeholders;
+
+        PreprocessedNode(
+                int index,
+                @NonNull String leadingWhitespace,
+                @NonNull String translatableText,
+                @NonNull String trailingWhitespace,
+                @NonNull String maskedText,
+                @NonNull Map<String, String> placeholders) {
+            this.index = index;
+            this.leadingWhitespace = leadingWhitespace;
+            this.translatableText = translatableText;
+            this.trailingWhitespace = trailingWhitespace;
+            this.maskedText = maskedText;
+            this.placeholders = Collections.unmodifiableMap(new LinkedHashMap<>(placeholders));
+        }
+
+        public int getIndex() {
+            return index;
+        }
+
+        @NonNull
+        public String getLeadingWhitespace() {
+            return leadingWhitespace;
+        }
+
+        @NonNull
+        public String getTranslatableText() {
+            return translatableText;
+        }
+
+        @NonNull
+        public String getTrailingWhitespace() {
+            return trailingWhitespace;
+        }
+
+        @NonNull
+        public String getMaskedText() {
+            return maskedText;
+        }
+
+        @NonNull
+        public Map<String, String> getPlaceholders() {
+            return placeholders;
+        }
+    }
+
     public static final class Diagnostics {
         private final int totalNodes;
         private final int translatedNodes;
@@ -511,6 +641,33 @@ public final class HtmlBodyTranslationEngine {
         private int translatedNodes;
         private int failedNodes;
         private int retryCount;
+    }
+
+    private static final class Preparation {
+        private final Document document;
+        private final List<CollectedTextNode> nodes;
+        private final List<TokenMasker.MaskingResult> maskingResults;
+        private final List<ChunkBuilder.Chunk> chunks;
+        private final SegmentMarkerCodec markerCodec;
+        private final long parseWalkDurationMs;
+        private final long maskChunkDurationMs;
+
+        Preparation(
+                @NonNull Document document,
+                @NonNull List<CollectedTextNode> nodes,
+                @NonNull List<TokenMasker.MaskingResult> maskingResults,
+                @NonNull List<ChunkBuilder.Chunk> chunks,
+                @NonNull SegmentMarkerCodec markerCodec,
+                long parseWalkDurationMs,
+                long maskChunkDurationMs) {
+            this.document = document;
+            this.nodes = nodes;
+            this.maskingResults = maskingResults;
+            this.chunks = chunks;
+            this.markerCodec = markerCodec;
+            this.parseWalkDurationMs = parseWalkDurationMs;
+            this.maskChunkDurationMs = maskChunkDurationMs;
+        }
     }
 
     private static final class ChunkTranslationResult {

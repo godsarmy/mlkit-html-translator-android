@@ -5,6 +5,7 @@
 - `MlKitHtmlTranslator()`
 - `MlKitHtmlTranslator(HtmlTranslationOptions options)`
 - `translateHtml(String htmlBody, String sourceLanguage, String targetLanguage, TranslationCallback callback)`
+- `explainHtml(String htmlBody)`
 - `close()`
 
 ## Options
@@ -23,6 +24,19 @@ Current options:
 
 - `onSuccess(String translatedHtml)`
 - `onFailure(TranslationException exception)`
+
+## Explain/diagnostics API
+
+`explainHtml(...)` runs local preprocessing diagnostics and does not call the translation backend.
+
+`ExplainHtmlResult` provides:
+
+- `normalizedHtmlBody`
+- `nodes` (`ExplainHtmlNode`)
+- `chunks` (`ExplainHtmlChunk`)
+- `protectedTags`
+- mask flags (`maskUrls`, `maskPlaceholders`, `maskPaths`)
+- derived totals (`totalNodeCount`, `totalChunkCount`)
 
 ## Threading and callback behavior
 

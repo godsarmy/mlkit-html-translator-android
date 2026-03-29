@@ -6,7 +6,10 @@ import androidx.annotation.Nullable;
 import io.github.godsarmy.mlhtmltranslator.backend.IdentityTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlKitTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
+import io.github.godsarmy.mlhtmltranslator.batch.ChunkBuilder;
 import io.github.godsarmy.mlhtmltranslator.core.HtmlBodyTranslationEngine;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class MlKitHtmlTranslator implements AutoCloseable {
@@ -99,6 +102,49 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
                             "Unexpected runtime failure during translation",
                             runtimeException));
         }
+    }
+
+    /**
+     * Explains HTML preprocessing diagnostics (node collection, masking, chunking) without
+     * executing translation.
+     */
+    @NonNull
+    public ExplainHtmlResult explainHtml(@NonNull String htmlBody) {
+        HtmlBodyTranslationEngine.PreprocessResult preprocessResult =
+                translationEngine.explainHtmlPreprocess(htmlBody, options);
+
+        List<ExplainHtmlNode> explainedNodes = new ArrayList<>();
+        for (HtmlBodyTranslationEngine.PreprocessedNode node : preprocessResult.getNodes()) {
+            explainedNodes.add(
+                    new ExplainHtmlNode(
+                            node.getIndex(),
+                            node.getLeadingWhitespace(),
+                            node.getTranslatableText(),
+                            node.getTrailingWhitespace(),
+                            node.getMaskedText(),
+                            node.getPlaceholders()));
+        }
+
+        List<ExplainHtmlChunk> explainedChunks = new ArrayList<>();
+        List<ChunkBuilder.Chunk> chunks = preprocessResult.getChunks();
+        for (int i = 0; i < chunks.size(); i++) {
+            ChunkBuilder.Chunk chunk = chunks.get(i);
+            explainedChunks.add(
+                    new ExplainHtmlChunk(
+                            i,
+                            chunk.getPayload(),
+                            chunk.getNodeIndexes(),
+                            chunk.getOriginalNodeTexts()));
+        }
+
+        return new ExplainHtmlResult(
+                preprocessResult.getNormalizedHtmlBody(),
+                explainedNodes,
+                explainedChunks,
+                options.getProtectedTags(),
+                options.isMaskUrls(),
+                options.isMaskPlaceholders(),
+                options.isMaskPaths());
     }
 
     @Override

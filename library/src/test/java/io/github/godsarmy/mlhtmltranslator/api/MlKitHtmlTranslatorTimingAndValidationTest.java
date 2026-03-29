@@ -72,6 +72,41 @@ public class MlKitHtmlTranslatorTimingAndValidationTest {
         assertTrue(reports.get(1).getChunkCount() > 0);
     }
 
+    @Test
+    public void explainHtml_runsPreprocessWithoutCallingTranslationAdapter() {
+        AtomicInteger adapterCalls = new AtomicInteger(0);
+        MlTranslationAdapter adapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) -> {
+                    adapterCalls.incrementAndGet();
+                    return text;
+                };
+
+        HtmlTranslationOptions options =
+                HtmlTranslationOptions.builder().setMaxChunkChars(20).build();
+        MlKitHtmlTranslator translator = new MlKitHtmlTranslator(options, adapter);
+
+        ExplainHtmlResult result =
+                translator.explainHtml(
+                        "<p> Hello https://example.com </p><code>skip</code><p>Second</p>");
+
+        assertEquals(0, adapterCalls.get());
+        assertEquals(2, result.getTotalNodeCount());
+        assertEquals(2, result.getTotalChunkCount());
+        assertTrue(result.getNodes().get(0).getMaskedText().contains("@@P"));
+        assertTrue(result.getChunks().get(0).getPayload().contains("⟦M"));
+    }
+
+    @Test
+    public void explainHtml_blankInputReturnsEmptyDiagnostics() {
+        MlKitHtmlTranslator translator = new MlKitHtmlTranslator();
+
+        ExplainHtmlResult result = translator.explainHtml("   ");
+
+        assertEquals(0, result.getTotalNodeCount());
+        assertEquals(0, result.getTotalChunkCount());
+        assertEquals("", result.getNormalizedHtmlBody());
+    }
+
     private static final class CapturingCallback implements TranslationCallback {
         private String translated;
         private TranslationException exception;
