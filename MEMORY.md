@@ -8,8 +8,8 @@
 
 ## Workflow conventions in this repo
 
-- Work progresses by TODO phases with one commit per completed step.
-- After each step: run format + tests/build, update checkboxes in `TODO.md`, then commit.
+- Keep edits focused and release-oriented.
+- Validate changed scope with format + tests/build before publishing.
 
 ## Implementation learnings
 

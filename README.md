@@ -6,6 +6,53 @@
 
 Android library for translating **HTML body content** with an ML-backed pipeline while preserving structure, attributes, links, and protected tags.
 
+## Release
+
+- Current release: **0.1.0**
+- Stable surface for first public integration:
+  - `MlKitHtmlTranslator`
+  - `HtmlTranslationOptions`
+  - `TranslationCallback`
+  - `TranslationException` + `TranslationErrorCode`
+
+## Design parity highlights
+
+This library intentionally mirrors `mlkit-markdown-translator-android` ergonomics:
+
+- main class + options-based construction
+- callback-based `translate*` flow
+- typed exception and error codes
+- explicit `close()` lifecycle and optional timing report
+
+## Integrate in your Android app (0.1.0)
+
+### Option A: JitPack artifact
+
+Add JitPack repository in your root `settings.gradle`:
+
+```gradle
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+Add dependency in your app module `build.gradle`:
+
+```gradle
+dependencies {
+    implementation 'com.github.godsarmy.mlkit-html-translator-android:library:0.1.0'
+}
+```
+
+### Option B: source-module integration (tag `0.1.0`)
+
+If you prefer source integration, check out tag `0.1.0` and include this repo's `library/` module in your app workspace, then depend on it as a Gradle project module.
+
 ## Quickstart
 
 ### 1) Create translator
@@ -78,10 +125,9 @@ The `sample/` app demonstrates:
 - structured error output (`TranslationErrorCode`)
 - optional timing report rendering
 
-## Documentation
+## User documentation
 
 - API reference: `docs/api.md`
 - Integration guide: `docs/integration.md`
-- Migration notes: `docs/migration.md`
 - Benchmark summary: `docs/bench-report.md`
-- Maintainer parity notes: `docs/maintainers.md`
+- Architecture details: `docs/architecture.md`

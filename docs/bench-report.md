@@ -1,4 +1,4 @@
-# Benchmark Report (Phase 11)
+# Benchmark Report (v0.1.0 baseline)
 
 ## Scope
 
