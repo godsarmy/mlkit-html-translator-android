@@ -49,5 +49,9 @@
 	<string-array name="sample_assets">
 		<item>manual-like.html</item>
 		<item>mixed-code-prose.html</item>
+		<item>large-prose.html</item>
+		<item>complex-structure.html</item>
+		<item>mixed-worst-case.html</item>
+		<item>huge-document.html</item>
 	</string-array>
 </resources>
