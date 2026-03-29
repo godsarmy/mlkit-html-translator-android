@@ -1,5 +1,9 @@
 # mlkit-html-translator-android
 
+<p align="center">
+  <img src="docs/project-icon.svg" alt="ML HTML Translator icon" width="120" height="120" />
+</p>
+
 Android library for translating **HTML body content** with an ML-backed pipeline while preserving structure, attributes, links, and protected tags.
 
 ## Quickstart
