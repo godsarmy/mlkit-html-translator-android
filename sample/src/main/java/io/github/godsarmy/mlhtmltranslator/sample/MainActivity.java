@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private Spinner targetSpinner;
     private EditText inputHtmlText;
     private TextView outputHtmlText;
+    private TextView markerSummaryText;
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private CheckBox renderModeToggle;
@@ -67,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
 
         Spinner sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetSpinner = findViewById(R.id.targetLanguageSpinner);
@@ -74,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
         inputHtmlText = findViewById(R.id.inputHtml);
         outputHtmlText = findViewById(R.id.outputHtml);
+        markerSummaryText = findViewById(R.id.markerSummaryText);
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
@@ -189,6 +194,7 @@ public class MainActivity extends AppCompatActivity {
         applyRenderMode(renderModeToggle.isChecked());
         refreshDownloadedModels();
         updateExplainButtonState();
+        updateMarkerSummary();
     }
 
     private void startTranslation(String sourceLanguage) {
@@ -340,8 +346,14 @@ public class MainActivity extends AppCompatActivity {
                                     .putString(KEY_MARKER_START, markerStart)
                                     .putString(KEY_MARKER_END, markerEnd)
                                     .apply();
+                            updateMarkerSummary();
                         })
                 .show();
+    }
+
+    private void updateMarkerSummary() {
+        markerSummaryText.setText(
+                getString(R.string.marker_summary_template, readMarkerStart(), readMarkerEnd()));
     }
 
     private void applyRenderMode(boolean renderModeEnabled) {

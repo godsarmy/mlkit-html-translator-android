@@ -16,6 +16,7 @@
 	<string name="default_placeholder_marker_end">]}]</string>
 	<string name="marker_config_icon_content_description">Configure placeholder markers</string>
 	<string name="marker_config_dialog_title">Placeholder markers</string>
+	<string name="marker_summary_template">Markers: %1$s … %2$s</string>
 	<string name="save">Save</string>
 	<string name="action_translate">Translate</string>
 	<string name="action_explain">Explain</string>
