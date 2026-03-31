@@ -14,6 +14,17 @@
 	<string name="hint_placeholder_marker_end">e.g. ]}]</string>
 	<string name="default_placeholder_marker_start">[{[</string>
 	<string name="default_placeholder_marker_end">]}]</string>
+	<string name="advanced_parameter_label">Advanced parameter</string>
+	<string name="advanced_parameter_icon_content_description">Configure advanced translation parameters</string>
+	<string name="advanced_parameters_screen_title">Advanced translation parameters</string>
+	<string name="label_max_chunk_chars">Max chunk chars</string>
+	<string name="hint_max_chunk_chars">e.g. 3000</string>
+	<string name="label_failure_policy">Failure policy</string>
+	<string name="failure_policy_best_effort">Best effort</string>
+	<string name="failure_policy_fail_fast">Fail fast</string>
+	<string name="label_mask_urls">Mask URLs</string>
+	<string name="label_mask_placeholders">Mask placeholders</string>
+	<string name="label_mask_paths">Mask paths</string>
 	<string name="marker_config_icon_content_description">Configure placeholder markers</string>
 	<string name="marker_config_dialog_title">Placeholder markers</string>
 	<string name="marker_summary_template">Markers: %1$s … %2$s</string>
@@ -65,5 +76,10 @@
 		<item>complex-structure.html</item>
 		<item>mixed-worst-case.html</item>
 		<item>huge-document.html</item>
+	</string-array>
+
+	<string-array name="failure_policy_options">
+		<item>@string/failure_policy_best_effort</item>
+		<item>@string/failure_policy_fail_fast</item>
 	</string-array>
 </resources>

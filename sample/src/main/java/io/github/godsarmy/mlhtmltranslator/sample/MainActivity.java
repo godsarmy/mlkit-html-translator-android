@@ -1,12 +1,12 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -18,6 +18,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -37,14 +39,13 @@ public class MainActivity extends AppCompatActivity {
 
     private TranslationViewModel viewModel;
     private MaterialButton modelActionButton;
-    private MaterialButton markerConfigButton;
+    private MaterialButton advancedParameterButton;
     private Button translateButton;
     private Button explainButton;
     private Spinner sourceSpinner;
     private Spinner targetSpinner;
     private EditText inputHtmlText;
     private TextView outputHtmlText;
-    private TextView markerSummaryText;
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private CheckBox renderModeToggle;
@@ -60,6 +61,28 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREFS_NAME = "marker_config";
     private static final String KEY_MARKER_START = "marker_start";
     private static final String KEY_MARKER_END = "marker_end";
+    private static final String KEY_MAX_CHUNK_CHARS = "max_chunk_chars";
+    private static final String KEY_MASK_URLS = "mask_urls";
+    private static final String KEY_MASK_PLACEHOLDERS = "mask_placeholders";
+    private static final String KEY_MASK_PATHS = "mask_paths";
+    private static final String KEY_FAILURE_POLICY = "failure_policy";
+
+    private static final int DEFAULT_MAX_CHUNK_CHARS = 3000;
+    private static final boolean DEFAULT_MASK_URLS = true;
+    private static final boolean DEFAULT_MASK_PLACEHOLDERS = true;
+    private static final boolean DEFAULT_MASK_PATHS = true;
+    private static final String DEFAULT_FAILURE_POLICY =
+            HtmlTranslationOptions.FailurePolicy.BEST_EFFORT.name();
+
+    private final ActivityResultLauncher<Intent> advancedParametersLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() != RESULT_OK) {
+                            return;
+                        }
+                        saveAdvancedPreferences(result.getData());
+                    });
 
     private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
@@ -75,11 +98,10 @@ public class MainActivity extends AppCompatActivity {
 
         sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetSpinner = findViewById(R.id.targetLanguageSpinner);
-        markerConfigButton = findViewById(R.id.markerConfigButton);
+        advancedParameterButton = findViewById(R.id.advancedParameterButton);
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
         inputHtmlText = findViewById(R.id.inputHtml);
         outputHtmlText = findViewById(R.id.outputHtml);
-        markerSummaryText = findViewById(R.id.markerSummaryText);
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
@@ -102,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
         timingListener = report -> latestTimingReport = report;
 
-        MlKitHtmlTranslator translator = buildTranslator(readMarkerStart(), readMarkerEnd());
+        MlKitHtmlTranslator translator = buildTranslator();
         translationRepository = new TranslationRepository(translator);
         ModelLifecycleManager modelLifecycleManager = new ModelLifecycleManager();
         viewModel = new TranslationViewModel(translationRepository, modelLifecycleManager);
@@ -135,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         explainButton.setOnClickListener(v -> openExplainScreen());
 
         modelActionButton.setOnClickListener(v -> onModelActionClicked());
-        markerConfigButton.setOnClickListener(v -> showMarkerConfigDialog());
+        advancedParameterButton.setOnClickListener(v -> openAdvancedParametersScreen());
 
         targetSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
@@ -195,16 +217,12 @@ public class MainActivity extends AppCompatActivity {
         applyRenderMode(renderModeToggle.isChecked());
         refreshDownloadedModels();
         updateExplainButtonState();
-        updateMarkerSummary();
     }
 
     private void startTranslation(String sourceLanguage) {
         String htmlBody = inputHtmlText.getText().toString();
         String targetLanguage = targetSpinner.getSelectedItem().toString();
-        String markerStart = readMarkerStart();
-        String markerEnd = readMarkerEnd();
-
-        translationRepository.setTranslator(buildTranslator(markerStart, markerEnd));
+        translationRepository.setTranslator(buildTranslator());
 
         currentRequestCharCount = htmlBody.length();
         latestTimingReport = null;
@@ -302,15 +320,36 @@ public class MainActivity extends AppCompatActivity {
         }
         startActivity(
                 ExplainHtmlActivity.createIntent(
-                        this, htmlBody, readMarkerStart(), readMarkerEnd()));
+                        this,
+                        htmlBody,
+                        readMarkerStart(),
+                        readMarkerEnd(),
+                        readMaxChunkChars(),
+                        readMaskUrls(),
+                        readMaskPlaceholders(),
+                        readMaskPaths(),
+                        readFailurePolicy()));
     }
 
     @NonNull
-    private MlKitHtmlTranslator buildTranslator(
-            @NonNull String markerStart, @NonNull String markerEnd) {
+    private MlKitHtmlTranslator buildTranslator() {
+        String markerStart = readMarkerStart();
+        String markerEnd = readMarkerEnd();
+        String failurePolicyName = readFailurePolicy();
+        HtmlTranslationOptions.FailurePolicy failurePolicy =
+                HtmlTranslationOptions.FailurePolicy.BEST_EFFORT;
+        if (HtmlTranslationOptions.FailurePolicy.FAIL_FAST.name().equals(failurePolicyName)) {
+            failurePolicy = HtmlTranslationOptions.FailurePolicy.FAIL_FAST;
+        }
+
         HtmlTranslationOptions options =
                 HtmlTranslationOptions.builder()
                         .setTimingListener(timingListener)
+                        .setMaxChunkChars(readMaxChunkChars())
+                        .setMaskUrls(readMaskUrls())
+                        .setMaskPlaceholders(readMaskPlaceholders())
+                        .setMaskPaths(readMaskPaths())
+                        .setFailurePolicy(failurePolicy)
                         .setPlaceholderMarkerStart(markerStart)
                         .setPlaceholderMarkerEnd(markerEnd)
                         .build();
@@ -341,45 +380,74 @@ public class MainActivity extends AppCompatActivity {
         return marker.isEmpty() ? getString(R.string.default_placeholder_marker_end) : marker;
     }
 
-    private void showMarkerConfigDialog() {
-        View dialogView =
-                LayoutInflater.from(this).inflate(R.layout.dialog_marker_config, null, false);
-        EditText startInput = dialogView.findViewById(R.id.markerStartInput);
-        EditText endInput = dialogView.findViewById(R.id.markerEndInput);
-
-        startInput.setText(readMarkerStart());
-        endInput.setText(readMarkerEnd());
-
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.marker_config_dialog_title)
-                .setView(dialogView)
-                .setNegativeButton(R.string.cancel_download, null)
-                .setPositiveButton(
-                        R.string.save,
-                        (dialog, which) -> {
-                            String markerStart = startInput.getText().toString().trim();
-                            String markerEnd = endInput.getText().toString().trim();
-
-                            if (markerStart.isEmpty()) {
-                                markerStart = getString(R.string.default_placeholder_marker_start);
-                            }
-                            if (markerEnd.isEmpty()) {
-                                markerEnd = getString(R.string.default_placeholder_marker_end);
-                            }
-
-                            markerPreferences
-                                    .edit()
-                                    .putString(KEY_MARKER_START, markerStart)
-                                    .putString(KEY_MARKER_END, markerEnd)
-                                    .apply();
-                            updateMarkerSummary();
-                        })
-                .show();
+    private int readMaxChunkChars() {
+        return Math.max(1, markerPreferences.getInt(KEY_MAX_CHUNK_CHARS, DEFAULT_MAX_CHUNK_CHARS));
     }
 
-    private void updateMarkerSummary() {
-        markerSummaryText.setText(
-                getString(R.string.marker_summary_template, readMarkerStart(), readMarkerEnd()));
+    private boolean readMaskUrls() {
+        return markerPreferences.getBoolean(KEY_MASK_URLS, DEFAULT_MASK_URLS);
+    }
+
+    private boolean readMaskPlaceholders() {
+        return markerPreferences.getBoolean(KEY_MASK_PLACEHOLDERS, DEFAULT_MASK_PLACEHOLDERS);
+    }
+
+    private boolean readMaskPaths() {
+        return markerPreferences.getBoolean(KEY_MASK_PATHS, DEFAULT_MASK_PATHS);
+    }
+
+    @NonNull
+    private String readFailurePolicy() {
+        String value = markerPreferences.getString(KEY_FAILURE_POLICY, DEFAULT_FAILURE_POLICY);
+        if (value == null || value.trim().isEmpty()) {
+            return DEFAULT_FAILURE_POLICY;
+        }
+        return value;
+    }
+
+    private void openAdvancedParametersScreen() {
+        advancedParametersLauncher.launch(
+                AdvancedParametersActivity.createIntent(
+                        this,
+                        readMarkerStart(),
+                        readMarkerEnd(),
+                        readMaxChunkChars(),
+                        readMaskUrls(),
+                        readMaskPlaceholders(),
+                        readMaskPaths(),
+                        readFailurePolicy()));
+    }
+
+    private void saveAdvancedPreferences(Intent data) {
+        markerPreferences
+                .edit()
+                .putString(
+                        KEY_MARKER_START,
+                        AdvancedParametersActivity.markerStartFromResult(
+                                data, getString(R.string.default_placeholder_marker_start)))
+                .putString(
+                        KEY_MARKER_END,
+                        AdvancedParametersActivity.markerEndFromResult(
+                                data, getString(R.string.default_placeholder_marker_end)))
+                .putInt(
+                        KEY_MAX_CHUNK_CHARS,
+                        AdvancedParametersActivity.maxChunkCharsFromResult(
+                                data, DEFAULT_MAX_CHUNK_CHARS))
+                .putBoolean(
+                        KEY_MASK_URLS,
+                        AdvancedParametersActivity.maskUrlsFromResult(data, DEFAULT_MASK_URLS))
+                .putBoolean(
+                        KEY_MASK_PLACEHOLDERS,
+                        AdvancedParametersActivity.maskPlaceholdersFromResult(
+                                data, DEFAULT_MASK_PLACEHOLDERS))
+                .putBoolean(
+                        KEY_MASK_PATHS,
+                        AdvancedParametersActivity.maskPathsFromResult(data, DEFAULT_MASK_PATHS))
+                .putString(
+                        KEY_FAILURE_POLICY,
+                        AdvancedParametersActivity.failurePolicyFromResult(
+                                data, DEFAULT_FAILURE_POLICY))
+                .apply();
     }
 
     private void applyRenderMode(boolean renderModeEnabled) {
