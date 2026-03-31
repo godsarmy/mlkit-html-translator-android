@@ -28,6 +28,8 @@ This library intentionally mirrors `mlkit-markdown-translator-android` ergonomic
 
 ### Option A: JitPack artifact
 
+JitPack page: https://jitpack.io/#godsarmy/mlkit-html-translator-android
+
 Add JitPack repository in your root `settings.gradle`:
 
 ```gradle
