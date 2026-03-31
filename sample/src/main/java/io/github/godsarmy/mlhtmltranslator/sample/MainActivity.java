@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton markerConfigButton;
     private Button translateButton;
     private Button explainButton;
+    private Spinner sourceSpinner;
     private Spinner targetSpinner;
     private EditText inputHtmlText;
     private TextView outputHtmlText;
@@ -72,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        Spinner sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
+        sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetSpinner = findViewById(R.id.targetLanguageSpinner);
         markerConfigButton = findViewById(R.id.markerConfigButton);
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
@@ -256,9 +257,34 @@ public class MainActivity extends AppCompatActivity {
         translationResultText.setVisibility(View.VISIBLE);
         translationResultText.setTextColor(
                 getColor(failed ? R.color.mlkit_error : R.color.mlkit_on_surface_variant));
-        translateButton.setEnabled(true);
         updateModelActionCaption();
         updateExplainButtonState();
+    }
+
+    private void updateTranslateButtonState() {
+        if (translateButton == null
+                || targetSpinner == null
+                || sourceSpinner == null
+                || viewModel == null) {
+            return;
+        }
+
+        if (isTranslating || isDownloadingModel) {
+            translateButton.setEnabled(false);
+            return;
+        }
+
+        String sourceLanguage =
+                sourceSpinner.getSelectedItem() == null
+                        ? ""
+                        : sourceSpinner.getSelectedItem().toString();
+        String targetLanguage =
+                targetSpinner.getSelectedItem() == null
+                        ? ""
+                        : targetSpinner.getSelectedItem().toString();
+        boolean isSourceModelAvailable = viewModel.isModelAvailable(sourceLanguage);
+        boolean isTargetModelAvailable = viewModel.isModelAvailable(targetLanguage);
+        translateButton.setEnabled(isSourceModelAvailable && isTargetModelAvailable);
     }
 
     private void updateExplainButtonState() {
@@ -561,6 +587,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateModelActionCaption() {
+        updateTranslateButtonState();
+
         if (isDownloadingModel || isTranslating) {
             modelActionButton.setEnabled(false);
             return;
