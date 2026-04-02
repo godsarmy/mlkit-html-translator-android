@@ -127,6 +127,10 @@ The `sample/` app demonstrates:
 - structured error output (`TranslationErrorCode`)
 - optional timing report rendering
 
+<p align="center">
+  <img src="screenshot.jpg" alt="Sample app screenshot" width="320" />
+</p>
+
 ## User documentation
 
 - API reference: [docs/api.md](docs/api.md)
