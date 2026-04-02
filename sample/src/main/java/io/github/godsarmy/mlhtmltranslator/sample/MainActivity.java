@@ -119,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
         setupSpinner(sourceSpinner, R.array.language_codes);
         setupSpinner(targetSpinner, R.array.language_codes);
         setupSpinner(sampleSpinner, R.array.sample_assets);
-        sourceSpinner.setSelection(0);
-        targetSpinner.setSelection(1);
+        sourceSpinner.setSelection(findSpinnerIndex(sourceSpinner, "en"));
+        targetSpinner.setSelection(findSpinnerIndex(targetSpinner, "es"));
 
         timingListener = report -> latestTimingReport = report;
 
@@ -685,6 +685,23 @@ public class MainActivity extends AppCompatActivity {
                         this, arrayRes, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+    }
+
+    private int findSpinnerIndex(Spinner spinner, String value) {
+        if (spinner == null || value == null) {
+            return 0;
+        }
+        ArrayAdapter<?> adapter = (ArrayAdapter<?>) spinner.getAdapter();
+        if (adapter == null) {
+            return 0;
+        }
+        for (int index = 0; index < adapter.getCount(); index++) {
+            Object item = adapter.getItem(index);
+            if (item != null && value.equalsIgnoreCase(item.toString())) {
+                return index;
+            }
+        }
+        return 0;
     }
 
     private String loadAssetHtml(String fileName) {

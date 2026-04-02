@@ -61,12 +61,12 @@
 		• protectedTags=%4$s</string>
 
 	<string-array name="language_codes">
+		<item>de</item>
 		<item>en</item>
 		<item>es</item>
 		<item>fr</item>
-		<item>de</item>
-		<item>zh</item>
 		<item>ja</item>
+		<item>zh</item>
 	</string-array>
 
 	<string-array name="sample_assets">
