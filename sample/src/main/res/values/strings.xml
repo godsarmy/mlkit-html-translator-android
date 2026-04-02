@@ -14,7 +14,7 @@
 	<string name="hint_placeholder_marker_end">e.g. ]}]</string>
 	<string name="default_placeholder_marker_start">[{[</string>
 	<string name="default_placeholder_marker_end">]}]</string>
-	<string name="advanced_parameter_label">Advanced parameter</string>
+	<string name="advanced_parameter_label">Advanced parameters</string>
 	<string name="advanced_parameter_icon_content_description">Configure advanced translation parameters</string>
 	<string name="advanced_parameters_screen_title">Advanced translation parameters</string>
 	<string name="label_max_chunk_chars">Max chunk chars</string>
