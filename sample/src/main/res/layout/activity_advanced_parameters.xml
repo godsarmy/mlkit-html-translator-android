@@ -58,23 +58,27 @@
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="4dp" />
 
-		<CheckBox android:id="@+id/maskUrlsCheck"
-			android:layout_width="match_parent"
+		<com.google.android.material.switchmaterial.SwitchMaterial
+			android:id="@+id/maskUrlsCheck" android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="10dp"
 			android:text="@string/label_mask_urls"
-			android:textColor="@color/mlkit_on_background" />
+			android:textColor="@color/mlkit_on_background"
+			app:useMaterialThemeColors="true" />
 
-		<CheckBox android:id="@+id/maskPlaceholdersCheck"
+		<com.google.android.material.switchmaterial.SwitchMaterial
+			android:id="@+id/maskPlaceholdersCheck"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:text="@string/label_mask_placeholders"
-			android:textColor="@color/mlkit_on_background" />
+			android:textColor="@color/mlkit_on_background"
+			app:useMaterialThemeColors="true" />
 
-		<CheckBox android:id="@+id/maskPathsCheck"
-			android:layout_width="match_parent"
+		<com.google.android.material.switchmaterial.SwitchMaterial
+			android:id="@+id/maskPathsCheck" android:layout_width="match_parent"
 			android:layout_height="wrap_content"
 			android:text="@string/label_mask_paths"
-			android:textColor="@color/mlkit_on_background" />
+			android:textColor="@color/mlkit_on_background"
+			app:useMaterialThemeColors="true" />
 
 		<LinearLayout android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="16dp"

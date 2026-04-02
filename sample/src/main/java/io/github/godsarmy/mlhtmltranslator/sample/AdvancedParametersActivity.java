@@ -4,12 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 
 public final class AdvancedParametersActivity extends AppCompatActivity {
@@ -25,9 +25,9 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     private EditText markerEndInput;
     private EditText maxChunkCharsInput;
     private Spinner failurePolicySpinner;
-    private CheckBox maskUrlsCheck;
-    private CheckBox maskPlaceholdersCheck;
-    private CheckBox maskPathsCheck;
+    private SwitchMaterial maskUrlsCheck;
+    private SwitchMaterial maskPlaceholdersCheck;
+    private SwitchMaterial maskPathsCheck;
 
     public static Intent createIntent(
             @NonNull Context context,
