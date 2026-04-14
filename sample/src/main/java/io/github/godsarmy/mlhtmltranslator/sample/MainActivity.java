@@ -3,6 +3,7 @@ package io.github.godsarmy.mlhtmltranslator.sample;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -17,11 +18,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.mlkit.nl.translate.TranslateLanguage;
@@ -33,12 +36,22 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends AppCompatActivity {
 
+    private enum SourceMode {
+        EXAMPLE,
+        FILE,
+        URL
+    }
+
     private TranslationViewModel viewModel;
     private MaterialButton modelActionButton;
+    private MaterialButton sourceModeButton;
+    private MaterialButton sourceModeActionButton;
     private MaterialButton advancedParameterButton;
     private Button translateButton;
     private Button explainButton;
@@ -49,6 +62,12 @@ public class MainActivity extends AppCompatActivity {
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
+    private View exampleSourceContainer;
+    private View fileSourceContainer;
+    private View urlSourceContainer;
+    private TextView sourceModeLabel;
+    private TextView localFileNameText;
+    private EditText urlInputText;
     private View translationProgressContainer;
     private TextView translationResultText;
     private boolean isTranslating;
@@ -57,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     private TranslationTimingListener timingListener;
     private TranslationRepository translationRepository;
     private SharedPreferences markerPreferences;
+    private SourceMode sourceMode = SourceMode.EXAMPLE;
+    private boolean isSourceLoading;
 
     private static final String PREFS_NAME = "marker_config";
     private static final String KEY_MARKER_START = "marker_start";
@@ -84,6 +105,19 @@ public class MainActivity extends AppCompatActivity {
                         saveAdvancedPreferences(result.getData());
                     });
 
+    private final ActivityResultLauncher<String[]> localFilePickerLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.OpenDocument(),
+                    uri -> {
+                        isSourceLoading = false;
+                        if (uri == null) {
+                            updateSourceModeUi();
+                            return;
+                        }
+                        loadHtmlFromUri(uri);
+                        updateSourceModeUi();
+                    });
+
     private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
     private boolean isDownloadingModel;
@@ -98,8 +132,16 @@ public class MainActivity extends AppCompatActivity {
 
         sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetSpinner = findViewById(R.id.targetLanguageSpinner);
+        sourceModeButton = findViewById(R.id.sourceModeButton);
+        sourceModeActionButton = findViewById(R.id.sourceModeActionButton);
+        sourceModeLabel = findViewById(R.id.sourceModeLabel);
         advancedParameterButton = findViewById(R.id.advancedParameterButton);
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
+        exampleSourceContainer = findViewById(R.id.exampleSourceContainer);
+        fileSourceContainer = findViewById(R.id.fileSourceContainer);
+        urlSourceContainer = findViewById(R.id.urlSourceContainer);
+        localFileNameText = findViewById(R.id.localFileNameText);
+        urlInputText = findViewById(R.id.urlInputText);
         inputHtmlText = findViewById(R.id.inputHtml);
         outputHtmlText = findViewById(R.id.outputHtml);
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
@@ -158,6 +200,28 @@ public class MainActivity extends AppCompatActivity {
 
         modelActionButton.setOnClickListener(v -> onModelActionClicked());
         advancedParameterButton.setOnClickListener(v -> openAdvancedParametersScreen());
+        sourceModeButton.setOnClickListener(v -> showSourceModeMenu());
+        sourceModeActionButton.setOnClickListener(v -> onSourceActionClicked(sampleSpinner));
+
+        urlInputText.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                        // no-op
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+                        if (sourceMode == SourceMode.URL) {
+                            updateSourceModeUi();
+                        }
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        // no-op
+                    }
+                });
 
         targetSpinner.setOnItemSelectedListener(
                 new AdapterView.OnItemSelectedListener() {
@@ -211,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         inputHtmlText.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
+        updateSourceModeUi();
         translationResultText.setText("");
         translationResultText.setVisibility(View.GONE);
         translationProgressContainer.setVisibility(View.GONE);
@@ -448,6 +513,201 @@ public class MainActivity extends AppCompatActivity {
                         AdvancedParametersActivity.failurePolicyFromResult(
                                 data, DEFAULT_FAILURE_POLICY))
                 .apply();
+    }
+
+    private void showSourceModeMenu() {
+        PopupMenu popupMenu = new PopupMenu(this, sourceModeButton);
+        popupMenu.getMenu().add(0, SourceMode.EXAMPLE.ordinal(), 0, R.string.source_mode_example);
+        popupMenu.getMenu().add(0, SourceMode.FILE.ordinal(), 1, R.string.source_mode_file);
+        popupMenu.getMenu().add(0, SourceMode.URL.ordinal(), 2, R.string.source_mode_url);
+        popupMenu.setOnMenuItemClickListener(
+                item -> {
+                    int id = item.getItemId();
+                    if (id == SourceMode.EXAMPLE.ordinal()) {
+                        sourceMode = SourceMode.EXAMPLE;
+                    } else if (id == SourceMode.FILE.ordinal()) {
+                        sourceMode = SourceMode.FILE;
+                    } else {
+                        sourceMode = SourceMode.URL;
+                    }
+                    updateSourceModeUi();
+                    return true;
+                });
+        popupMenu.show();
+    }
+
+    private void onSourceActionClicked(Spinner sampleSpinner) {
+        if (sourceMode == SourceMode.EXAMPLE) {
+            sampleSpinner.performClick();
+            return;
+        }
+        if (sourceMode == SourceMode.FILE) {
+            isSourceLoading = true;
+            updateSourceModeUi();
+            localFilePickerLauncher.launch(
+                    new String[] {"text/html", "application/xhtml+xml", "text/plain", "*/*"});
+            return;
+        }
+        loadHtmlFromUrlInput();
+    }
+
+    private void updateSourceModeUi() {
+        if (sourceModeLabel == null) {
+            return;
+        }
+        int modeTextRes;
+        int actionTextRes;
+        boolean actionEnabled = true;
+        boolean showActionButton = true;
+        switch (sourceMode) {
+            case FILE:
+                modeTextRes = R.string.source_mode_file;
+                actionTextRes = R.string.source_action_load;
+                break;
+            case URL:
+                modeTextRes = R.string.source_mode_url;
+                actionTextRes = R.string.source_action_load;
+                actionEnabled = isValidHttpUrl(urlInputText.getText().toString());
+                break;
+            case EXAMPLE:
+            default:
+                modeTextRes = R.string.source_mode_example;
+                actionTextRes = R.string.source_action_pick;
+                showActionButton = false;
+                break;
+        }
+
+        actionEnabled = actionEnabled && !isSourceLoading;
+
+        sourceModeLabel.setText(modeTextRes);
+        sourceModeActionButton.setText(actionTextRes);
+        sourceModeActionButton.setEnabled(actionEnabled);
+        sourceModeActionButton.setVisibility(showActionButton ? View.VISIBLE : View.GONE);
+
+        exampleSourceContainer.setVisibility(
+                sourceMode == SourceMode.EXAMPLE ? View.VISIBLE : View.GONE);
+        fileSourceContainer.setVisibility(sourceMode == SourceMode.FILE ? View.VISIBLE : View.GONE);
+        urlSourceContainer.setVisibility(sourceMode == SourceMode.URL ? View.VISIBLE : View.GONE);
+    }
+
+    private void loadHtmlFromUri(@NonNull Uri uri) {
+        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
+            if (inputStream == null) {
+                throw new IOException("Input stream is null");
+            }
+            StringBuilder builder = new StringBuilder();
+            try (BufferedReader reader =
+                    new BufferedReader(
+                            new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line).append('\n');
+                }
+            }
+            inputHtmlText.setText(builder.toString().trim());
+            localFileNameText.setText(resolveDisplayName(uri));
+            refreshRenderedPreviewIfNeeded();
+            updateExplainButtonState();
+        } catch (IOException e) {
+            Toast.makeText(this, R.string.source_mode_file_load_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void loadHtmlFromUrlInput() {
+        String urlText = urlInputText.getText().toString().trim();
+        if (!isValidHttpUrl(urlText)) {
+            Toast.makeText(this, R.string.source_mode_invalid_url, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        isSourceLoading = true;
+        updateSourceModeUi();
+        new Thread(
+                        () -> {
+                            String content;
+                            try {
+                                content = readUrlContent(urlText);
+                            } catch (IOException e) {
+                                runOnUiThread(
+                                        () -> {
+                                            isSourceLoading = false;
+                                            updateSourceModeUi();
+                                            Toast.makeText(
+                                                            MainActivity.this,
+                                                            R.string.source_mode_url_load_failed,
+                                                            Toast.LENGTH_SHORT)
+                                                    .show();
+                                        });
+                                return;
+                            }
+
+                            final String loadedContent = content;
+                            runOnUiThread(
+                                    () -> {
+                                        isSourceLoading = false;
+                                        inputHtmlText.setText(loadedContent);
+                                        refreshRenderedPreviewIfNeeded();
+                                        updateExplainButtonState();
+                                        updateSourceModeUi();
+                                    });
+                        })
+                .start();
+    }
+
+    @NonNull
+    private String readUrlContent(@NonNull String urlText) throws IOException {
+        HttpURLConnection connection = null;
+        try {
+            URL url = new URL(urlText);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(8000);
+            connection.setReadTimeout(10000);
+
+            int statusCode = connection.getResponseCode();
+            if (statusCode < 200 || statusCode >= 300) {
+                throw new IOException("Unexpected status code: " + statusCode);
+            }
+
+            try (InputStream inputStream = connection.getInputStream();
+                    BufferedReader reader =
+                            new BufferedReader(
+                                    new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+                StringBuilder builder = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line).append('\n');
+                }
+                return builder.toString().trim();
+            }
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    private boolean isValidHttpUrl(@NonNull String value) {
+        if (value.trim().isEmpty()) {
+            return false;
+        }
+        try {
+            Uri uri = Uri.parse(value);
+            String scheme = uri.getScheme();
+            return "http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    @NonNull
+    private String resolveDisplayName(@NonNull Uri uri) {
+        String lastSegment = uri.getLastPathSegment();
+        if (lastSegment == null || lastSegment.trim().isEmpty()) {
+            return getString(R.string.source_mode_file);
+        }
+        int slashIndex = lastSegment.lastIndexOf('/');
+        return slashIndex >= 0 ? lastSegment.substring(slashIndex + 1) : lastSegment;
     }
 
     private void applyRenderMode(boolean renderModeEnabled) {

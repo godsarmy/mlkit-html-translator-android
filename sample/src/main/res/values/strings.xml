@@ -5,6 +5,17 @@
 	<string name="label_source_language">Source language</string>
 	<string name="label_target_language">Target language</string>
 	<string name="label_sample_asset">Sample HTML asset</string>
+	<string name="source_mode_button">Source</string>
+	<string name="source_mode_example">Example HTML</string>
+	<string name="source_mode_file">Local File</string>
+	<string name="source_mode_url">URL</string>
+	<string name="source_action_pick">Pick</string>
+	<string name="source_action_load">Load</string>
+	<string name="source_file_none">No file selected</string>
+	<string name="source_url_hint">https://example.com/file.html</string>
+	<string name="source_mode_invalid_url">Enter a valid http(s) URL</string>
+	<string name="source_mode_file_load_failed">Unable to read selected file</string>
+	<string name="source_mode_url_load_failed">Unable to load HTML from URL</string>
 	<string name="label_render_html_mode">Render HTML preview mode</string>
 	<string name="label_input_html">Original HTML body</string>
 	<string name="label_output_html">Translated HTML body</string>
