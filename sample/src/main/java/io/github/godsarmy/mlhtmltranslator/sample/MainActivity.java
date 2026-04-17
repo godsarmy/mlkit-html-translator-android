@@ -41,6 +41,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.mlkit.nl.translate.TranslateLanguage;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingListener;
@@ -53,7 +54,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -87,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private SharedPreferences markerPreferences;
     private boolean isSourceLoading;
     private final List<SourceSelectorEntry> sourceEntries = new ArrayList<>();
+    private final List<String> downloadedLanguageOptions = new ArrayList<>();
     private int selectedSourcePosition;
     private KeyListener sampleAssetInputKeyListener;
 
@@ -146,10 +150,7 @@ public class MainActivity extends AppCompatActivity {
         setupWebView(outputRenderedHtml);
         setupRawOutputScrolling();
 
-        setupSpinner(sourceSpinner, R.array.language_codes);
-        setupSpinner(targetSpinner, R.array.language_codes);
-        sourceSpinner.setSelection(findSpinnerIndex(sourceSpinner, "en"));
-        targetSpinner.setSelection(findSpinnerIndex(targetSpinner, "es"));
+        setupLanguageSpinners();
 
         timingListener = report -> latestTimingReport = report;
 
@@ -865,14 +866,100 @@ public class MainActivity extends AppCompatActivity {
                 new ModelLifecycleManager.RefreshCallback() {
                     @Override
                     public void onComplete() {
+                        updateDownloadedLanguageOptions();
                         updateTranslateButtonState();
                     }
 
                     @Override
                     public void onError(@NonNull String reason) {
+                        updateDownloadedLanguageOptions();
                         updateTranslateButtonState();
                     }
                 });
+    }
+
+    private void setupLanguageSpinners() {
+        ArrayAdapter<String> adapter =
+                new ArrayAdapter<>(
+                        this, android.R.layout.simple_spinner_item, downloadedLanguageOptions);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        sourceSpinner.setAdapter(adapter);
+        targetSpinner.setAdapter(adapter);
+    }
+
+    private void updateDownloadedLanguageOptions() {
+        String previousSource =
+                sourceSpinner.getSelectedItem() == null
+                        ? ""
+                        : sourceSpinner.getSelectedItem().toString();
+        String previousTarget =
+                targetSpinner.getSelectedItem() == null
+                        ? ""
+                        : targetSpinner.getSelectedItem().toString();
+
+        downloadedLanguageOptions.clear();
+        Set<String> downloadedModels = viewModel.downloadedModels();
+        String[] supportedLanguages = getResources().getStringArray(R.array.language_codes);
+        for (String language : supportedLanguages) {
+            String normalized = normalizeLanguageCode(language);
+            if (normalized != null && downloadedModels.contains(normalized)) {
+                downloadedLanguageOptions.add(language);
+            }
+        }
+        Collections.sort(downloadedLanguageOptions);
+
+        @SuppressWarnings("unchecked")
+        ArrayAdapter<String> sourceAdapter = (ArrayAdapter<String>) sourceSpinner.getAdapter();
+        @SuppressWarnings("unchecked")
+        ArrayAdapter<String> targetAdapter = (ArrayAdapter<String>) targetSpinner.getAdapter();
+        if (sourceAdapter != null) {
+            sourceAdapter.notifyDataSetChanged();
+        }
+        if (targetAdapter != null) {
+            targetAdapter.notifyDataSetChanged();
+        }
+
+        restoreSpinnerSelection(sourceSpinner, previousSource);
+        restoreSpinnerSelection(targetSpinner, previousTarget);
+    }
+
+    private static void restoreSpinnerSelection(Spinner spinner, String preferredLanguage) {
+        ArrayAdapter<?> adapter = (ArrayAdapter<?>) spinner.getAdapter();
+        if (adapter == null || adapter.getCount() == 0) {
+            return;
+        }
+
+        int preferredIndex = -1;
+        for (int i = 0; i < adapter.getCount(); i++) {
+            Object item = adapter.getItem(i);
+            if (preferredLanguage.equals(item)) {
+                preferredIndex = i;
+                break;
+            }
+        }
+        spinner.setSelection(preferredIndex >= 0 ? preferredIndex : 0);
+    }
+
+    private static String normalizeLanguageCode(String languageCode) {
+        if (languageCode == null || languageCode.trim().isEmpty()) {
+            return null;
+        }
+
+        String normalizedInput = languageCode.trim();
+        String translatedLanguage = TranslateLanguage.fromLanguageTag(normalizedInput);
+        if (translatedLanguage != null) {
+            return translatedLanguage;
+        }
+
+        int separatorIndex = normalizedInput.indexOf('-');
+        if (separatorIndex < 0) {
+            separatorIndex = normalizedInput.indexOf('_');
+        }
+        if (separatorIndex > 0) {
+            return TranslateLanguage.fromLanguageTag(normalizedInput.substring(0, separatorIndex));
+        }
+
+        return null;
     }
 
     private final class SourceSelectorAdapter extends ArrayAdapter<SourceSelectorEntry>
