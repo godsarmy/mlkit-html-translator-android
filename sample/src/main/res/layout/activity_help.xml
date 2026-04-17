@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/mlkit_bg_canvas"
+	android:orientation="vertical">
+
+	<com.google.android.material.appbar.MaterialToolbar
+		android:id="@+id/helpToolbar" android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		android:contentInsetStartWithNavigation="0dp"
+		android:paddingHorizontal="16dp"
+		app:navigationIcon="?attr/homeAsUpIndicator"
+		app:title="@string/help_title" app:titleMarginStart="8dp" />
+
+	<ScrollView android:layout_width="match_parent"
+		android:layout_height="match_parent" android:fillViewport="true">
+
+		<LinearLayout android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:orientation="vertical"
+			android:paddingHorizontal="16dp" android:paddingBottom="16dp">
+
+			<TextView android:id="@+id/helpDocumentText"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_project_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/project_page_url"
+				android:textColor="@color/mlkit_primary" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/openProjectPageButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/open_project_page" android:textAllCaps="false"
+				app:cornerRadius="12dp" />
+
+			<com.google.android.material.button.MaterialButton
+				android:id="@+id/sendFeedbackButton"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/help_send_feedback"
+				android:textAllCaps="false" app:cornerRadius="12dp" />
+		</LinearLayout>
+	</ScrollView>
+</LinearLayout>

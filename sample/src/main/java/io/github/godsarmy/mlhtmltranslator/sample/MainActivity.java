@@ -501,6 +501,11 @@ public class MainActivity extends AppCompatActivity {
             startActivity(ModelManagementActivity.createIntent(this));
             return true;
         }
+        if (itemId == R.id.menu_help_feedback) {
+            mainDrawerLayout.closeDrawer(GravityCompat.START);
+            startActivity(HelpActivity.createIntent(this));
+            return true;
+        }
         if (itemId == R.id.menu_version) {
             mainDrawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -891,10 +896,12 @@ public class MainActivity extends AppCompatActivity {
                             ? convertView
                             : inflater.inflate(
                                     R.layout.item_source_selector_dropdown, parent, false);
-            bindSourceSelectorView(view, sourceEntryAt(position));
+            SourceSelectorEntry entry = sourceEntryAt(position);
+            bindSourceSelectorView(view, entry);
             View divider = view.findViewById(R.id.sourceSelectorDivider);
             if (divider != null) {
-                divider.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
+                divider.setVisibility(
+                        entry.type == SourceEntryType.LOAD_URL ? View.VISIBLE : View.GONE);
             }
             return view;
         }

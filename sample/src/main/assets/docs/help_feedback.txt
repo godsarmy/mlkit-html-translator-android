@@ -1,0 +1,26 @@
+ML HTML Translator Help & Feedback
+
+This sample demonstrates HTML translation with ML Kit while preserving HTML structure.
+
+How translation works
+• Parses HTML body and extracts translatable text nodes.
+• Protects placeholders, URLs, and paths according to advanced parameters.
+• Chunks text for model processing and rebuilds translated HTML in original structure.
+• Supports an explain screen to inspect preprocessing and chunk diagnostics.
+
+Advanced parameters
+• Placeholder marker start/end: controls marker tokens used in masking.
+• Max chunk chars: upper limit used for chunk splitting.
+• Mask URLs/placeholders/paths: protects sensitive or structural fragments.
+• Failure policy: best effort or fail fast behavior.
+
+Model management
+• Use Manage language models in the left menu to download or delete target language models.
+• Built-in language models cannot be deleted.
+
+Source selector
+• Pick bundled example HTML from the selector.
+• Choose “Load from URL” to fetch HTML content from a public http(s) URL.
+
+Feedback
+If you find issues or have suggestions, use Send feedback below.
