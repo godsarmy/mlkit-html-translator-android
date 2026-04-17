@@ -34,15 +34,12 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-import com.google.mlkit.nl.translate.TranslateLanguage;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingListener;
@@ -68,7 +65,6 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton leftMenuButton;
     private DrawerLayout mainDrawerLayout;
     private NavigationView leftNavigationView;
-    private MaterialButton modelActionButton;
     private Button translateButton;
     private Button explainButton;
     private Spinner sourceSpinner;
@@ -119,10 +115,6 @@ public class MainActivity extends AppCompatActivity {
                         saveAdvancedPreferences(result.getData());
                     });
 
-    private int activeDownloadRequestId;
-    private AlertDialog downloadProgressDialog;
-    private boolean isDownloadingModel;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -145,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
         renderModeToggle = findViewById(R.id.renderModeToggle);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
         translationResultText = findViewById(R.id.translationResultText);
-        modelActionButton = findViewById(R.id.downloadModelButton);
         translateButton = findViewById(R.id.translateButton);
         explainButton = findViewById(R.id.explainButton);
         markerPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
@@ -193,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
                 v -> startTranslation(sourceSpinner.getSelectedItem().toString()));
         explainButton.setOnClickListener(v -> openExplainScreen());
 
-        modelActionButton.setOnClickListener(v -> onModelActionClicked());
         leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
         leftNavigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         updateVersionMenuItemTitle();
@@ -265,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) {
-                        updateModelActionCaption();
+                        updateTranslateButtonState();
                     }
                 });
 
@@ -313,7 +303,6 @@ public class MainActivity extends AppCompatActivity {
         translationResultText.setVisibility(View.GONE);
         translationProgressContainer.setVisibility(View.VISIBLE);
         translateButton.setEnabled(false);
-        modelActionButton.setEnabled(false);
         updateExplainButtonState();
 
         viewModel.translate(htmlBody, sourceLanguage, targetLanguage);
@@ -357,7 +346,7 @@ public class MainActivity extends AppCompatActivity {
         translationResultText.setVisibility(View.VISIBLE);
         translationResultText.setTextColor(
                 getColor(failed ? R.color.mlkit_error : R.color.mlkit_on_surface_variant));
-        updateModelActionCaption();
+        updateTranslateButtonState();
         updateExplainButtonState();
     }
 
@@ -369,7 +358,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        if (isTranslating || isDownloadingModel) {
+        if (isTranslating) {
             translateButton.setEnabled(false);
             return;
         }
@@ -505,6 +494,11 @@ public class MainActivity extends AppCompatActivity {
         if (itemId == R.id.menu_advanced_parameters) {
             mainDrawerLayout.closeDrawer(GravityCompat.START);
             openAdvancedParametersScreen();
+            return true;
+        }
+        if (itemId == R.id.menu_manage_models) {
+            mainDrawerLayout.closeDrawer(GravityCompat.START);
+            startActivity(ModelManagementActivity.createIntent(this));
             return true;
         }
         if (itemId == R.id.menu_version) {
@@ -856,155 +850,19 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void onModelActionClicked() {
-        if (isDownloadingModel) {
-            return;
-        }
-
-        String targetLanguage = targetSpinner.getSelectedItem().toString();
-        if (viewModel.isModelAvailable(targetLanguage)) {
-            showDeleteModelConfirmationDialog(targetLanguage);
-            return;
-        }
-
-        startModelDownload(targetLanguage);
-    }
-
-    private void startModelDownload(String targetLanguage) {
-        int requestId = ++activeDownloadRequestId;
-        isDownloadingModel = true;
-        updateModelActionCaption();
-        showDownloadProgressDialog(targetLanguage, requestId);
-
-        viewModel.downloadModel(
-                targetLanguage,
-                new ModelLifecycleManager.ActionCallback() {
-                    @Override
-                    public void onSuccess() {
-                        if (requestId != activeDownloadRequestId) {
-                            return;
-                        }
-                        activeDownloadRequestId = 0;
-                        isDownloadingModel = false;
-                        dismissDownloadProgressDialog();
-                        refreshDownloadedModels();
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull String reason) {
-                        if (requestId != activeDownloadRequestId) {
-                            return;
-                        }
-                        activeDownloadRequestId = 0;
-                        isDownloadingModel = false;
-                        dismissDownloadProgressDialog();
-                        showFailureStatus(reason);
-                    }
-                });
-    }
-
-    private void deleteModel(String targetLanguage) {
-        isDownloadingModel = true;
-        updateModelActionCaption();
-        viewModel.deleteModel(
-                targetLanguage,
-                new ModelLifecycleManager.ActionCallback() {
-                    @Override
-                    public void onSuccess() {
-                        isDownloadingModel = false;
-                        refreshDownloadedModels();
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull String reason) {
-                        isDownloadingModel = false;
-                        showFailureStatus(reason);
-                    }
-                });
-    }
-
-    private void showDeleteModelConfirmationDialog(@NonNull String targetLanguage) {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.model_delete_confirmation_title)
-                .setMessage(getString(R.string.model_delete_confirmation_message, targetLanguage))
-                .setNegativeButton(R.string.cancel_download, null)
-                .setPositiveButton(
-                        R.string.action_delete_model,
-                        (dialog, which) -> deleteModel(targetLanguage))
-                .show();
-    }
-
-    private void showDownloadProgressDialog(String targetLanguage, int requestId) {
-        dismissDownloadProgressDialog();
-        downloadProgressDialog =
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.model_download_progress_title)
-                        .setMessage(
-                                getString(R.string.model_download_progress_message, targetLanguage))
-                        .setCancelable(true)
-                        .setNegativeButton(
-                                R.string.cancel_download,
-                                (dialog, which) -> cancelModelDownload(requestId))
-                        .setOnCancelListener(dialog -> cancelModelDownload(requestId))
-                        .create();
-        downloadProgressDialog.show();
-    }
-
-    private void cancelModelDownload(int requestId) {
-        if (!isDownloadingModel || requestId != activeDownloadRequestId) {
-            return;
-        }
-        activeDownloadRequestId = 0;
-        isDownloadingModel = false;
-        dismissDownloadProgressDialog();
-        updateModelActionCaption();
-    }
-
     private void refreshDownloadedModels() {
         viewModel.refreshDownloadedModels(
                 new ModelLifecycleManager.RefreshCallback() {
                     @Override
                     public void onComplete() {
-                        updateModelActionCaption();
+                        updateTranslateButtonState();
                     }
 
                     @Override
                     public void onError(@NonNull String reason) {
-                        updateModelActionCaption();
+                        updateTranslateButtonState();
                     }
                 });
-    }
-
-    private void dismissDownloadProgressDialog() {
-        if (downloadProgressDialog != null && downloadProgressDialog.isShowing()) {
-            downloadProgressDialog.dismiss();
-        }
-        downloadProgressDialog = null;
-    }
-
-    private void updateModelActionCaption() {
-        updateTranslateButtonState();
-
-        if (isDownloadingModel || isTranslating) {
-            modelActionButton.setEnabled(false);
-            return;
-        }
-
-        String targetLanguage =
-                targetSpinner.getSelectedItem() == null
-                        ? ""
-                        : targetSpinner.getSelectedItem().toString();
-        boolean available = viewModel.isModelAvailable(targetLanguage);
-        String normalizedTarget = TranslateLanguage.fromLanguageTag(targetLanguage);
-        boolean builtIn = TranslateLanguage.ENGLISH.equals(normalizedTarget);
-        modelActionButton.setIconResource(
-                available ? R.drawable.ic_model_delete : R.drawable.ic_model_download);
-        modelActionButton.setContentDescription(
-                getString(
-                        available
-                                ? R.string.delete_model_icon_content_description
-                                : R.string.download_model_icon_content_description));
-        modelActionButton.setEnabled(!builtIn);
     }
 
     private final class SourceSelectorAdapter extends ArrayAdapter<SourceSelectorEntry>
@@ -1108,7 +966,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        dismissDownloadProgressDialog();
         if (inputRenderedHtml != null) {
             inputRenderedHtml.destroy();
         }

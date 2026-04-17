@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -89,5 +90,10 @@ public final class TranslationViewModel extends ViewModel {
     public void deleteModel(
             @NonNull String languageCode, @NonNull ModelLifecycleManager.ActionCallback callback) {
         modelLifecycleManager.deleteModel(languageCode, callback);
+    }
+
+    @NonNull
+    public Set<String> downloadedModels() {
+        return modelLifecycleManager.downloadedModelsSnapshot();
     }
 }

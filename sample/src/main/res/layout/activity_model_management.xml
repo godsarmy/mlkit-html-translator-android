@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" android:orientation="vertical">
+
+	<com.google.android.material.appbar.MaterialToolbar
+		android:id="@+id/modelManagementToolbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		android:contentInsetStartWithNavigation="0dp"
+		android:paddingHorizontal="16dp"
+		app:navigationIcon="?attr/homeAsUpIndicator"
+		app:title="@string/manage_models_label" app:titleMarginStart="8dp" />
+
+	<LinearLayout android:layout_width="match_parent"
+		android:layout_height="match_parent" android:orientation="vertical"
+		android:padding="16dp">
+
+		<com.google.android.material.card.MaterialCardView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			app:cardBackgroundColor="@color/mlkit_surface"
+			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp">
+
+			<LinearLayout android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:orientation="vertical"
+				android:padding="16dp">
+
+				<TextView android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/available_models_label"
+					android:textColor="@color/mlkit_on_background"
+					android:textStyle="bold" />
+
+				<ListView android:id="@+id/availableModelsList"
+					android:layout_width="match_parent" android:layout_height="120dp"
+					android:layout_marginTop="8dp" android:choiceMode="singleChoice"
+					android:divider="@android:color/transparent"
+					android:dividerHeight="4dp" />
+
+				<TextView android:id="@+id/availableModelsEmptyText"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content" android:layout_marginTop="8dp"
+					android:text="@string/available_models_empty"
+					android:textColor="@color/mlkit_on_surface_variant"
+					android:visibility="gone" />
+			</LinearLayout>
+		</com.google.android.material.card.MaterialCardView>
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/downloadTargetModelButton"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="12dp"
+			android:text="@string/download_model_button"
+			android:textAllCaps="false" />
+
+		<com.google.android.material.card.MaterialCardView
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="16dp"
+			app:cardBackgroundColor="@color/mlkit_surface"
+			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp">
+
+			<LinearLayout android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:orientation="vertical"
+				android:padding="16dp">
+
+				<TextView android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="@string/downloaded_models_label"
+					android:textColor="@color/mlkit_on_background"
+					android:textStyle="bold" />
+
+				<ListView android:id="@+id/downloadedModelsList"
+					android:layout_width="match_parent" android:layout_height="120dp"
+					android:layout_marginTop="8dp" android:choiceMode="singleChoice"
+					android:divider="@android:color/transparent"
+					android:dividerHeight="4dp" />
+
+				<TextView android:id="@+id/downloadedModelsEmptyText"
+					android:layout_width="match_parent"
+					android:layout_height="wrap_content" android:layout_marginTop="8dp"
+					android:text="@string/downloaded_models_empty"
+					android:textColor="@color/mlkit_on_surface_variant"
+					android:visibility="gone" />
+			</LinearLayout>
+		</com.google.android.material.card.MaterialCardView>
+
+		<com.google.android.material.button.MaterialButton
+			android:id="@+id/deleteTargetModelButton"
+			style="?attr/materialButtonOutlinedStyle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="12dp"
+			android:text="@string/delete_model_button"
+			android:textAllCaps="false" />
+
+		<LinearLayout android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="16dp"
+			android:background="@color/mlkit_surface"
+			android:gravity="center_vertical" android:orientation="horizontal"
+			android:paddingHorizontal="12dp" android:paddingVertical="10dp">
+
+			<com.google.android.material.progressindicator.CircularProgressIndicator
+				android:id="@+id/modelOperationProgress" android:layout_width="20dp"
+				android:layout_height="20dp" android:indeterminate="true"
+				android:visibility="gone" app:indicatorColor="@color/mlkit_primary"
+				app:indicatorInset="0dp" app:indicatorSize="20dp"
+				app:trackColor="@color/mlkit_outline" app:trackThickness="2dp" />
+
+			<TextView android:id="@+id/modelStatusText"
+				android:layout_width="0dp" android:layout_height="wrap_content"
+				android:layout_marginStart="8dp" android:layout_weight="1"
+				android:textColor="@color/mlkit_on_surface_variant" />
+		</LinearLayout>
+	</LinearLayout>
+</LinearLayout>

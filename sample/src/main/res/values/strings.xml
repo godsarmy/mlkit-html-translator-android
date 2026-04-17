@@ -19,6 +19,7 @@
 	<string name="source_selector_load_url">Load from URL</string>
 	<string name="left_menu_content_description">Open navigation menu</string>
 	<string name="advanced_parameters_label">Advanced parameters</string>
+	<string name="manage_models_label">Manage language models</string>
 	<string name="version_label">Version</string>
 	<string name="version_format">Version %1$s</string>
 	<string name="label_render_html_mode">Render HTML preview mode</string>
@@ -61,6 +62,19 @@
 	<string name="model_delete_confirmation_title">Delete language pack?</string>
 	<string name="model_delete_confirmation_message">Delete downloaded model for %1$s?</string>
 	<string name="cancel_download">Cancel</string>
+	<string name="model_download_success_message">Downloaded model for %1$s</string>
+	<string name="model_download_failed_message">Failed to download model for %1$s</string>
+	<string name="model_delete_success_message">Deleted model for %1$s</string>
+	<string name="model_delete_failed_message">Failed to delete model for %1$s</string>
+	<string name="model_built_in_not_deletable">This language is built-in and cannot be deleted.</string>
+	<string name="available_models_label">Available to download</string>
+	<string name="downloaded_models_label">Installed on this device</string>
+	<string name="available_models_empty">All supported models are already installed.</string>
+	<string name="downloaded_models_empty">No models installed yet. Select a language above to
+		download.</string>
+	<string name="download_model_button">Download selected language</string>
+	<string name="delete_model_button">Delete selected language</string>
+	<string name="model_management_status">%1$d installed · %2$d available</string>
 	<string name="explain_html_screen_title">Explain HTML preprocess</string>
 	<string name="explain_loading">Preparing explain result...</string>
 	<string name="explain_counts_label">Counts</string>

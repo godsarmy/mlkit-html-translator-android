@@ -136,20 +136,6 @@
 						android:layout_height="wrap_content" />
 				</LinearLayout>
 
-				<Space android:layout_width="10dp" android:layout_height="1dp" />
-
-				<com.google.android.material.button.MaterialButton
-					android:id="@+id/downloadModelButton" android:layout_width="48dp"
-					android:layout_height="48dp" android:elevation="0dp"
-					android:insetTop="0dp" android:insetBottom="0dp"
-					android:minWidth="48dp" android:minHeight="48dp"
-					android:stateListAnimator="@null"
-					android:contentDescription="@string/download_model_icon_content_description"
-					app:backgroundTint="@android:color/transparent"
-					app:cornerRadius="24dp" app:icon="@drawable/ic_model_download"
-					app:iconPadding="0dp" app:iconSize="24dp"
-					app:iconTint="@color/mlkit_primary"
-					app:rippleColor="@color/mlkit_primary" app:strokeWidth="0dp" />
 			</LinearLayout>
 
 			<LinearLayout android:layout_width="match_parent"

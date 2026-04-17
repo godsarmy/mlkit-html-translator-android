@@ -5,6 +5,7 @@ import com.google.mlkit.common.model.DownloadConditions;
 import com.google.mlkit.common.model.RemoteModelManager;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import com.google.mlkit.nl.translate.TranslateRemoteModel;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -142,5 +143,12 @@ public final class ModelLifecycleManager {
     private static String messageOrDefault(@NonNull Exception error, @NonNull String fallback) {
         String message = error.getMessage();
         return message == null || message.trim().isEmpty() ? fallback : message;
+    }
+
+    @NonNull
+    public Set<String> downloadedModelsSnapshot() {
+        synchronized (downloadedModels) {
+            return Collections.unmodifiableSet(new HashSet<>(downloadedModels));
+        }
     }
 }
