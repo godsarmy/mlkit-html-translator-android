@@ -25,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -211,6 +212,10 @@ public class MainActivity extends AppCompatActivity {
                 (v, event) -> {
                     if (event.getAction() != MotionEvent.ACTION_UP) {
                         return false;
+                    }
+                    if (!isLoadUrlSelected()) {
+                        sampleAssetInput.showDropDown();
+                        return true;
                     }
                     if (isTapOnEndDrawable(sampleAssetInput, event)) {
                         sampleAssetInput.showDropDown();
@@ -873,9 +878,39 @@ public class MainActivity extends AppCompatActivity {
     private final class SourceSelectorAdapter extends ArrayAdapter<SourceSelectorEntry>
             implements ListAdapter {
         private final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+        private final Filter allEntriesFilter =
+                new Filter() {
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+                        FilterResults results = new FilterResults();
+                        results.values = sourceEntries;
+                        results.count = sourceEntries.size();
+                        return results;
+                    }
+
+                    @Override
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+                        notifyDataSetChanged();
+                    }
+                };
 
         private SourceSelectorAdapter() {
-            super(MainActivity.this, R.layout.item_source_selector_selected, sourceEntries);
+            super(MainActivity.this, R.layout.item_source_selector_selected, new ArrayList<>());
+        }
+
+        @Override
+        public int getCount() {
+            return sourceEntries.size();
+        }
+
+        @Override
+        public SourceSelectorEntry getItem(int position) {
+            return sourceEntryAt(position);
+        }
+
+        @Override
+        public @NonNull Filter getFilter() {
+            return allEntriesFilter;
         }
 
         @Override
@@ -885,7 +920,8 @@ public class MainActivity extends AppCompatActivity {
                             ? convertView
                             : inflater.inflate(
                                     R.layout.item_source_selector_selected, parent, false);
-            bindSourceSelectorView(view, sourceEntryAt(position));
+            SourceSelectorEntry entry = getItem(position);
+            bindSourceSelectorView(view, entry != null ? entry : sourceEntryAt(position));
             return view;
         }
 
@@ -896,7 +932,10 @@ public class MainActivity extends AppCompatActivity {
                             ? convertView
                             : inflater.inflate(
                                     R.layout.item_source_selector_dropdown, parent, false);
-            SourceSelectorEntry entry = sourceEntryAt(position);
+            SourceSelectorEntry entry = getItem(position);
+            if (entry == null) {
+                entry = sourceEntryAt(position);
+            }
             bindSourceSelectorView(view, entry);
             View divider = view.findViewById(R.id.sourceSelectorDivider);
             if (divider != null) {
