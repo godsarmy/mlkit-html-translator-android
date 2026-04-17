@@ -14,7 +14,8 @@
 		android:contentInsetStartWithNavigation="0dp"
 		android:paddingHorizontal="16dp"
 		app:navigationIcon="?attr/homeAsUpIndicator"
-		app:title="@string/help_title" app:titleMarginStart="8dp" />
+		app:title="@string/help_title" app:titleMarginStart="8dp"
+		app:titleTextAppearance="@style/TextAppearance.MlKitHtmlTranslator.ToolbarTitle" />
 
 	<ScrollView android:layout_width="match_parent"
 		android:layout_height="match_parent" android:fillViewport="true">

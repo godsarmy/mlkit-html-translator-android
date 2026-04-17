@@ -13,7 +13,8 @@
 		android:contentInsetStartWithNavigation="0dp"
 		android:paddingHorizontal="16dp"
 		app:navigationIcon="?attr/homeAsUpIndicator"
-		app:title="@string/manage_models_label" app:titleMarginStart="8dp" />
+		app:title="@string/model_management_title" app:titleMarginStart="8dp"
+		app:titleTextAppearance="@style/TextAppearance.MlKitHtmlTranslator.ToolbarTitle" />
 
 	<LinearLayout android:layout_width="match_parent"
 		android:layout_height="match_parent" android:orientation="vertical"

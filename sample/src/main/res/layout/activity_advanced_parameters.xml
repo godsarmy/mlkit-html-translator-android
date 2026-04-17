@@ -1,109 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView
+<LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
-	android:background="@color/mlkit_bg_canvas" android:fillViewport="true">
+	android:background="@color/mlkit_bg_canvas"
+	android:orientation="vertical">
 
-	<LinearLayout android:layout_width="match_parent"
-		android:layout_height="wrap_content" android:orientation="vertical"
-		android:padding="16dp">
+	<com.google.android.material.appbar.MaterialToolbar
+		android:id="@+id/advancedParametersToolbar"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:background="@android:color/transparent"
+		android:contentInsetStartWithNavigation="0dp"
+		android:paddingHorizontal="16dp"
+		app:navigationIcon="?attr/homeAsUpIndicator"
+		app:title="@string/advanced_parameters_screen_title"
+		app:titleMarginStart="8dp"
+		app:titleTextAppearance="@style/TextAppearance.MlKitHtmlTranslator.ToolbarTitle" />
 
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/label_placeholder_marker_start"
-			android:textColor="@color/mlkit_on_surface_variant" />
-
-		<EditText android:id="@+id/markerStartInput"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="4dp"
-			android:hint="@string/hint_placeholder_marker_start"
-			android:inputType="text" android:singleLine="true"
-			android:textColor="@color/mlkit_on_background"
-			android:textColorHint="@color/mlkit_on_surface_variant" />
-
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="10dp"
-			android:text="@string/label_placeholder_marker_end"
-			android:textColor="@color/mlkit_on_surface_variant" />
-
-		<EditText android:id="@+id/markerEndInput"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="4dp"
-			android:hint="@string/hint_placeholder_marker_end"
-			android:inputType="text" android:singleLine="true"
-			android:textColor="@color/mlkit_on_background"
-			android:textColorHint="@color/mlkit_on_surface_variant" />
-
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="10dp"
-			android:text="@string/label_max_chunk_chars"
-			android:textColor="@color/mlkit_on_surface_variant" />
-
-		<EditText android:id="@+id/maxChunkCharsInput"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="4dp"
-			android:hint="@string/hint_max_chunk_chars"
-			android:inputType="number" android:singleLine="true"
-			android:textColor="@color/mlkit_on_background"
-			android:textColorHint="@color/mlkit_on_surface_variant" />
-
-		<TextView android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="10dp"
-			android:text="@string/label_failure_policy"
-			android:textColor="@color/mlkit_on_surface_variant" />
-
-		<Spinner android:id="@+id/failurePolicySpinner"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="4dp" />
-
-		<com.google.android.material.switchmaterial.SwitchMaterial
-			android:id="@+id/maskUrlsCheck" android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="10dp"
-			android:text="@string/label_mask_urls"
-			android:textColor="@color/mlkit_on_background"
-			app:useMaterialThemeColors="true" />
-
-		<com.google.android.material.switchmaterial.SwitchMaterial
-			android:id="@+id/maskPlaceholdersCheck"
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/label_mask_placeholders"
-			android:textColor="@color/mlkit_on_background"
-			app:useMaterialThemeColors="true" />
-
-		<com.google.android.material.switchmaterial.SwitchMaterial
-			android:id="@+id/maskPathsCheck" android:layout_width="match_parent"
-			android:layout_height="wrap_content"
-			android:text="@string/label_mask_paths"
-			android:textColor="@color/mlkit_on_background"
-			app:useMaterialThemeColors="true" />
+	<ScrollView android:layout_width="match_parent"
+		android:layout_height="match_parent" android:fillViewport="true">
 
 		<LinearLayout android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="16dp"
-			android:baselineAligned="false" android:orientation="horizontal">
+			android:layout_height="wrap_content" android:orientation="vertical"
+			android:padding="16dp">
 
-			<com.google.android.material.button.MaterialButton
-				android:id="@+id/cancelAdvancedParametersButton"
-				android:layout_width="0dp" android:layout_height="52dp"
-				android:layout_weight="1" android:elevation="0dp"
-				android:stateListAnimator="@null"
-				android:text="@string/cancel_download" android:textAllCaps="false"
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/label_placeholder_marker_start"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<EditText android:id="@+id/markerStartInput"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="4dp"
+				android:hint="@string/hint_placeholder_marker_start"
+				android:inputType="text" android:singleLine="true"
 				android:textColor="@color/mlkit_on_background"
-				app:backgroundTint="@color/mlkit_bg_elevated"
-				app:cornerRadius="14dp" app:strokeColor="@color/mlkit_outline"
-				app:strokeWidth="1dp" />
+				android:textColorHint="@color/mlkit_on_surface_variant" />
 
-			<Space android:layout_width="10dp" android:layout_height="1dp" />
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/label_placeholder_marker_end"
+				android:textColor="@color/mlkit_on_surface_variant" />
 
-			<com.google.android.material.button.MaterialButton
-				android:id="@+id/saveAdvancedParametersButton"
-				android:layout_width="0dp" android:layout_height="52dp"
-				android:layout_weight="1" android:elevation="0dp"
-				android:stateListAnimator="@null" android:text="@string/save"
-				android:textAllCaps="false" android:textColor="@android:color/white"
-				app:backgroundTint="@color/mlkit_primary" app:cornerRadius="14dp" />
+			<EditText android:id="@+id/markerEndInput"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="4dp"
+				android:hint="@string/hint_placeholder_marker_end"
+				android:inputType="text" android:singleLine="true"
+				android:textColor="@color/mlkit_on_background"
+				android:textColorHint="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/label_max_chunk_chars"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<EditText android:id="@+id/maxChunkCharsInput"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="4dp"
+				android:hint="@string/hint_max_chunk_chars"
+				android:inputType="number" android:singleLine="true"
+				android:textColor="@color/mlkit_on_background"
+				android:textColorHint="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/label_failure_policy"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<Spinner android:id="@+id/failurePolicySpinner"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="4dp" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/maskUrlsCheck" android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/label_mask_urls"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/maskPlaceholdersCheck"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/label_mask_placeholders"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/maskPathsCheck" android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:text="@string/label_mask_paths"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
+
+			<LinearLayout android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:baselineAligned="false" android:orientation="horizontal">
+
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/cancelAdvancedParametersButton"
+					android:layout_width="0dp" android:layout_height="52dp"
+					android:layout_weight="1" android:elevation="0dp"
+					android:stateListAnimator="@null"
+					android:text="@string/cancel_download" android:textAllCaps="false"
+					android:textColor="@color/mlkit_on_background"
+					app:backgroundTint="@color/mlkit_bg_elevated"
+					app:cornerRadius="14dp" app:strokeColor="@color/mlkit_outline"
+					app:strokeWidth="1dp" />
+
+				<Space android:layout_width="10dp" android:layout_height="1dp" />
+
+				<com.google.android.material.button.MaterialButton
+					android:id="@+id/saveAdvancedParametersButton"
+					android:layout_width="0dp" android:layout_height="52dp"
+					android:layout_weight="1" android:elevation="0dp"
+					android:stateListAnimator="@null" android:text="@string/save"
+					android:textAllCaps="false"
+					android:textColor="@android:color/white"
+					app:backgroundTint="@color/mlkit_primary" app:cornerRadius="14dp" />
+			</LinearLayout>
 		</LinearLayout>
-	</LinearLayout>
-</ScrollView>
+	</ScrollView>
+</LinearLayout>

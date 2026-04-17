@@ -9,6 +9,7 @@ import android.widget.Spinner;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
 
@@ -53,6 +54,11 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_advanced_parameters);
+        getWindow().setStatusBarColor(getColor(R.color.mlkit_primary));
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+        setupToolbar();
 
         markerStartInput = findViewById(R.id.markerStartInput);
         markerEndInput = findViewById(R.id.markerEndInput);
@@ -89,6 +95,11 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
                             finish();
                         });
         findViewById(R.id.saveAdvancedParametersButton).setOnClickListener(v -> saveAndFinish());
+    }
+
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.advancedParametersToolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     private void saveAndFinish() {

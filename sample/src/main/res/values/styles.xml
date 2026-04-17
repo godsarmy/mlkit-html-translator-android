@@ -18,4 +18,11 @@
 		parent="Widget.MaterialComponents.Button.TextButton.Dialog">
 		<item name="android:textColor">@color/mlkit_primary</item>
 	</style>
+
+	<style name="TextAppearance.MlKitHtmlTranslator.ToolbarTitle"
+		parent="TextAppearance.MaterialComponents.Headline6">
+		<item name="android:textSize">18sp</item>
+		<item name="android:textStyle">bold</item>
+		<item name="android:textColor">@color/mlkit_on_background</item>
+	</style>
 </resources>

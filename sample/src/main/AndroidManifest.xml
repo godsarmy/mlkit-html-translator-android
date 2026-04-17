@@ -13,7 +13,8 @@
 		<activity android:name=".HelpActivity"
 			android:exported="false" android:label="@string/help_title" />
 		<activity android:name=".ModelManagementActivity"
-			android:exported="false" android:label="@string/manage_models_label" />
+			android:exported="false"
+			android:label="@string/model_management_title" />
 		<activity android:name=".AdvancedParametersActivity"
 			android:exported="false"
 			android:label="@string/advanced_parameters_screen_title" />

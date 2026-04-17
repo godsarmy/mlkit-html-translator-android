@@ -26,6 +26,10 @@ public final class HelpActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_help);
+        getWindow().setStatusBarColor(getColor(R.color.mlkit_primary));
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
         setupToolbar();
         setupButtons();
         bindHelpDocument();
