@@ -132,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getWindow().setStatusBarColor(getColor(R.color.mlkit_primary));
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
