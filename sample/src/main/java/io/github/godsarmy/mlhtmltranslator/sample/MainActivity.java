@@ -4,15 +4,21 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
+import android.text.method.KeyListener;
 import android.text.method.ScrollingMovementMethod;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.AdapterView;
@@ -20,6 +26,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,7 +36,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
+import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.button.MaterialButton;
@@ -46,13 +54,14 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private enum SourceMode {
-        EXAMPLE,
-        FILE,
-        URL
+    private enum SourceEntryType {
+        SAMPLE,
+        LOAD_URL
     }
 
     private TranslationViewModel viewModel;
@@ -60,23 +69,17 @@ public class MainActivity extends AppCompatActivity {
     private DrawerLayout mainDrawerLayout;
     private NavigationView leftNavigationView;
     private MaterialButton modelActionButton;
-    private MaterialButton sourceModeButton;
-    private MaterialButton sourceModeActionButton;
     private Button translateButton;
     private Button explainButton;
     private Spinner sourceSpinner;
     private Spinner targetSpinner;
+    private AppCompatAutoCompleteTextView sampleAssetInput;
     private EditText inputHtmlText;
     private TextView outputHtmlText;
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
     private View exampleSourceContainer;
-    private View fileSourceContainer;
-    private View urlSourceContainer;
-    private TextView sourceModeLabel;
-    private TextView localFileNameText;
-    private EditText urlInputText;
     private View translationProgressContainer;
     private TextView translationResultText;
     private boolean isTranslating;
@@ -85,8 +88,10 @@ public class MainActivity extends AppCompatActivity {
     private TranslationTimingListener timingListener;
     private TranslationRepository translationRepository;
     private SharedPreferences markerPreferences;
-    private SourceMode sourceMode = SourceMode.EXAMPLE;
     private boolean isSourceLoading;
+    private final List<SourceSelectorEntry> sourceEntries = new ArrayList<>();
+    private int selectedSourcePosition;
+    private KeyListener sampleAssetInputKeyListener;
 
     private static final String PREFS_NAME = "marker_config";
     private static final String KEY_MARKER_START = "marker_start";
@@ -114,19 +119,6 @@ public class MainActivity extends AppCompatActivity {
                         saveAdvancedPreferences(result.getData());
                     });
 
-    private final ActivityResultLauncher<String[]> localFilePickerLauncher =
-            registerForActivityResult(
-                    new ActivityResultContracts.OpenDocument(),
-                    uri -> {
-                        isSourceLoading = false;
-                        if (uri == null) {
-                            updateSourceModeUi();
-                            return;
-                        }
-                        loadHtmlFromUri(uri);
-                        updateSourceModeUi();
-                    });
-
     private int activeDownloadRequestId;
     private AlertDialog downloadProgressDialog;
     private boolean isDownloadingModel;
@@ -144,15 +136,8 @@ public class MainActivity extends AppCompatActivity {
         leftMenuButton = findViewById(R.id.leftMenuButton);
         mainDrawerLayout = findViewById(R.id.mainDrawerLayout);
         leftNavigationView = findViewById(R.id.leftNavigationView);
-        sourceModeButton = findViewById(R.id.sourceModeButton);
-        sourceModeActionButton = findViewById(R.id.sourceModeActionButton);
-        sourceModeLabel = findViewById(R.id.sourceModeLabel);
-        Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
+        sampleAssetInput = findViewById(R.id.sampleAssetInput);
         exampleSourceContainer = findViewById(R.id.exampleSourceContainer);
-        fileSourceContainer = findViewById(R.id.fileSourceContainer);
-        urlSourceContainer = findViewById(R.id.urlSourceContainer);
-        localFileNameText = findViewById(R.id.localFileNameText);
-        urlInputText = findViewById(R.id.urlInputText);
         inputHtmlText = findViewById(R.id.inputHtml);
         outputHtmlText = findViewById(R.id.outputHtml);
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
@@ -171,7 +156,6 @@ public class MainActivity extends AppCompatActivity {
 
         setupSpinner(sourceSpinner, R.array.language_codes);
         setupSpinner(targetSpinner, R.array.language_codes);
-        setupSpinner(sampleSpinner, R.array.sample_assets);
         sourceSpinner.setSelection(findSpinnerIndex(sourceSpinner, "en"));
         targetSpinner.setSelection(findSpinnerIndex(targetSpinner, "es"));
 
@@ -210,30 +194,65 @@ public class MainActivity extends AppCompatActivity {
         explainButton.setOnClickListener(v -> openExplainScreen());
 
         modelActionButton.setOnClickListener(v -> onModelActionClicked());
-        sourceModeButton.setOnClickListener(v -> showSourceModeMenu());
-        sourceModeActionButton.setOnClickListener(v -> onSourceActionClicked(sampleSpinner));
         leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
         leftNavigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
         updateVersionMenuItemTitle();
+        setupSourceSelector();
 
-        urlInputText.addTextChangedListener(
+        sampleAssetInput.addTextChangedListener(
                 new TextWatcher() {
                     @Override
-                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                        // no-op
-                    }
+                    public void beforeTextChanged(
+                            CharSequence s, int start, int count, int after) {}
 
                     @Override
                     public void onTextChanged(CharSequence s, int start, int before, int count) {
-                        if (sourceMode == SourceMode.URL) {
-                            updateSourceModeUi();
+                        if (isLoadUrlSelected()) {
+                            sampleAssetInput.dismissDropDown();
                         }
+                        updateSourceInputState();
                     }
 
                     @Override
-                    public void afterTextChanged(Editable s) {
-                        // no-op
+                    public void afterTextChanged(Editable s) {}
+                });
+
+        sampleAssetInput.setOnTouchListener(
+                (v, event) -> {
+                    if (event.getAction() != MotionEvent.ACTION_UP) {
+                        return false;
                     }
+                    if (isTapOnEndDrawable(sampleAssetInput, event)) {
+                        sampleAssetInput.showDropDown();
+                        return true;
+                    }
+                    if (isLoadUrlSelected() && isTapOnStartDrawable(sampleAssetInput, event)) {
+                        loadHtmlFromUrlInput();
+                        return true;
+                    }
+                    return false;
+                });
+
+        sampleAssetInput.setOnClickListener(
+                v -> {
+                    if (!isLoadUrlSelected()) {
+                        sampleAssetInput.showDropDown();
+                    }
+                });
+
+        sampleAssetInput.setOnEditorActionListener(
+                (v, actionId, event) -> {
+                    if (!isLoadUrlSelected()) {
+                        return false;
+                    }
+                    if (actionId == EditorInfo.IME_ACTION_GO
+                            || actionId == EditorInfo.IME_ACTION_DONE
+                            || actionId == EditorInfo.IME_ACTION_SEND
+                            || actionId == EditorInfo.IME_NULL) {
+                        loadHtmlFromUrlInput();
+                        return true;
+                    }
+                    return false;
                 });
 
         targetSpinner.setOnItemSelectedListener(
@@ -247,22 +266,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onNothingSelected(AdapterView<?> parent) {
                         updateModelActionCaption();
-                    }
-                });
-
-        sampleSpinner.setOnItemSelectedListener(
-                new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(
-                            AdapterView<?> parent, android.view.View view, int position, long id) {
-                        inputHtmlText.setText(
-                                loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
-                        refreshRenderedPreviewIfNeeded();
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        // no-op
                     }
                 });
 
@@ -287,8 +290,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
 
-        inputHtmlText.setText(loadAssetHtml(sampleSpinner.getSelectedItem().toString()));
-        updateSourceModeUi();
+        sampleAssetInputKeyListener = sampleAssetInput.getKeyListener();
+        loadSelectedSample(0);
+        updateSourceInputState();
         translationResultText.setText("");
         translationResultText.setVisibility(View.GONE);
         translationProgressContainer.setVisibility(View.GONE);
@@ -563,113 +567,141 @@ public class MainActivity extends AppCompatActivity {
                 .apply();
     }
 
-    private void showSourceModeMenu() {
-        PopupMenu popupMenu = new PopupMenu(this, sourceModeButton);
-        popupMenu.getMenu().add(0, SourceMode.EXAMPLE.ordinal(), 0, R.string.source_mode_example);
-        popupMenu.getMenu().add(0, SourceMode.FILE.ordinal(), 1, R.string.source_mode_file);
-        popupMenu.getMenu().add(0, SourceMode.URL.ordinal(), 2, R.string.source_mode_url);
-        popupMenu.setOnMenuItemClickListener(
-                item -> {
-                    int id = item.getItemId();
-                    if (id == SourceMode.EXAMPLE.ordinal()) {
-                        sourceMode = SourceMode.EXAMPLE;
-                    } else if (id == SourceMode.FILE.ordinal()) {
-                        sourceMode = SourceMode.FILE;
-                    } else {
-                        sourceMode = SourceMode.URL;
+    private void setupSourceSelector() {
+        sourceEntries.clear();
+        String[] sampleOptions = getResources().getStringArray(R.array.sample_assets);
+        for (int i = 0; i < sampleOptions.length; i++) {
+            sourceEntries.add(
+                    new SourceSelectorEntry(
+                            sampleOptions[i],
+                            R.drawable.ic_source_sample,
+                            SourceEntryType.SAMPLE,
+                            i));
+        }
+        sourceEntries.add(
+                new SourceSelectorEntry(
+                        getString(R.string.source_selector_load_url),
+                        R.drawable.ic_source_url,
+                        SourceEntryType.LOAD_URL,
+                        -1));
+
+        SourceSelectorAdapter adapter = new SourceSelectorAdapter();
+        sampleAssetInput.setAdapter(adapter);
+        sampleAssetInput.setOnItemClickListener(
+                (parent, view, position, id) -> {
+                    selectedSourcePosition = position;
+                    SourceSelectorEntry entry = sourceEntryAt(position);
+                    if (entry.type == SourceEntryType.SAMPLE && entry.sampleIndex >= 0) {
+                        loadSelectedSample(entry.sampleIndex);
+                    } else if (entry.type == SourceEntryType.LOAD_URL) {
+                        sampleAssetInput.setText("", false);
                     }
-                    updateSourceModeUi();
-                    return true;
+                    updateSourceInputState();
                 });
-        popupMenu.show();
     }
 
-    private void onSourceActionClicked(Spinner sampleSpinner) {
-        if (sourceMode == SourceMode.EXAMPLE) {
-            sampleSpinner.performClick();
-            return;
+    @NonNull
+    private SourceSelectorEntry sourceEntryAt(int position) {
+        if (position < 0 || position >= sourceEntries.size()) {
+            return sourceEntries.get(0);
         }
-        if (sourceMode == SourceMode.FILE) {
-            isSourceLoading = true;
-            updateSourceModeUi();
-            localFilePickerLauncher.launch(
-                    new String[] {"text/html", "application/xhtml+xml", "text/plain", "*/*"});
-            return;
-        }
-        loadHtmlFromUrlInput();
+        return sourceEntries.get(position);
     }
 
-    private void updateSourceModeUi() {
-        if (sourceModeLabel == null) {
-            return;
-        }
-        int modeTextRes;
-        int actionTextRes;
-        boolean actionEnabled = true;
-        boolean showActionButton = true;
-        switch (sourceMode) {
-            case FILE:
-                modeTextRes = R.string.source_mode_file;
-                actionTextRes = R.string.source_action_load;
-                break;
-            case URL:
-                modeTextRes = R.string.source_mode_url;
-                actionTextRes = R.string.source_action_load;
-                actionEnabled = isValidHttpUrl(urlInputText.getText().toString());
-                break;
-            case EXAMPLE:
-            default:
-                modeTextRes = R.string.source_mode_example;
-                actionTextRes = R.string.source_action_pick;
-                showActionButton = false;
-                break;
-        }
-
-        actionEnabled = actionEnabled && !isSourceLoading;
-
-        sourceModeLabel.setText(modeTextRes);
-        sourceModeActionButton.setText(actionTextRes);
-        sourceModeActionButton.setEnabled(actionEnabled);
-        sourceModeActionButton.setVisibility(showActionButton ? View.VISIBLE : View.GONE);
-
-        exampleSourceContainer.setVisibility(
-                sourceMode == SourceMode.EXAMPLE ? View.VISIBLE : View.GONE);
-        fileSourceContainer.setVisibility(sourceMode == SourceMode.FILE ? View.VISIBLE : View.GONE);
-        urlSourceContainer.setVisibility(sourceMode == SourceMode.URL ? View.VISIBLE : View.GONE);
+    private boolean isLoadUrlSelected() {
+        return sourceEntryAt(selectedSourcePosition).type == SourceEntryType.LOAD_URL;
     }
 
-    private void loadHtmlFromUri(@NonNull Uri uri) {
-        try (InputStream inputStream = getContentResolver().openInputStream(uri)) {
-            if (inputStream == null) {
-                throw new IOException("Input stream is null");
+    private void loadSelectedSample(int sampleIndex) {
+        if (sampleIndex < 0 || sampleIndex >= sourceEntries.size()) {
+            return;
+        }
+        SourceSelectorEntry entry = sourceEntries.get(sampleIndex);
+        selectedSourcePosition = sampleIndex;
+        sampleAssetInput.setText(entry.label, false);
+        inputHtmlText.setText(loadAssetHtml(entry.label));
+        refreshRenderedPreviewIfNeeded();
+        updateExplainButtonState();
+    }
+
+    private void updateSourceInputState() {
+        boolean enabled = !isSourceLoading;
+        boolean loadUrlSelected = isLoadUrlSelected();
+        sampleAssetInput.setEnabled(enabled);
+        sampleAssetInput.setFocusable(loadUrlSelected && enabled);
+        sampleAssetInput.setFocusableInTouchMode(loadUrlSelected && enabled);
+        sampleAssetInput.setCursorVisible(loadUrlSelected && enabled);
+        sampleAssetInput.setKeyListener(loadUrlSelected ? sampleAssetInputKeyListener : null);
+        sampleAssetInput.setThreshold(loadUrlSelected ? Integer.MAX_VALUE : 0);
+        sampleAssetInput.setInputType(
+                loadUrlSelected
+                        ? InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI
+                        : InputType.TYPE_NULL);
+
+        if (loadUrlSelected) {
+            sampleAssetInput.setHint(R.string.source_url_hint);
+            sampleAssetInput.setImeOptions(EditorInfo.IME_ACTION_GO);
+            sampleAssetInput.setImeActionLabel(
+                    getString(R.string.source_action_load), EditorInfo.IME_ACTION_GO);
+        } else {
+            sampleAssetInput.dismissDropDown();
+            sampleAssetInput.setHint(null);
+            sampleAssetInput.setImeActionLabel(null, EditorInfo.IME_ACTION_NONE);
+            sampleAssetInput.setImeOptions(EditorInfo.IME_ACTION_NONE);
+            String label = sourceEntryAt(selectedSourcePosition).label;
+            if (!label.contentEquals(sampleAssetInput.getText())) {
+                sampleAssetInput.setText(label, false);
             }
-            StringBuilder builder = new StringBuilder();
-            try (BufferedReader reader =
-                    new BufferedReader(
-                            new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    builder.append(line).append('\n');
-                }
-            }
-            inputHtmlText.setText(builder.toString().trim());
-            localFileNameText.setText(resolveDisplayName(uri));
-            refreshRenderedPreviewIfNeeded();
-            updateExplainButtonState();
-        } catch (IOException e) {
-            Toast.makeText(this, R.string.source_mode_file_load_failed, Toast.LENGTH_SHORT).show();
         }
+
+        updateSourceSelectorDrawables(loadUrlSelected);
+        exampleSourceContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void updateSourceSelectorDrawables(boolean loadUrlSelected) {
+        SourceSelectorEntry entry = sourceEntryAt(selectedSourcePosition);
+        int leftIcon = loadUrlSelected ? R.drawable.ic_source_url : entry.iconRes;
+        sampleAssetInput.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                leftIcon, 0, R.drawable.ic_source_dropdown, 0);
+        sampleAssetInput.setCompoundDrawableTintList(
+                ColorStateList.valueOf(getColor(R.color.mlkit_on_surface_variant)));
+    }
+
+    private static boolean isTapOnStartDrawable(TextView textView, MotionEvent event) {
+        android.graphics.drawable.Drawable[] drawables = textView.getCompoundDrawablesRelative();
+        android.graphics.drawable.Drawable startDrawable = drawables[0];
+        if (startDrawable == null) {
+            return false;
+        }
+        int drawableWidth = startDrawable.getBounds().width();
+        int drawableEnd = textView.getPaddingStart() + drawableWidth;
+        return event.getX() <= drawableEnd;
+    }
+
+    private static boolean isTapOnEndDrawable(TextView textView, MotionEvent event) {
+        android.graphics.drawable.Drawable[] drawables = textView.getCompoundDrawablesRelative();
+        android.graphics.drawable.Drawable endDrawable = drawables[2];
+        if (endDrawable == null) {
+            return false;
+        }
+        int drawableWidth = endDrawable.getBounds().width();
+        int drawableStart = textView.getWidth() - textView.getPaddingEnd() - drawableWidth;
+        return event.getX() >= drawableStart;
+    }
+
+    private void setSourceLoading(boolean sourceLoading) {
+        isSourceLoading = sourceLoading;
+        updateSourceInputState();
     }
 
     private void loadHtmlFromUrlInput() {
-        String urlText = urlInputText.getText().toString().trim();
+        String urlText = sampleAssetInput.getText().toString().trim();
         if (!isValidHttpUrl(urlText)) {
             Toast.makeText(this, R.string.source_mode_invalid_url, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        isSourceLoading = true;
-        updateSourceModeUi();
+        setSourceLoading(true);
         new Thread(
                         () -> {
                             String content;
@@ -678,8 +710,7 @@ public class MainActivity extends AppCompatActivity {
                             } catch (IOException e) {
                                 runOnUiThread(
                                         () -> {
-                                            isSourceLoading = false;
-                                            updateSourceModeUi();
+                                            setSourceLoading(false);
                                             Toast.makeText(
                                                             MainActivity.this,
                                                             R.string.source_mode_url_load_failed,
@@ -692,11 +723,10 @@ public class MainActivity extends AppCompatActivity {
                             final String loadedContent = content;
                             runOnUiThread(
                                     () -> {
-                                        isSourceLoading = false;
+                                        setSourceLoading(false);
                                         inputHtmlText.setText(loadedContent);
                                         refreshRenderedPreviewIfNeeded();
                                         updateExplainButtonState();
-                                        updateSourceModeUi();
                                     });
                         })
                 .start();
@@ -746,16 +776,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception ignored) {
             return false;
         }
-    }
-
-    @NonNull
-    private String resolveDisplayName(@NonNull Uri uri) {
-        String lastSegment = uri.getLastPathSegment();
-        if (lastSegment == null || lastSegment.trim().isEmpty()) {
-            return getString(R.string.source_mode_file);
-        }
-        int slashIndex = lastSegment.lastIndexOf('/');
-        return slashIndex >= 0 ? lastSegment.substring(slashIndex + 1) : lastSegment;
     }
 
     private void applyRenderMode(boolean renderModeEnabled) {
@@ -985,6 +1005,64 @@ public class MainActivity extends AppCompatActivity {
                                 ? R.string.delete_model_icon_content_description
                                 : R.string.download_model_icon_content_description));
         modelActionButton.setEnabled(!builtIn);
+    }
+
+    private final class SourceSelectorAdapter extends ArrayAdapter<SourceSelectorEntry>
+            implements ListAdapter {
+        private final LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+
+        private SourceSelectorAdapter() {
+            super(MainActivity.this, R.layout.item_source_selector_selected, sourceEntries);
+        }
+
+        @Override
+        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+            View view =
+                    convertView != null
+                            ? convertView
+                            : inflater.inflate(
+                                    R.layout.item_source_selector_selected, parent, false);
+            bindSourceSelectorView(view, sourceEntryAt(position));
+            return view;
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, @NonNull ViewGroup parent) {
+            View view =
+                    convertView != null
+                            ? convertView
+                            : inflater.inflate(
+                                    R.layout.item_source_selector_dropdown, parent, false);
+            bindSourceSelectorView(view, sourceEntryAt(position));
+            View divider = view.findViewById(R.id.sourceSelectorDivider);
+            if (divider != null) {
+                divider.setVisibility(position == 0 ? View.GONE : View.VISIBLE);
+            }
+            return view;
+        }
+
+        private void bindSourceSelectorView(
+                @NonNull View view, @NonNull SourceSelectorEntry entry) {
+            ImageView iconView = view.findViewById(R.id.sourceSelectorIcon);
+            TextView textView = view.findViewById(R.id.sourceSelectorText);
+            iconView.setImageResource(entry.iconRes);
+            textView.setText(entry.label);
+        }
+    }
+
+    private static final class SourceSelectorEntry {
+        private final String label;
+        private final int iconRes;
+        private final SourceEntryType type;
+        private final int sampleIndex;
+
+        private SourceSelectorEntry(
+                String label, int iconRes, SourceEntryType type, int sampleIndex) {
+            this.label = label;
+            this.iconRes = iconRes;
+            this.type = type;
+            this.sampleIndex = sampleIndex;
+        }
     }
 
     private void setupSpinner(Spinner spinner, int arrayRes) {

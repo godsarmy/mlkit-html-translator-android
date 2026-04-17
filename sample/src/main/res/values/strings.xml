@@ -16,6 +16,7 @@
 	<string name="source_mode_invalid_url">Enter a valid http(s) URL</string>
 	<string name="source_mode_file_load_failed">Unable to read selected file</string>
 	<string name="source_mode_url_load_failed">Unable to load HTML from URL</string>
+	<string name="source_selector_load_url">Load from URL</string>
 	<string name="left_menu_content_description">Open navigation menu</string>
 	<string name="advanced_parameters_label">Advanced parameters</string>
 	<string name="version_label">Version</string>

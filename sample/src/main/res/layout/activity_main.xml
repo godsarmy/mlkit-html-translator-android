@@ -14,7 +14,8 @@
 			android:layout_height="wrap_content" android:orientation="vertical"
 			android:padding="16dp">
 
-			<LinearLayout android:layout_width="match_parent"
+			<LinearLayout android:id="@+id/exampleSourceContainer"
+				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:gravity="center_vertical" android:orientation="horizontal">
 
@@ -28,71 +29,13 @@
 					android:src="@drawable/ic_gmail_menu"
 					android:tint="@color/mlkit_on_surface_variant" />
 
-				<com.google.android.material.button.MaterialButton
-					android:id="@+id/sourceModeButton"
-					android:layout_width="wrap_content" android:layout_height="40dp"
-					android:text="@string/source_mode_button"
-					android:textAllCaps="false"
-					android:textColor="@color/mlkit_primary"
-					app:backgroundTint="@android:color/transparent"
-					app:cornerRadius="20dp" app:icon="@drawable/ic_marker_config"
-					app:iconTint="@color/mlkit_primary"
-					app:rippleColor="@color/mlkit_primary"
-					app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp" />
-
-				<TextView android:id="@+id/sourceModeLabel"
-					android:layout_width="0dp" android:layout_height="wrap_content"
-					android:layout_marginStart="10dp" android:layout_weight="1"
-					android:text="@string/source_mode_example"
-					android:textColor="@color/mlkit_on_surface_variant"
-					android:textStyle="bold" />
-
-				<com.google.android.material.button.MaterialButton
-					android:id="@+id/sourceModeActionButton"
-					android:layout_width="wrap_content" android:layout_height="40dp"
-					android:text="@string/source_action_pick"
-					android:textAllCaps="false"
-					android:textColor="@color/source_mode_action_text_tint"
-					app:backgroundTint="@color/source_mode_action_background_tint"
-					app:cornerRadius="20dp" />
-			</LinearLayout>
-
-			<LinearLayout android:id="@+id/exampleSourceContainer"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="8dp"
-				android:orientation="vertical">
-
-				<Spinner android:id="@+id/sampleAssetSpinner"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content" />
-			</LinearLayout>
-
-			<LinearLayout android:id="@+id/fileSourceContainer"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="8dp"
-				android:orientation="vertical" android:visibility="gone">
-
-				<TextView android:id="@+id/localFileNameText"
-					android:layout_width="match_parent"
-					android:layout_height="wrap_content"
+				<androidx.appcompat.widget.AppCompatAutoCompleteTextView
+					android:id="@+id/sampleAssetInput" android:layout_width="0dp"
+					android:layout_height="40dp" android:layout_weight="1"
 					android:background="@drawable/preview_box_background"
-					android:ellipsize="middle" android:maxLines="1"
-					android:padding="10dp" android:text="@string/source_file_none"
-					android:textColor="@color/mlkit_on_surface_variant" />
-			</LinearLayout>
-
-			<LinearLayout android:id="@+id/urlSourceContainer"
-				android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="8dp"
-				android:orientation="horizontal" android:visibility="gone">
-
-				<EditText android:id="@+id/urlInputText"
-					android:layout_width="match_parent" android:layout_height="40dp"
-					android:background="@drawable/preview_box_background"
-					android:hint="@string/source_url_hint"
-					android:importantForAutofill="no" android:inputType="textUri"
-					android:maxLines="1" android:paddingStart="10dp"
-					android:paddingEnd="10dp"
+					android:drawablePadding="10dp" android:importantForAutofill="no"
+					android:inputType="none" android:maxLines="1"
+					android:paddingStart="10dp" android:paddingEnd="10dp"
 					android:textColor="@color/mlkit_on_background"
 					android:textColorHint="@color/mlkit_on_surface_variant" />
 			</LinearLayout>
