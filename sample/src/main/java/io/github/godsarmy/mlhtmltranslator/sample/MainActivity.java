@@ -2,12 +2,15 @@ package io.github.godsarmy.mlhtmltranslator.sample;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.method.ScrollingMovementMethod;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -16,6 +19,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +29,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
@@ -49,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private TranslationViewModel viewModel;
+    private ImageButton leftMenuButton;
+    private DrawerLayout mainDrawerLayout;
+    private NavigationView leftNavigationView;
     private MaterialButton modelActionButton;
     private MaterialButton sourceModeButton;
     private MaterialButton sourceModeActionButton;
@@ -132,6 +142,9 @@ public class MainActivity extends AppCompatActivity {
 
         sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
         targetSpinner = findViewById(R.id.targetLanguageSpinner);
+        leftMenuButton = findViewById(R.id.leftMenuButton);
+        mainDrawerLayout = findViewById(R.id.mainDrawerLayout);
+        leftNavigationView = findViewById(R.id.leftNavigationView);
         sourceModeButton = findViewById(R.id.sourceModeButton);
         sourceModeActionButton = findViewById(R.id.sourceModeActionButton);
         sourceModeLabel = findViewById(R.id.sourceModeLabel);
@@ -202,6 +215,9 @@ public class MainActivity extends AppCompatActivity {
         advancedParameterButton.setOnClickListener(v -> openAdvancedParametersScreen());
         sourceModeButton.setOnClickListener(v -> showSourceModeMenu());
         sourceModeActionButton.setOnClickListener(v -> onSourceActionClicked(sampleSpinner));
+        leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
+        leftNavigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
+        updateVersionMenuItemTitle();
 
         urlInputText.addTextChangedListener(
                 new TextWatcher() {
@@ -481,6 +497,41 @@ public class MainActivity extends AppCompatActivity {
                         readMaskPlaceholders(),
                         readMaskPaths(),
                         readFailurePolicy()));
+    }
+
+    private boolean onDrawerItemSelected(@NonNull MenuItem item) {
+        int itemId = item.getItemId();
+        if (itemId == R.id.menu_advanced_parameters) {
+            mainDrawerLayout.closeDrawer(GravityCompat.START);
+            openAdvancedParametersScreen();
+            return true;
+        }
+        if (itemId == R.id.menu_version) {
+            mainDrawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }
+        return false;
+    }
+
+    private void updateVersionMenuItemTitle() {
+        MenuItem versionItem = leftNavigationView.getMenu().findItem(R.id.menu_version);
+        if (versionItem == null) {
+            return;
+        }
+        versionItem.setTitle(getString(R.string.version_format, resolveVersionName()));
+    }
+
+    @NonNull
+    private String resolveVersionName() {
+        try {
+            PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            if (packageInfo.versionName != null && !packageInfo.versionName.trim().isEmpty()) {
+                return packageInfo.versionName;
+            }
+        } catch (PackageManager.NameNotFoundException ignored) {
+            // no-op
+        }
+        return "unknown";
     }
 
     private void saveAdvancedPreferences(Intent data) {
