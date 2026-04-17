@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton modelActionButton;
     private MaterialButton sourceModeButton;
     private MaterialButton sourceModeActionButton;
-    private MaterialButton advancedParameterButton;
     private Button translateButton;
     private Button explainButton;
     private Spinner sourceSpinner;
@@ -148,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
         sourceModeButton = findViewById(R.id.sourceModeButton);
         sourceModeActionButton = findViewById(R.id.sourceModeActionButton);
         sourceModeLabel = findViewById(R.id.sourceModeLabel);
-        advancedParameterButton = findViewById(R.id.advancedParameterButton);
         Spinner sampleSpinner = findViewById(R.id.sampleAssetSpinner);
         exampleSourceContainer = findViewById(R.id.exampleSourceContainer);
         fileSourceContainer = findViewById(R.id.fileSourceContainer);
@@ -212,7 +210,6 @@ public class MainActivity extends AppCompatActivity {
         explainButton.setOnClickListener(v -> openExplainScreen());
 
         modelActionButton.setOnClickListener(v -> onModelActionClicked());
-        advancedParameterButton.setOnClickListener(v -> openAdvancedParametersScreen());
         sourceModeButton.setOnClickListener(v -> showSourceModeMenu());
         sourceModeActionButton.setOnClickListener(v -> onSourceActionClicked(sampleSpinner));
         leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
