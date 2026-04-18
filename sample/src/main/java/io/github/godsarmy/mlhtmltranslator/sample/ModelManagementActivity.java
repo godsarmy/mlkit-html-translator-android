@@ -197,11 +197,14 @@ public final class ModelManagementActivity extends AppCompatActivity {
         availableModels.clear();
         downloadedModelsList.clear();
 
+        downloadedModelsList.add(BUILT_IN_LANGUAGE);
+
         for (String language : supportedLanguages) {
             String normalized = normalizeLanguageCode(language);
             if (BUILT_IN_LANGUAGE.equals(normalized)) {
-                downloadedModelsList.add(language);
-            } else if (normalized != null && downloadedModels.contains(normalized)) {
+                continue;
+            }
+            if (normalized != null && downloadedModels.contains(normalized)) {
                 downloadedModelsList.add(language);
             } else {
                 availableModels.add(language);
