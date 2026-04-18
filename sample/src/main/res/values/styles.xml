@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 	<style name="Theme.MlKitHtmlTranslator.Sample"
-		parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+		parent="Theme.MaterialComponents.DayNight.NoActionBar">
 		<item name="colorPrimary">@color/mlkit_primary</item>
+		<item name="colorPrimaryVariant">@color/mlkit_primary_variant</item>
 		<item name="colorSecondary">@color/mlkit_primary</item>
+		<item name="colorSurface">@color/mlkit_surface</item>
+		<item name="colorOnPrimary">@android:color/white</item>
+		<item name="colorOnSecondary">@color/mlkit_bg_canvas</item>
+		<item name="colorOnSurface">@color/mlkit_on_background</item>
+		<item name="android:colorBackground">@color/mlkit_bg_canvas</item>
+		<item name="android:windowBackground">@color/mlkit_bg_canvas</item>
+		<item name="android:textColorPrimary">@color/mlkit_on_background</item>
+		<item name="android:textColorSecondary">@color/mlkit_on_surface_variant</item>
+		<item name="android:textColorHint">@color/mlkit_on_surface_variant</item>
+		<item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
 		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MlKitHtmlTranslator.Sample.AlertDialog</item>
 	</style>
 

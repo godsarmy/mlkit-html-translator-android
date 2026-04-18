@@ -54,7 +54,6 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_advanced_parameters);
-        getWindow().setStatusBarColor(getColor(R.color.mlkit_primary));
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }

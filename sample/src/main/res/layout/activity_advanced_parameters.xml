@@ -5,7 +5,7 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:background="@color/mlkit_bg_canvas"
-	android:orientation="vertical">
+	android:fitsSystemWindows="true" android:orientation="vertical">
 
 	<com.google.android.material.appbar.MaterialToolbar
 		android:id="@+id/advancedParametersToolbar"
