@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
 	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content" android:gravity="center_vertical"
 	android:minHeight="48dp" android:orientation="horizontal"
@@ -10,7 +11,7 @@
 	<ImageView android:id="@+id/sourceSelectorIcon"
 		android:layout_width="20dp" android:layout_height="20dp"
 		android:contentDescription="@null"
-		android:tint="@color/mlkit_on_surface_variant" />
+		app:tint="@color/mlkit_on_surface_variant" />
 
 	<TextView android:id="@+id/sourceSelectorText"
 		android:layout_width="0dp" android:layout_height="wrap_content"
