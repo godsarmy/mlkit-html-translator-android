@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'io.github.godsarmy.mlhtmltranslator.sample'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId 'io.github.godsarmy.mlhtmltranslator.sample'
         minSdk 24
-        targetSdk 34
+        targetSdk 35
         versionCode 8
         versionName '0.3.0'
 

@@ -8,7 +8,7 @@ def jsoupVersion = project.findProperty('jsoupVersion') ?: '1.17.2'
 
 android {
     namespace 'io.github.godsarmy.mlhtmltranslator'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         minSdk 24
