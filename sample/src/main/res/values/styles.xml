@@ -15,6 +15,8 @@
 		<item name="android:textColorSecondary">@color/mlkit_on_surface_variant</item>
 		<item name="android:textColorHint">@color/mlkit_on_surface_variant</item>
 		<item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+		<item name="android:windowOptOutEdgeToEdgeEnforcement"
+			tools:targetApi="35">true</item>
 		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MlKitHtmlTranslator.Sample.AlertDialog</item>
 	</style>
 
