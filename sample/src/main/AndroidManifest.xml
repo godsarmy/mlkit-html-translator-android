@@ -11,18 +11,22 @@
 		android:roundIcon="@drawable/ic_project_icon"
 		android:theme="@style/Theme.MlKitHtmlTranslator.Sample">
 		<activity android:name=".HelpActivity"
-			android:exported="false" android:label="@string/help_title" />
+			android:exported="false" android:label="@string/help_title"
+			android:screenOrientation="portrait" />
 		<activity android:name=".ModelManagementActivity"
 			android:exported="false"
-			android:label="@string/model_management_title" />
+			android:label="@string/model_management_title"
+			android:screenOrientation="portrait" />
 		<activity android:name=".AdvancedParametersActivity"
 			android:exported="false"
-			android:label="@string/advanced_parameters_screen_title" />
+			android:label="@string/advanced_parameters_screen_title"
+			android:screenOrientation="portrait" />
 		<activity android:name=".ExplainHtmlActivity"
 			android:exported="false"
-			android:label="@string/explain_html_screen_title" />
+			android:label="@string/explain_html_screen_title"
+			android:screenOrientation="portrait" />
 		<activity android:name=".MainActivity"
-			android:exported="true">
+			android:exported="true" android:screenOrientation="portrait">
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
 
