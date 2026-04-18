@@ -84,7 +84,6 @@
 					android:layout_height="match_parent" android:fadeScrollbars="false"
 					android:gravity="top|start" android:overScrollMode="always"
 					android:scrollbarStyle="insideInset" android:scrollbars="vertical"
-					android:text="@string/sample_output_placeholder"
 					android:textColor="@color/mlkit_on_background"
 					android:textSize="16sp" />
 
