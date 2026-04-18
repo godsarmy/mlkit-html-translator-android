@@ -298,8 +298,8 @@ public class MainActivity extends AppCompatActivity {
         loadSelectedSample(0);
         updateSourceInputState();
         translationResultText.setText("");
-        translationResultText.setVisibility(View.GONE);
-        translationProgressContainer.setVisibility(View.GONE);
+        translationResultText.setVisibility(View.INVISIBLE);
+        translationProgressContainer.setVisibility(View.INVISIBLE);
         applyRenderMode(renderModeToggle.isChecked());
         refreshDownloadedModels();
         updateExplainButtonState();
@@ -314,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
         latestTimingReport = null;
         isTranslating = true;
         translationResultText.setText("");
-        translationResultText.setVisibility(View.GONE);
+        translationResultText.setVisibility(View.INVISIBLE);
         translationProgressContainer.setVisibility(View.VISIBLE);
         translateButton.setEnabled(false);
         updateExplainButtonState();
@@ -356,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void finishTranslationState(boolean failed) {
         isTranslating = false;
-        translationProgressContainer.setVisibility(View.GONE);
+        translationProgressContainer.setVisibility(View.INVISIBLE);
         translationResultText.setVisibility(View.VISIBLE);
         translationResultText.setTextColor(
                 getColor(failed ? R.color.mlkit_error : R.color.mlkit_on_surface_variant));
