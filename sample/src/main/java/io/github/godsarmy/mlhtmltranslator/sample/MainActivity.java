@@ -1015,9 +1015,17 @@ public class MainActivity extends AppCompatActivity {
                     convertView != null
                             ? convertView
                             : inflater.inflate(
-                                    R.layout.item_source_selector_selected, parent, false);
+                                    R.layout.item_source_selector_dropdown, parent, false);
             SourceSelectorEntry entry = getItem(position);
-            bindSourceSelectorView(view, entry != null ? entry : sourceEntryAt(position));
+            if (entry == null) {
+                entry = sourceEntryAt(position);
+            }
+            bindSourceSelectorView(view, entry);
+            View divider = view.findViewById(R.id.sourceSelectorDivider);
+            if (divider != null) {
+                divider.setVisibility(
+                        position == sourceEntries.size() - 1 ? View.VISIBLE : View.GONE);
+            }
             return view;
         }
 
@@ -1036,7 +1044,7 @@ public class MainActivity extends AppCompatActivity {
             View divider = view.findViewById(R.id.sourceSelectorDivider);
             if (divider != null) {
                 divider.setVisibility(
-                        entry.type == SourceEntryType.LOAD_URL ? View.VISIBLE : View.GONE);
+                        position == sourceEntries.size() - 1 ? View.VISIBLE : View.GONE);
             }
             return view;
         }
