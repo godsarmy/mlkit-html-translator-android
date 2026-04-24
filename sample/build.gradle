@@ -10,8 +10,8 @@ android {
         applicationId 'io.github.godsarmy.mlhtmltranslator.sample'
         minSdk 24
         targetSdk 35
-        versionCode 8
-        versionName '0.4.2'
+        versionCode 9
+        versionName '0.4.5'
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
