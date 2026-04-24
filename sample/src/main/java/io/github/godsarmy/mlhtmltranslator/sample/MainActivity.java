@@ -81,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
+    private ImageButton shareTranslatedButton;
     private View exampleSourceContainer;
     private View translationProgressContainer;
     private TextView translationResultText;
@@ -151,6 +152,7 @@ public class MainActivity extends AppCompatActivity {
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
+        shareTranslatedButton = findViewById(R.id.shareTranslatedButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
         translationResultText = findViewById(R.id.translationResultText);
         translateButton = findViewById(R.id.translateButton);
@@ -179,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
                             outputHtmlText.setText(translatedHtml);
+                            updateShareButtonState();
                             refreshRenderedPreviewIfNeeded();
                             showSuccessStatus();
                         });
@@ -196,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
         translateButton.setOnClickListener(
                 v -> startTranslation(sourceSpinner.getSelectedItem().toString()));
         explainButton.setOnClickListener(v -> openExplainScreen());
+        shareTranslatedButton.setOnClickListener(v -> shareTranslatedHtml());
 
         leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
         leftNavigationView.setNavigationItemSelectedListener(this::onDrawerItemSelected);
@@ -304,8 +308,36 @@ public class MainActivity extends AppCompatActivity {
         translationResultText.setVisibility(View.INVISIBLE);
         translationProgressContainer.setVisibility(View.INVISIBLE);
         applyRenderMode(renderModeToggle.isChecked());
+        updateShareButtonState();
         refreshDownloadedModels();
         updateExplainButtonState();
+    }
+
+    private void updateShareButtonState() {
+        if (shareTranslatedButton == null || outputHtmlText == null) {
+            return;
+        }
+        boolean hasTranslatedHtml = !outputHtmlText.getText().toString().trim().isEmpty();
+        shareTranslatedButton.setEnabled(hasTranslatedHtml);
+        int tintColor =
+                hasTranslatedHtml
+                        ? getColor(R.color.mlkit_on_surface_variant)
+                        : getColor(R.color.mlkit_outline);
+        shareTranslatedButton.setImageTintList(ColorStateList.valueOf(tintColor));
+    }
+
+    private void shareTranslatedHtml() {
+        String translatedHtml = outputHtmlText.getText().toString();
+        if (translatedHtml.trim().isEmpty()) {
+            Toast.makeText(this, R.string.share_translated_html_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT, translatedHtml);
+        startActivity(
+                Intent.createChooser(
+                        shareIntent, getString(R.string.share_translated_html_chooser_title)));
     }
 
     private void applyDrawerHeaderInsets() {
