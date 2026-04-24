@@ -23,7 +23,6 @@ public final class ModelLifecycleManager {
         void onFailure(@NonNull String reason);
     }
 
-    private final RemoteModelManager remoteModelManager = RemoteModelManager.getInstance();
     private final DownloadConditions downloadConditions = new DownloadConditions.Builder().build();
     private final Set<String> downloadedModels = new HashSet<>();
 
@@ -40,7 +39,7 @@ public final class ModelLifecycleManager {
     }
 
     public void refreshDownloadedModels(@NonNull RefreshCallback callback) {
-        remoteModelManager
+        remoteModelManager()
                 .getDownloadedModels(TranslateRemoteModel.class)
                 .addOnSuccessListener(
                         models -> {
@@ -70,7 +69,7 @@ public final class ModelLifecycleManager {
         }
 
         TranslateRemoteModel model = new TranslateRemoteModel.Builder(normalized).build();
-        remoteModelManager
+        remoteModelManager()
                 .download(model, downloadConditions)
                 .addOnSuccessListener(
                         unused -> {
@@ -98,7 +97,7 @@ public final class ModelLifecycleManager {
         }
 
         TranslateRemoteModel model = new TranslateRemoteModel.Builder(normalized).build();
-        remoteModelManager
+        remoteModelManager()
                 .deleteDownloadedModel(model)
                 .addOnSuccessListener(
                         unused -> {
@@ -143,6 +142,11 @@ public final class ModelLifecycleManager {
     private static String messageOrDefault(@NonNull Exception error, @NonNull String fallback) {
         String message = error.getMessage();
         return message == null || message.trim().isEmpty() ? fallback : message;
+    }
+
+    @NonNull
+    private RemoteModelManager remoteModelManager() {
+        return RemoteModelManager.getInstance();
     }
 
     @NonNull

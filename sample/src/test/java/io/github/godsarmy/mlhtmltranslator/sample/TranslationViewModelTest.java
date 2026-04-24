@@ -22,6 +22,6 @@ public class TranslationViewModelTest {
         // Default manager has only 'en'. Using 'ja' target should fail precondition.
         viewModel.translate("<p>Hello</p>", "en", "ja");
 
-        assertEquals("MODEL_UNAVAILABLE", viewModel.errorCode().getValue());
+        assertEquals("MODEL_UNAVAILABLE", viewModel.errorReason().getValue());
     }
 }

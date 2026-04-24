@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -64,12 +65,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     private enum SourceEntryType {
         SAMPLE,
+        LOAD_FILE,
         LOAD_URL
     }
 
@@ -103,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
     private final List<String> downloadedLanguageOptions = new ArrayList<>();
     private int selectedSourcePosition;
     private KeyListener sampleAssetInputKeyListener;
+    private ActivityResultLauncher<String[]> htmlFilePickerLauncher;
+    private String selectedFileName;
 
     private static final String PREFS_NAME = "marker_config";
     private static final String KEY_MARKER_START = "marker_start";
@@ -166,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
         translateButton = findViewById(R.id.translateButton);
         explainButton = findViewById(R.id.explainButton);
         markerPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        registerHtmlFilePickerLauncher();
 
         setupWebView(inputRenderedHtml);
         setupWebView(outputRenderedHtml);
@@ -238,10 +244,6 @@ public class MainActivity extends AppCompatActivity {
                     if (event.getAction() != MotionEvent.ACTION_UP) {
                         return false;
                     }
-                    if (!isLoadUrlSelected()) {
-                        sampleAssetInput.showDropDown();
-                        return true;
-                    }
                     if (isTapOnEndDrawable(sampleAssetInput, event)) {
                         sampleAssetInput.showDropDown();
                         return true;
@@ -255,6 +257,10 @@ public class MainActivity extends AppCompatActivity {
 
         sampleAssetInput.setOnClickListener(
                 v -> {
+                    if (isLoadFileSelected()) {
+                        launchHtmlFilePicker();
+                        return;
+                    }
                     if (!isLoadUrlSelected()) {
                         sampleAssetInput.showDropDown();
                     }
@@ -794,6 +800,12 @@ public class MainActivity extends AppCompatActivity {
         }
         sourceEntries.add(
                 new SourceSelectorEntry(
+                        getString(R.string.source_selector_load_file),
+                        R.drawable.ic_import,
+                        SourceEntryType.LOAD_FILE,
+                        -1));
+        sourceEntries.add(
+                new SourceSelectorEntry(
                         getString(R.string.source_selector_load_url),
                         R.drawable.ic_source_url,
                         SourceEntryType.LOAD_URL,
@@ -806,8 +818,12 @@ public class MainActivity extends AppCompatActivity {
                     selectedSourcePosition = position;
                     SourceSelectorEntry entry = sourceEntryAt(position);
                     if (entry.type == SourceEntryType.SAMPLE && entry.sampleIndex >= 0) {
+                        selectedFileName = null;
                         loadSelectedSample(entry.sampleIndex);
+                    } else if (entry.type == SourceEntryType.LOAD_FILE) {
+                        launchHtmlFilePicker();
                     } else if (entry.type == SourceEntryType.LOAD_URL) {
+                        selectedFileName = null;
                         sampleAssetInput.setText("", false);
                     }
                     updateSourceInputState();
@@ -826,6 +842,10 @@ public class MainActivity extends AppCompatActivity {
         return sourceEntryAt(selectedSourcePosition).type == SourceEntryType.LOAD_URL;
     }
 
+    private boolean isLoadFileSelected() {
+        return sourceEntryAt(selectedSourcePosition).type == SourceEntryType.LOAD_FILE;
+    }
+
     private void loadSelectedSample(int sampleIndex) {
         if (sampleIndex < 0 || sampleIndex >= sourceEntries.size()) {
             return;
@@ -841,6 +861,7 @@ public class MainActivity extends AppCompatActivity {
     private void updateSourceInputState() {
         boolean enabled = !isSourceLoading;
         boolean loadUrlSelected = isLoadUrlSelected();
+        boolean loadFileSelected = isLoadFileSelected();
         sampleAssetInput.setEnabled(enabled);
         sampleAssetInput.setFocusable(loadUrlSelected && enabled);
         sampleAssetInput.setFocusableInTouchMode(loadUrlSelected && enabled);
@@ -862,7 +883,7 @@ public class MainActivity extends AppCompatActivity {
             sampleAssetInput.setHint(null);
             sampleAssetInput.setImeActionLabel(null, EditorInfo.IME_ACTION_NONE);
             sampleAssetInput.setImeOptions(EditorInfo.IME_ACTION_NONE);
-            String label = sourceEntryAt(selectedSourcePosition).label;
+            String label = sourceSelectorDisplayLabel(loadFileSelected);
             if (!label.contentEquals(sampleAssetInput.getText())) {
                 sampleAssetInput.setText(label, false);
             }
@@ -870,6 +891,13 @@ public class MainActivity extends AppCompatActivity {
 
         updateSourceSelectorDrawables(loadUrlSelected);
         exampleSourceContainer.setVisibility(View.VISIBLE);
+    }
+
+    private String sourceSelectorDisplayLabel(boolean loadFileSelected) {
+        if (loadFileSelected && selectedFileName != null && !selectedFileName.trim().isEmpty()) {
+            return selectedFileName;
+        }
+        return sourceEntryAt(selectedSourcePosition).label;
     }
 
     private void updateSourceSelectorDrawables(boolean loadUrlSelected) {
@@ -906,6 +934,120 @@ public class MainActivity extends AppCompatActivity {
     private void setSourceLoading(boolean sourceLoading) {
         isSourceLoading = sourceLoading;
         updateSourceInputState();
+    }
+
+    private void registerHtmlFilePickerLauncher() {
+        htmlFilePickerLauncher =
+                registerForActivityResult(
+                        new ActivityResultContracts.OpenDocument(),
+                        uri -> {
+                            if (uri == null) {
+                                return;
+                            }
+                            loadHtmlFromPickedFile(uri);
+                        });
+    }
+
+    private void launchHtmlFilePicker() {
+        if (isSourceLoading) {
+            return;
+        }
+        htmlFilePickerLauncher.launch(new String[] {"text/html", "application/xhtml+xml"});
+    }
+
+    private void loadHtmlFromPickedFile(@NonNull Uri fileUri) {
+        String displayName = resolveDisplayName(fileUri);
+        if (!isHtmlFile(displayName)) {
+            Toast.makeText(this, R.string.source_mode_file_load_failed, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        try {
+            getContentResolver()
+                    .takePersistableUriPermission(fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        } catch (SecurityException ignored) {
+            // no-op
+        }
+
+        setSourceLoading(true);
+        new Thread(
+                        () -> {
+                            String content;
+                            try (InputStream inputStream =
+                                    getContentResolver().openInputStream(fileUri)) {
+                                if (inputStream == null) {
+                                    throw new IOException("Input stream unavailable");
+                                }
+                                content = readText(inputStream);
+                            } catch (IOException e) {
+                                runOnUiThread(
+                                        () -> {
+                                            setSourceLoading(false);
+                                            Toast.makeText(
+                                                            MainActivity.this,
+                                                            R.string.source_mode_file_load_failed,
+                                                            Toast.LENGTH_SHORT)
+                                                    .show();
+                                        });
+                                return;
+                            }
+
+                            final String loadedContent = content;
+                            runOnUiThread(
+                                    () -> {
+                                        setSourceLoading(false);
+                                        selectedFileName =
+                                                displayName == null || displayName.trim().isEmpty()
+                                                        ? getString(R.string.source_mode_file)
+                                                        : displayName;
+                                        updateSourceInputState();
+                                        inputHtmlText.setText(loadedContent);
+                                        refreshRenderedPreviewIfNeeded();
+                                        updateExplainButtonState();
+                                    });
+                        })
+                .start();
+    }
+
+    private String resolveDisplayName(@NonNull Uri fileUri) {
+        try (Cursor cursor =
+                getContentResolver()
+                        .query(
+                                fileUri,
+                                new String[] {OpenableColumns.DISPLAY_NAME},
+                                null,
+                                null,
+                                null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                if (index >= 0) {
+                    return cursor.getString(index);
+                }
+            }
+        } catch (Exception ignored) {
+            // no-op
+        }
+        return null;
+    }
+
+    private static boolean isHtmlFile(String displayName) {
+        if (displayName == null || displayName.trim().isEmpty()) {
+            return false;
+        }
+        String lower = displayName.toLowerCase(Locale.US);
+        return lower.endsWith(".html") || lower.endsWith(".htm") || lower.endsWith(".xhtml");
+    }
+
+    private static String readText(@NonNull InputStream inputStream) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        try (BufferedReader reader =
+                new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append('\n');
+            }
+        }
+        return builder.toString().trim();
     }
 
     private void loadHtmlFromUrlInput() {
@@ -1224,7 +1366,7 @@ public class MainActivity extends AppCompatActivity {
             View divider = view.findViewById(R.id.sourceSelectorDivider);
             if (divider != null) {
                 divider.setVisibility(
-                        position == sourceEntries.size() - 1 ? View.VISIBLE : View.GONE);
+                        entry.type == SourceEntryType.LOAD_FILE ? View.VISIBLE : View.GONE);
             }
             return view;
         }
@@ -1244,7 +1386,7 @@ public class MainActivity extends AppCompatActivity {
             View divider = view.findViewById(R.id.sourceSelectorDivider);
             if (divider != null) {
                 divider.setVisibility(
-                        position == sourceEntries.size() - 1 ? View.VISIBLE : View.GONE);
+                        entry.type == SourceEntryType.LOAD_FILE ? View.VISIBLE : View.GONE);
             }
             return view;
         }
