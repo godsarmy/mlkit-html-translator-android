@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/compareRoot" android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:background="@color/mlkit_bg_canvas" android:paddingTop="16dp">
+
+	<LinearLayout android:id="@+id/compareContent"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent" android:orientation="horizontal">
+
+		<LinearLayout android:layout_width="0dp"
+			android:layout_height="match_parent" android:layout_weight="1"
+			android:orientation="vertical">
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center_horizontal"
+				android:text="@string/source_html_label"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<FrameLayout android:layout_width="match_parent"
+				android:layout_height="0dp" android:layout_marginTop="8dp"
+				android:layout_weight="1"
+				android:background="@drawable/preview_box_background_square"
+				android:padding="12dp">
+
+				<EditText android:id="@+id/compareSourceText"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:background="@android:color/transparent"
+					android:focusable="false" android:focusableInTouchMode="false"
+					android:gravity="top|start" android:inputType="none"
+					android:scrollHorizontally="true" android:overScrollMode="always"
+					android:padding="0dp" android:scrollbarStyle="insideInset"
+					android:scrollbars="horizontal|vertical"
+					android:textColor="@color/mlkit_on_background"
+					android:textColorHint="@color/mlkit_on_surface_variant" />
+
+				<WebView android:id="@+id/compareSourceRenderedHtml"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent" android:visibility="gone" />
+			</FrameLayout>
+		</LinearLayout>
+
+		<View android:layout_width="1dp"
+			android:layout_height="match_parent"
+			android:background="@color/mlkit_preview_box_edge" />
+
+		<LinearLayout android:layout_width="0dp"
+			android:layout_height="match_parent" android:layout_weight="1"
+			android:orientation="vertical">
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:gravity="center_horizontal"
+				android:text="@string/translated_html_label"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<FrameLayout android:layout_width="match_parent"
+				android:layout_height="0dp" android:layout_marginTop="8dp"
+				android:layout_weight="1"
+				android:background="@drawable/preview_box_background_square"
+				android:padding="12dp">
+
+				<EditText android:id="@+id/compareTranslatedText"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent"
+					android:background="@android:color/transparent"
+					android:focusable="false" android:focusableInTouchMode="false"
+					android:gravity="top|start" android:inputType="none"
+					android:scrollHorizontally="true" android:overScrollMode="always"
+					android:padding="0dp" android:scrollbarStyle="insideInset"
+					android:scrollbars="horizontal|vertical"
+					android:textColor="@color/mlkit_on_background"
+					android:textColorHint="@color/mlkit_on_surface_variant" />
+
+				<WebView android:id="@+id/compareTranslatedRenderedHtml"
+					android:layout_width="match_parent"
+					android:layout_height="match_parent" android:visibility="gone" />
+			</FrameLayout>
+		</LinearLayout>
+	</LinearLayout>
+
+	<LinearLayout android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:layout_gravity="top|end"
+		android:layout_marginTop="4dp" android:layout_marginEnd="4dp"
+		android:gravity="center_vertical" android:orientation="horizontal">
+
+		<androidx.appcompat.widget.AppCompatImageButton
+			android:id="@+id/compareRenderToggleButton"
+			android:layout_width="40dp" android:layout_height="40dp"
+			android:background="@android:color/transparent"
+			android:contentDescription="@string/compare_render_html_enable"
+			android:padding="6dp" android:src="@drawable/ic_render_preview_off"
+			android:tint="@color/mlkit_on_surface_variant" />
+
+		<androidx.appcompat.widget.AppCompatImageButton
+			android:id="@+id/compareCloseButton" android:layout_width="40dp"
+			android:layout_height="40dp" android:layout_marginStart="4dp"
+			android:background="@android:color/transparent"
+			android:contentDescription="@string/compare_close_icon_content_description"
+			android:padding="6dp" android:src="@drawable/ic_compare_close"
+			android:tint="@color/mlkit_on_surface_variant" />
+	</LinearLayout>
+
+</FrameLayout>

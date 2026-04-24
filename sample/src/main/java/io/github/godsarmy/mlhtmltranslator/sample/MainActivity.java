@@ -90,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
+    private ImageButton compareModeButton;
     private ImageButton saveTranslatedButton;
     private ImageButton shareTranslatedButton;
     private View exampleSourceContainer;
@@ -164,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
+        compareModeButton = findViewById(R.id.compareModeButton);
         saveTranslatedButton = findViewById(R.id.saveTranslatedButton);
         shareTranslatedButton = findViewById(R.id.shareTranslatedButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
@@ -213,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
         translateButton.setOnClickListener(
                 v -> startTranslation(sourceSpinner.getSelectedItem().toString()));
         explainButton.setOnClickListener(v -> openExplainScreen());
+        compareModeButton.setOnClickListener(v -> openSideBySideCompare());
         saveTranslatedButton.setOnClickListener(v -> saveTranslatedHtml());
         shareTranslatedButton.setOnClickListener(v -> shareTranslatedHtml());
 
@@ -357,6 +360,14 @@ public class MainActivity extends AppCompatActivity {
         startActivity(
                 Intent.createChooser(
                         shareIntent, getString(R.string.share_translated_html_chooser_title)));
+    }
+
+    private void openSideBySideCompare() {
+        startActivity(
+                SideBySideCompareActivity.createIntent(
+                        this,
+                        inputHtmlText.getText().toString(),
+                        outputHtmlText.getText().toString()));
     }
 
     private void saveTranslatedHtml() {
