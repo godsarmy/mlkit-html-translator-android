@@ -1,13 +1,17 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -35,6 +39,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.core.view.GravityCompat;
@@ -52,6 +57,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -81,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     private WebView inputRenderedHtml;
     private WebView outputRenderedHtml;
     private SwitchMaterial renderModeToggle;
+    private ImageButton saveTranslatedButton;
     private ImageButton shareTranslatedButton;
     private View exampleSourceContainer;
     private View translationProgressContainer;
@@ -152,6 +159,7 @@ public class MainActivity extends AppCompatActivity {
         inputRenderedHtml = findViewById(R.id.inputRenderedHtml);
         outputRenderedHtml = findViewById(R.id.outputRenderedHtml);
         renderModeToggle = findViewById(R.id.renderModeToggle);
+        saveTranslatedButton = findViewById(R.id.saveTranslatedButton);
         shareTranslatedButton = findViewById(R.id.shareTranslatedButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
         translationResultText = findViewById(R.id.translationResultText);
@@ -199,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
         translateButton.setOnClickListener(
                 v -> startTranslation(sourceSpinner.getSelectedItem().toString()));
         explainButton.setOnClickListener(v -> openExplainScreen());
+        saveTranslatedButton.setOnClickListener(v -> saveTranslatedHtml());
         shareTranslatedButton.setOnClickListener(v -> shareTranslatedHtml());
 
         leftMenuButton.setOnClickListener(v -> mainDrawerLayout.openDrawer(GravityCompat.START));
@@ -314,15 +323,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateShareButtonState() {
-        if (shareTranslatedButton == null || outputHtmlText == null) {
+        if (shareTranslatedButton == null
+                || saveTranslatedButton == null
+                || outputHtmlText == null) {
             return;
         }
         boolean hasTranslatedHtml = !outputHtmlText.getText().toString().trim().isEmpty();
         shareTranslatedButton.setEnabled(hasTranslatedHtml);
+        saveTranslatedButton.setEnabled(hasTranslatedHtml);
         int tintColor =
                 hasTranslatedHtml
                         ? getColor(R.color.mlkit_on_surface_variant)
                         : getColor(R.color.mlkit_outline);
+        saveTranslatedButton.setImageTintList(ColorStateList.valueOf(tintColor));
         shareTranslatedButton.setImageTintList(ColorStateList.valueOf(tintColor));
     }
 
@@ -338,6 +351,139 @@ public class MainActivity extends AppCompatActivity {
         startActivity(
                 Intent.createChooser(
                         shareIntent, getString(R.string.share_translated_html_chooser_title)));
+    }
+
+    private void saveTranslatedHtml() {
+        String translatedHtml = outputHtmlText.getText().toString();
+        if (translatedHtml.trim().isEmpty()) {
+            Toast.makeText(this, R.string.save_translated_html_empty, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            Toast.makeText(this, R.string.save_translated_html_failure, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String baseName = buildOutputBaseName();
+        String nextFilename = nextAvailableDownloadFilename(baseName);
+        if (nextFilename == null) {
+            Toast.makeText(this, R.string.save_translated_html_failure, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Uri downloadsUri = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DISPLAY_NAME, nextFilename);
+        values.put(MediaStore.MediaColumns.MIME_TYPE, "text/html");
+        values.put(MediaStore.MediaColumns.RELATIVE_PATH, "Download/");
+
+        Uri itemUri = null;
+        try {
+            itemUri = getContentResolver().insert(downloadsUri, values);
+            if (itemUri == null) {
+                throw new IOException("Insert failed");
+            }
+            try (OutputStream outputStream = getContentResolver().openOutputStream(itemUri, "w")) {
+                if (outputStream == null) {
+                    throw new IOException("Open output stream failed");
+                }
+                outputStream.write(translatedHtml.getBytes(StandardCharsets.UTF_8));
+            }
+            Toast.makeText(
+                            this,
+                            getString(R.string.save_translated_html_success, nextFilename),
+                            Toast.LENGTH_SHORT)
+                    .show();
+        } catch (Exception e) {
+            if (itemUri != null) {
+                getContentResolver().delete(itemUri, null, null);
+            }
+            Toast.makeText(this, R.string.save_translated_html_failure, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String buildOutputBaseName() {
+        String derived = deriveSourceName();
+        String normalizedTarget = normalizeLanguageCode(targetLanguage());
+        String targetCode =
+                normalizedTarget == null || normalizedTarget.isBlank() ? "xx" : normalizedTarget;
+        return sanitizeFilename(derived) + "-" + sanitizeFilename(targetCode);
+    }
+
+    private String deriveSourceName() {
+        if (isLoadUrlSelected()) {
+            String urlValue = sampleAssetInput.getText().toString().trim();
+            try {
+                Uri uri = Uri.parse(urlValue);
+                String segment = uri.getLastPathSegment();
+                if (segment != null && !segment.isBlank()) {
+                    return stripExtension(segment);
+                }
+            } catch (Exception ignored) {
+            }
+            return "translated";
+        }
+
+        SourceSelectorEntry entry = sourceEntryAt(selectedSourcePosition);
+        if (entry.type == SourceEntryType.SAMPLE && entry.label != null && !entry.label.isBlank()) {
+            return stripExtension(entry.label.trim());
+        }
+        return "translated";
+    }
+
+    private static String stripExtension(String value) {
+        int extensionIndex = value.lastIndexOf('.');
+        if (extensionIndex > 0) {
+            return value.substring(0, extensionIndex);
+        }
+        return value;
+    }
+
+    private static String sanitizeFilename(String value) {
+        String sanitized = value == null ? "" : value.trim().replaceAll("[\\\\/:*?\"<>|]", "_");
+        sanitized = sanitized.replaceAll("\\s+", "_");
+        if (sanitized.isBlank()) {
+            return "translated";
+        }
+        return sanitized;
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private String nextAvailableDownloadFilename(String baseName) {
+        String safeBase = sanitizeFilename(baseName);
+        for (int suffix = 0; suffix < 10000; suffix++) {
+            String candidate = suffix == 0 ? safeBase + ".html" : safeBase + "." + suffix + ".html";
+            if (!downloadNameExists(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private boolean downloadNameExists(String displayName) {
+        String[] projection = {MediaStore.MediaColumns._ID};
+        String selection =
+                MediaStore.MediaColumns.DISPLAY_NAME
+                        + "=? AND "
+                        + MediaStore.MediaColumns.RELATIVE_PATH
+                        + "=?";
+        String[] args = {displayName, "Download/"};
+        try (Cursor cursor =
+                getContentResolver()
+                        .query(
+                                MediaStore.Downloads.EXTERNAL_CONTENT_URI,
+                                projection,
+                                selection,
+                                args,
+                                null)) {
+            return cursor != null && cursor.moveToFirst();
+        }
+    }
+
+    private String targetLanguage() {
+        Object selected = targetSpinner.getSelectedItem();
+        return selected == null ? "" : String.valueOf(selected);
     }
 
     private void applyDrawerHeaderInsets() {

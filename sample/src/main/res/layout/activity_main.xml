@@ -107,6 +107,14 @@
 				app:useMaterialThemeColors="true" />
 
 			<androidx.appcompat.widget.AppCompatImageButton
+				android:id="@+id/saveTranslatedButton" android:layout_width="40dp"
+				android:layout_height="40dp" android:layout_marginStart="4dp"
+				android:background="@android:color/transparent"
+				android:contentDescription="@string/save_translated_html_content_description"
+				android:padding="6dp" android:src="@drawable/ic_export"
+				android:tint="@color/mlkit_outline" />
+
+			<androidx.appcompat.widget.AppCompatImageButton
 				android:id="@+id/shareTranslatedButton" android:layout_width="40dp"
 				android:layout_height="40dp" android:layout_marginStart="4dp"
 				android:background="@android:color/transparent"

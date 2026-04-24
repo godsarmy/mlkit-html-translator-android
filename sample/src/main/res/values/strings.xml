@@ -34,6 +34,10 @@
 	<string name="help_send_feedback">Send feedback</string>
 	<string name="help_document_unavailable">Help document is unavailable in this build.</string>
 	<string name="label_render_html_mode">Render preview HTML</string>
+	<string name="save_translated_html_content_description">Save translated HTML</string>
+	<string name="save_translated_html_empty">No translated HTML to save</string>
+	<string name="save_translated_html_success">Saved as %1$s in Downloads</string>
+	<string name="save_translated_html_failure">Unable to save translated HTML</string>
 	<string name="share_translated_html_content_description">Share translated HTML</string>
 	<string name="share_translated_html_empty">No translated HTML to share</string>
 	<string name="share_translated_html_chooser_title">Share translated HTML</string>
