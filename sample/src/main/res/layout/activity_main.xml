@@ -55,7 +55,7 @@
 					android:layout_width="match_parent"
 					android:layout_height="match_parent"
 					android:background="@android:color/transparent"
-					android:fadeScrollbars="false" android:gravity="top|start"
+					android:fadeScrollbars="true" android:gravity="top|start"
 					android:inputType="textMultiLine" android:overScrollMode="always"
 					android:padding="0dp" android:scrollbarStyle="insideInset"
 					android:scrollbars="vertical"
@@ -82,7 +82,7 @@
 
 				<TextView android:id="@+id/outputHtml"
 					android:layout_width="match_parent"
-					android:layout_height="match_parent" android:fadeScrollbars="false"
+					android:layout_height="match_parent" android:fadeScrollbars="true"
 					android:gravity="top|start" android:overScrollMode="always"
 					android:scrollbarStyle="insideInset" android:scrollbars="vertical"
 					android:textColor="@color/mlkit_on_background"
