@@ -52,7 +52,7 @@ afterEvaluate {
                 from components.release
                 groupId = (project.findProperty('group') ?: 'com.github.godsarmy').toString()
                 artifactId = 'library'
-                version = (project.findProperty('version') ?: '0.5.1').toString()
+                version = (project.findProperty('version') ?: '0.5.5').toString()
             }
         }
     }
