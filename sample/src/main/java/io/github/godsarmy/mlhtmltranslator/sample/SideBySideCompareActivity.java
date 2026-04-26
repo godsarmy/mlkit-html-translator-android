@@ -18,11 +18,18 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class SideBySideCompareActivity extends AppCompatActivity {
-    private static final String EXTRA_SOURCE_HTML = "extra_source_html";
-    private static final String EXTRA_TRANSLATED_HTML = "extra_translated_html";
+    private static final String EXTRA_SOURCE_HTML_PATH = "extra_source_html_path";
+    private static final String EXTRA_TRANSLATED_HTML_PATH = "extra_translated_html_path";
     private static final long TOGGLE_AUTO_HIDE_DELAY_MS = 2400L;
     private static final long TOGGLE_FADE_DURATION_MS = 180L;
 
@@ -42,17 +49,21 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private boolean renderModeEnabled;
     private boolean normalizeModeEnabled;
     private boolean lineNumbersEnabled;
+    private boolean rawHtmlLoaded;
+    private boolean normalizeInProgress;
     private boolean isRenderToggleVisible;
     private String rawSourceHtml = "";
     private String rawTranslatedHtml = "";
     private String normalizedSourceHtml;
     private String normalizedTranslatedHtml;
+    private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
     private final Runnable hideRenderToggleRunnable = this::hideRenderToggle;
 
-    public static Intent createIntent(Context context, String sourceHtml, String translatedHtml) {
+    public static Intent createIntent(
+            Context context, String sourceHtmlPath, String translatedHtmlPath) {
         Intent intent = new Intent(context, SideBySideCompareActivity.class);
-        intent.putExtra(EXTRA_SOURCE_HTML, sourceHtml);
-        intent.putExtra(EXTRA_TRANSLATED_HTML, translatedHtml);
+        intent.putExtra(EXTRA_SOURCE_HTML_PATH, sourceHtmlPath);
+        intent.putExtra(EXTRA_TRANSLATED_HTML_PATH, translatedHtmlPath);
         return intent;
     }
 
@@ -87,15 +98,18 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         matchLineNumberStyle(translatedText, translatedLineNumbers);
         applySafeInsets(compareRoot);
 
-        Intent intent = getIntent();
-        String sourceHtml = intent.getStringExtra(EXTRA_SOURCE_HTML);
-        String translatedHtml = intent.getStringExtra(EXTRA_TRANSLATED_HTML);
-        rawSourceHtml = sourceHtml == null ? "" : sourceHtml;
-        rawTranslatedHtml = translatedHtml == null ? "" : translatedHtml;
+        rawSourceHtml = "";
+        rawTranslatedHtml = "";
+        rawHtmlLoaded = false;
         updateRawTextMode();
         sourceLineNumbers.bindTo(sourceText);
         translatedLineNumbers.bindTo(translatedText);
         sourceText.post(this::invalidateLineNumberGutters);
+
+        Intent intent = getIntent();
+        String sourceHtmlPath = intent.getStringExtra(EXTRA_SOURCE_HTML_PATH);
+        String translatedHtmlPath = intent.getStringExtra(EXTRA_TRANSLATED_HTML_PATH);
+        compareRoot.post(() -> loadHtmlFromCacheAsync(sourceHtmlPath, translatedHtmlPath));
 
         sourceText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -153,13 +167,12 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void toggleNormalizeMode() {
-        if (renderModeEnabled) {
+        if (renderModeEnabled || !rawHtmlLoaded || normalizeInProgress) {
             return;
         }
         normalizeModeEnabled = !normalizeModeEnabled;
-        if (normalizeModeEnabled && !ensureNormalizedContentReady()) {
-            normalizeModeEnabled = false;
-            Toast.makeText(this, R.string.compare_normalize_failed, Toast.LENGTH_SHORT).show();
+        if (normalizeModeEnabled) {
+            maybeStartNormalizeAsync();
         }
         updateRawTextMode();
         updateNormalizeToggleIcon();
@@ -167,7 +180,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void toggleLineNumbers() {
-        if (renderModeEnabled) {
+        if (renderModeEnabled || !rawHtmlLoaded) {
             return;
         }
         lineNumbersEnabled = !lineNumbersEnabled;
@@ -196,8 +209,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             translatedText.setVisibility(View.VISIBLE);
             sourceRenderedHtml.setVisibility(View.GONE);
             translatedRenderedHtml.setVisibility(View.GONE);
-            lineNumbersToggleButton.setEnabled(true);
-            lineNumbersToggleButton.setClickable(true);
+            lineNumbersToggleButton.setEnabled(rawHtmlLoaded);
+            lineNumbersToggleButton.setClickable(rawHtmlLoaded);
             updateLineNumbersVisibility();
         }
         updateNormalizeToggleIcon();
@@ -206,36 +219,72 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void updateRawTextMode() {
-        if (normalizeModeEnabled && !ensureNormalizedContentReady()) {
-            normalizeModeEnabled = false;
-            Toast.makeText(this, R.string.compare_normalize_failed, Toast.LENGTH_SHORT).show();
+        String sourceDisplay;
+        String translatedDisplay;
+        if (normalizeModeEnabled) {
+            if (normalizedSourceHtml != null && normalizedTranslatedHtml != null) {
+                sourceDisplay = normalizedSourceHtml;
+                translatedDisplay = normalizedTranslatedHtml;
+            } else {
+                sourceDisplay = rawSourceHtml;
+                translatedDisplay = rawTranslatedHtml;
+                maybeStartNormalizeAsync();
+            }
+        } else {
+            sourceDisplay = rawSourceHtml;
+            translatedDisplay = rawTranslatedHtml;
         }
-        String sourceDisplay = normalizeModeEnabled ? normalizedSourceHtml : rawSourceHtml;
-        String translatedDisplay =
-                normalizeModeEnabled ? normalizedTranslatedHtml : rawTranslatedHtml;
         sourceText.setText(sourceDisplay);
         translatedText.setText(translatedDisplay);
         invalidateLineNumberGutters();
     }
 
-    private boolean ensureNormalizedContentReady() {
-        try {
-            if (normalizedSourceHtml == null) {
-                normalizedSourceHtml = HtmlCompareFormatter.normalize(rawSourceHtml);
-            }
-            if (normalizedTranslatedHtml == null) {
-                normalizedTranslatedHtml = HtmlCompareFormatter.normalize(rawTranslatedHtml);
-            }
-            return true;
-        } catch (RuntimeException exception) {
+    private void maybeStartNormalizeAsync() {
+        if (!normalizeModeEnabled
+                || normalizeInProgress
+                || normalizedSourceHtml != null
+                || normalizedTranslatedHtml != null) {
+            return;
+        }
+        normalizeInProgress = true;
+        updateNormalizeToggleIcon();
+        loadExecutor.execute(
+                () -> {
+                    try {
+                        String sourceNormalized = HtmlCompareFormatter.normalize(rawSourceHtml);
+                        String translatedNormalized =
+                                HtmlCompareFormatter.normalize(rawTranslatedHtml);
+                        runOnUiThread(
+                                () ->
+                                        applyNormalizedHtml(
+                                                sourceNormalized, translatedNormalized, false));
+                    } catch (RuntimeException exception) {
+                        runOnUiThread(() -> applyNormalizedHtml(null, null, true));
+                    }
+                });
+    }
+
+    private void applyNormalizedHtml(
+            String sourceNormalized, String translatedNormalized, boolean failed) {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        normalizeInProgress = false;
+        if (failed) {
             normalizedSourceHtml = null;
             normalizedTranslatedHtml = null;
-            return false;
+            normalizeModeEnabled = false;
+            Toast.makeText(this, R.string.compare_normalize_failed, Toast.LENGTH_SHORT).show();
+        } else {
+            normalizedSourceHtml = sourceNormalized;
+            normalizedTranslatedHtml = translatedNormalized;
         }
+        updateRawTextMode();
+        updateNormalizeToggleIcon();
     }
 
     private void updateNormalizeToggleIcon() {
-        boolean enabled = !renderModeEnabled;
+        boolean enabled = !renderModeEnabled && rawHtmlLoaded && !normalizeInProgress;
         normalizeToggleButton.setEnabled(enabled);
         normalizeToggleButton.setClickable(enabled);
         normalizeToggleButton.setAlpha(enabled ? 1f : 0.45f);
@@ -280,13 +329,16 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         if (lineNumbersToggleButton == null) {
             return;
         }
+        boolean enabled = !renderModeEnabled && rawHtmlLoaded;
+        lineNumbersToggleButton.setEnabled(enabled);
+        lineNumbersToggleButton.setClickable(enabled);
         lineNumbersToggleButton.setImageResource(R.drawable.ic_line_numbers);
         int tintColor =
                 lineNumbersEnabled
                         ? getColor(R.color.mlkit_primary)
                         : getColor(R.color.mlkit_on_surface_variant);
         lineNumbersToggleButton.setImageTintList(ColorStateList.valueOf(tintColor));
-        lineNumbersToggleButton.setAlpha(lineNumbersToggleButton.isEnabled() ? 1f : 0.45f);
+        lineNumbersToggleButton.setAlpha(enabled ? 1f : 0.45f);
         lineNumbersToggleButton.setContentDescription(
                 getString(
                         lineNumbersEnabled
@@ -295,7 +347,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void updateLineNumbersVisibility() {
-        int visibility = lineNumbersEnabled ? View.VISIBLE : View.GONE;
+        int visibility = rawHtmlLoaded && lineNumbersEnabled ? View.VISIBLE : View.GONE;
         sourceLineNumbers.setVisibility(visibility);
         translatedLineNumbers.setVisibility(visibility);
         sourceLineDivider.setVisibility(visibility);
@@ -414,6 +466,63 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private void renderHtmlToWebView(WebView webView, String htmlBody) {
         String safeBody = htmlBody == null ? "" : htmlBody;
         webView.loadDataWithBaseURL(null, wrapHtmlDocument(safeBody), "text/html", "utf-8", null);
+    }
+
+    private void loadHtmlFromCacheAsync(String sourcePath, String translatedPath) {
+        loadExecutor.execute(
+                () -> {
+                    try {
+                        String sourceHtml = readUtf8File(sourcePath);
+                        String translatedHtml = readUtf8File(translatedPath);
+                        runOnUiThread(() -> applyLoadedHtml(sourceHtml, translatedHtml));
+                    } catch (IOException exception) {
+                        runOnUiThread(this::handleHtmlLoadFailure);
+                    }
+                });
+    }
+
+    private void applyLoadedHtml(String sourceHtml, String translatedHtml) {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        rawSourceHtml = sourceHtml;
+        rawTranslatedHtml = translatedHtml;
+        rawHtmlLoaded = true;
+        normalizedSourceHtml = null;
+        normalizedTranslatedHtml = null;
+        normalizeInProgress = false;
+        updateRawTextMode();
+        updateNormalizeToggleIcon();
+        updateLineNumbersToggleIcon();
+        updateLineNumbersVisibility();
+        if (renderModeEnabled) {
+            renderHtmlToWebView(sourceRenderedHtml, rawSourceHtml);
+            renderHtmlToWebView(translatedRenderedHtml, rawTranslatedHtml);
+        }
+    }
+
+    private void handleHtmlLoadFailure() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        Toast.makeText(this, R.string.compare_load_failed, Toast.LENGTH_SHORT).show();
+        finish();
+    }
+
+    private static String readUtf8File(String filePath) throws IOException {
+        if (filePath == null || filePath.isEmpty()) {
+            return "";
+        }
+        StringBuilder builder = new StringBuilder();
+        char[] buffer = new char[8192];
+        int readCount;
+        try (Reader reader =
+                new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8)) {
+            while ((readCount = reader.read(buffer)) != -1) {
+                builder.append(buffer, 0, readCount);
+            }
+        }
+        return builder.toString();
     }
 
     private String wrapHtmlDocument(String body) {
@@ -574,6 +683,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         if (lineNumbersToggleButton != null) {
             lineNumbersToggleButton.removeCallbacks(hideRenderToggleRunnable);
         }
+        loadExecutor.shutdownNow();
         super.onDestroy();
     }
 }

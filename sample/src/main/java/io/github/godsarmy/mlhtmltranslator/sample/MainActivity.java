@@ -55,6 +55,8 @@ import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingListener;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingReport;
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -363,11 +365,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openSideBySideCompare() {
-        startActivity(
-                SideBySideCompareActivity.createIntent(
-                        this,
-                        inputHtmlText.getText().toString(),
-                        outputHtmlText.getText().toString()));
+        try {
+            String sourcePath =
+                    writeCompareHtmlToCache("source", inputHtmlText.getText().toString());
+            String translatedPath =
+                    writeCompareHtmlToCache("translated", outputHtmlText.getText().toString());
+            startActivity(SideBySideCompareActivity.createIntent(this, sourcePath, translatedPath));
+        } catch (IOException exception) {
+            Toast.makeText(this, R.string.compare_open_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String writeCompareHtmlToCache(String prefix, String html) throws IOException {
+        File compareFile =
+                new File(
+                        getCacheDir(),
+                        "compare_" + prefix + "_" + System.currentTimeMillis() + ".html");
+        try (FileOutputStream outputStream = new FileOutputStream(compareFile, false)) {
+            outputStream.write((html == null ? "" : html).getBytes(StandardCharsets.UTF_8));
+        }
+        return compareFile.getAbsolutePath();
     }
 
     private void saveTranslatedHtml() {
