@@ -56,7 +56,8 @@
 							android:scrollbarStyle="insideInset"
 							android:scrollbars="horizontal|vertical"
 							android:textColor="@color/mlkit_on_background"
-							android:textColorHint="@color/mlkit_on_surface_variant" />
+							android:textColorHint="@color/mlkit_on_surface_variant"
+							android:textSize="16sp" />
 
 						<WebView android:id="@+id/compareSourceRenderedHtml"
 							android:layout_width="match_parent"
@@ -117,7 +118,8 @@
 							android:scrollbarStyle="insideInset"
 							android:scrollbars="horizontal|vertical"
 							android:textColor="@color/mlkit_on_background"
-							android:textColorHint="@color/mlkit_on_surface_variant" />
+							android:textColorHint="@color/mlkit_on_surface_variant"
+							android:textSize="16sp" />
 
 						<WebView android:id="@+id/compareTranslatedRenderedHtml"
 							android:layout_width="match_parent"
