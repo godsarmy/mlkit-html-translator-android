@@ -47,14 +47,13 @@
 					<FrameLayout android:layout_width="0dp"
 						android:layout_height="match_parent" android:layout_weight="1">
 
-						<EditText android:id="@+id/compareSourceText"
+						<TextView android:id="@+id/compareSourceText"
 							android:layout_width="match_parent"
 							android:layout_height="match_parent"
 							android:background="@android:color/transparent"
-							android:focusable="false" android:focusableInTouchMode="false"
-							android:gravity="top|start" android:inputType="none"
-							android:scrollHorizontally="true" android:overScrollMode="always"
-							android:padding="0dp" android:scrollbarStyle="insideInset"
+							android:gravity="top|start" android:scrollHorizontally="true"
+							android:overScrollMode="always" android:padding="0dp"
+							android:scrollbarStyle="insideInset"
 							android:scrollbars="horizontal|vertical"
 							android:textColor="@color/mlkit_on_background"
 							android:textColorHint="@color/mlkit_on_surface_variant" />
@@ -109,14 +108,13 @@
 					<FrameLayout android:layout_width="0dp"
 						android:layout_height="match_parent" android:layout_weight="1">
 
-						<EditText android:id="@+id/compareTranslatedText"
+						<TextView android:id="@+id/compareTranslatedText"
 							android:layout_width="match_parent"
 							android:layout_height="match_parent"
 							android:background="@android:color/transparent"
-							android:focusable="false" android:focusableInTouchMode="false"
-							android:gravity="top|start" android:inputType="none"
-							android:scrollHorizontally="true" android:overScrollMode="always"
-							android:padding="0dp" android:scrollbarStyle="insideInset"
+							android:gravity="top|start" android:scrollHorizontally="true"
+							android:overScrollMode="always" android:padding="0dp"
+							android:scrollbarStyle="insideInset"
 							android:scrollbars="horizontal|vertical"
 							android:textColor="@color/mlkit_on_background"
 							android:textColorHint="@color/mlkit_on_surface_variant" />
