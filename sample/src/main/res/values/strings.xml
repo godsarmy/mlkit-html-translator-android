@@ -45,6 +45,10 @@
 	<string name="share_translated_html_chooser_title">Share translated HTML</string>
 	<string name="compare_render_html_enable">Enable rendered HTML preview</string>
 	<string name="compare_render_html_disable">Disable rendered HTML preview</string>
+	<string name="compare_normalize_enable">Normalize raw HTML lines</string>
+	<string name="compare_normalize_disable">Show original raw HTML lines</string>
+	<string name="compare_normalize_failed">Could not normalize this HTML. Showing original raw
+		view.</string>
 	<string name="compare_close_icon_content_description">Close side-by-side view</string>
 	<string name="compare_screen_title">Side-by-side compare</string>
 	<string name="label_input_html">Source HTML</string>

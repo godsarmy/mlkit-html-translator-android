@@ -10,6 +10,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -29,11 +30,17 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private EditText translatedText;
     private WebView sourceRenderedHtml;
     private WebView translatedRenderedHtml;
+    private ImageButton normalizeToggleButton;
     private ImageButton renderToggleButton;
     private ImageButton closeButton;
     private boolean syncingScroll;
     private boolean renderModeEnabled;
+    private boolean normalizeModeEnabled;
     private boolean isRenderToggleVisible;
+    private String rawSourceHtml = "";
+    private String rawTranslatedHtml = "";
+    private String normalizedSourceHtml;
+    private String normalizedTranslatedHtml;
     private final Runnable hideRenderToggleRunnable = this::hideRenderToggle;
 
     public static Intent createIntent(Context context, String sourceHtml, String translatedHtml) {
@@ -57,6 +64,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         translatedText = findViewById(R.id.compareTranslatedText);
         sourceRenderedHtml = findViewById(R.id.compareSourceRenderedHtml);
         translatedRenderedHtml = findViewById(R.id.compareTranslatedRenderedHtml);
+        normalizeToggleButton = findViewById(R.id.compareNormalizeToggleButton);
         renderToggleButton = findViewById(R.id.compareRenderToggleButton);
         closeButton = findViewById(R.id.compareCloseButton);
 
@@ -69,8 +77,9 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String sourceHtml = intent.getStringExtra(EXTRA_SOURCE_HTML);
         String translatedHtml = intent.getStringExtra(EXTRA_TRANSLATED_HTML);
-        sourceText.setText(sourceHtml == null ? "" : sourceHtml);
-        translatedText.setText(translatedHtml == null ? "" : translatedHtml);
+        rawSourceHtml = sourceHtml == null ? "" : sourceHtml;
+        rawTranslatedHtml = translatedHtml == null ? "" : translatedHtml;
+        updateRawTextMode();
 
         sourceText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
@@ -85,6 +94,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
                         syncScroll(translatedRenderedHtml, sourceRenderedHtml, scrollX, scrollY));
 
+        normalizeToggleButton.setOnClickListener(v -> toggleNormalizeMode());
         renderToggleButton.setOnClickListener(v -> toggleRenderMode());
         closeButton.setOnClickListener(v -> finish());
         applyRenderMode();
@@ -113,6 +123,20 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         showRenderToggleTemporarily();
     }
 
+    private void toggleNormalizeMode() {
+        if (renderModeEnabled) {
+            return;
+        }
+        normalizeModeEnabled = !normalizeModeEnabled;
+        if (normalizeModeEnabled && !ensureNormalizedContentReady()) {
+            normalizeModeEnabled = false;
+            Toast.makeText(this, R.string.compare_normalize_failed, Toast.LENGTH_SHORT).show();
+        }
+        updateRawTextMode();
+        updateNormalizeToggleIcon();
+        showRenderToggleTemporarily();
+    }
+
     private void applyRenderMode() {
         if (renderModeEnabled) {
             sourceText.setVisibility(View.GONE);
@@ -122,12 +146,67 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             renderHtmlToWebView(sourceRenderedHtml, sourceText.getText().toString());
             renderHtmlToWebView(translatedRenderedHtml, translatedText.getText().toString());
         } else {
+            updateRawTextMode();
             sourceText.setVisibility(View.VISIBLE);
             translatedText.setVisibility(View.VISIBLE);
             sourceRenderedHtml.setVisibility(View.GONE);
             translatedRenderedHtml.setVisibility(View.GONE);
         }
+        updateNormalizeToggleIcon();
         updateRenderToggleIcon();
+    }
+
+    private void updateRawTextMode() {
+        if (normalizeModeEnabled && !ensureNormalizedContentReady()) {
+            normalizeModeEnabled = false;
+            Toast.makeText(this, R.string.compare_normalize_failed, Toast.LENGTH_SHORT).show();
+        }
+        String sourceDisplay = normalizeModeEnabled ? normalizedSourceHtml : rawSourceHtml;
+        String translatedDisplay =
+                normalizeModeEnabled ? normalizedTranslatedHtml : rawTranslatedHtml;
+        sourceText.setText(sourceDisplay);
+        translatedText.setText(translatedDisplay);
+    }
+
+    private boolean ensureNormalizedContentReady() {
+        try {
+            if (normalizedSourceHtml == null) {
+                normalizedSourceHtml = HtmlCompareFormatter.normalize(rawSourceHtml);
+            }
+            if (normalizedTranslatedHtml == null) {
+                normalizedTranslatedHtml = HtmlCompareFormatter.normalize(rawTranslatedHtml);
+            }
+            return true;
+        } catch (RuntimeException exception) {
+            normalizedSourceHtml = null;
+            normalizedTranslatedHtml = null;
+            return false;
+        }
+    }
+
+    private void updateNormalizeToggleIcon() {
+        boolean enabled = !renderModeEnabled;
+        normalizeToggleButton.setEnabled(enabled);
+        normalizeToggleButton.setClickable(enabled);
+        normalizeToggleButton.setAlpha(enabled ? 1f : 0.45f);
+        int tintColor;
+        if (!enabled) {
+            tintColor =
+                    normalizeModeEnabled
+                            ? getColor(R.color.mlkit_primary_variant)
+                            : getColor(R.color.mlkit_on_surface_variant);
+        } else {
+            tintColor =
+                    normalizeModeEnabled
+                            ? getColor(R.color.mlkit_primary)
+                            : getColor(R.color.mlkit_on_surface_variant);
+        }
+        normalizeToggleButton.setImageTintList(ColorStateList.valueOf(tintColor));
+        normalizeToggleButton.setContentDescription(
+                getString(
+                        normalizeModeEnabled
+                                ? R.string.compare_normalize_disable
+                                : R.string.compare_normalize_enable));
     }
 
     private void updateRenderToggleIcon() {
@@ -148,20 +227,25 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void showRenderToggleTemporarily() {
-        if (renderToggleButton == null || closeButton == null) {
+        if (normalizeToggleButton == null || renderToggleButton == null || closeButton == null) {
             return;
         }
         renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
         if (!isRenderToggleVisible) {
             isRenderToggleVisible = true;
+            normalizeToggleButton.setVisibility(View.VISIBLE);
+            normalizeToggleButton.setClickable(true);
             renderToggleButton.setVisibility(View.VISIBLE);
             renderToggleButton.setClickable(true);
             closeButton.setVisibility(View.VISIBLE);
             closeButton.setClickable(true);
+            normalizeToggleButton.animate().cancel();
             renderToggleButton.animate().cancel();
             closeButton.animate().cancel();
+            normalizeToggleButton.setAlpha(0f);
             renderToggleButton.setAlpha(0f);
             closeButton.setAlpha(0f);
+            normalizeToggleButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
             renderToggleButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
             closeButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
         }
@@ -169,12 +253,26 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void hideRenderToggle() {
-        if (renderToggleButton == null || closeButton == null || !isRenderToggleVisible) {
+        if (normalizeToggleButton == null
+                || renderToggleButton == null
+                || closeButton == null
+                || !isRenderToggleVisible) {
             return;
         }
         renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
+        normalizeToggleButton.animate().cancel();
         renderToggleButton.animate().cancel();
         closeButton.animate().cancel();
+        normalizeToggleButton
+                .animate()
+                .alpha(0f)
+                .setDuration(TOGGLE_FADE_DURATION_MS)
+                .withEndAction(
+                        () -> {
+                            normalizeToggleButton.setVisibility(View.INVISIBLE);
+                            normalizeToggleButton.setClickable(false);
+                        })
+                .start();
         renderToggleButton
                 .animate()
                 .alpha(0f)
@@ -354,6 +452,9 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     protected void onDestroy() {
         if (renderToggleButton != null) {
             renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
+        }
+        if (normalizeToggleButton != null) {
+            normalizeToggleButton.removeCallbacks(hideRenderToggleRunnable);
         }
         super.onDestroy();
     }
