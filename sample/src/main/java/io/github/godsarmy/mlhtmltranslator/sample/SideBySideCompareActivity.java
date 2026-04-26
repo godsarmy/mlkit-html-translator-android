@@ -31,11 +31,17 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private WebView sourceRenderedHtml;
     private WebView translatedRenderedHtml;
     private ImageButton normalizeToggleButton;
+    private ImageButton lineNumbersToggleButton;
     private ImageButton renderToggleButton;
     private ImageButton closeButton;
+    private LineNumberGutterView sourceLineNumbers;
+    private LineNumberGutterView translatedLineNumbers;
+    private View sourceLineDivider;
+    private View translatedLineDivider;
     private boolean syncingScroll;
     private boolean renderModeEnabled;
     private boolean normalizeModeEnabled;
+    private boolean lineNumbersEnabled;
     private boolean isRenderToggleVisible;
     private String rawSourceHtml = "";
     private String rawTranslatedHtml = "";
@@ -65,13 +71,20 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         sourceRenderedHtml = findViewById(R.id.compareSourceRenderedHtml);
         translatedRenderedHtml = findViewById(R.id.compareTranslatedRenderedHtml);
         normalizeToggleButton = findViewById(R.id.compareNormalizeToggleButton);
+        lineNumbersToggleButton = findViewById(R.id.compareLineNumbersToggleButton);
         renderToggleButton = findViewById(R.id.compareRenderToggleButton);
         closeButton = findViewById(R.id.compareCloseButton);
+        sourceLineNumbers = findViewById(R.id.compareSourceLineNumbers);
+        translatedLineNumbers = findViewById(R.id.compareTranslatedLineNumbers);
+        sourceLineDivider = findViewById(R.id.compareSourceLineDivider);
+        translatedLineDivider = findViewById(R.id.compareTranslatedLineDivider);
 
         setupWebView(sourceRenderedHtml);
         setupWebView(translatedRenderedHtml);
         setupRawCompareText(sourceText);
         setupRawCompareText(translatedText);
+        matchLineNumberStyle(sourceText, sourceLineNumbers);
+        matchLineNumberStyle(translatedText, translatedLineNumbers);
         applySafeInsets(compareRoot);
 
         Intent intent = getIntent();
@@ -80,13 +93,20 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         rawSourceHtml = sourceHtml == null ? "" : sourceHtml;
         rawTranslatedHtml = translatedHtml == null ? "" : translatedHtml;
         updateRawTextMode();
+        sourceLineNumbers.bindTo(sourceText);
+        translatedLineNumbers.bindTo(translatedText);
+        sourceText.post(this::invalidateLineNumberGutters);
 
         sourceText.setOnScrollChangeListener(
-                (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
-                        syncScroll(sourceText, translatedText, scrollX, scrollY));
+                (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                    syncScroll(sourceText, translatedText, scrollX, scrollY);
+                    invalidateLineNumberGutters();
+                });
         translatedText.setOnScrollChangeListener(
-                (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
-                        syncScroll(translatedText, sourceText, scrollX, scrollY));
+                (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
+                    syncScroll(translatedText, sourceText, scrollX, scrollY);
+                    invalidateLineNumberGutters();
+                });
         sourceRenderedHtml.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) ->
                         syncScroll(sourceRenderedHtml, translatedRenderedHtml, scrollX, scrollY));
@@ -95,6 +115,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                         syncScroll(translatedRenderedHtml, sourceRenderedHtml, scrollX, scrollY));
 
         normalizeToggleButton.setOnClickListener(v -> toggleNormalizeMode());
+        lineNumbersToggleButton.setOnClickListener(v -> toggleLineNumbers());
         renderToggleButton.setOnClickListener(v -> toggleRenderMode());
         closeButton.setOnClickListener(v -> finish());
         applyRenderMode();
@@ -117,6 +138,14 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         editText.setHorizontalScrollBarEnabled(true);
     }
 
+    private static void matchLineNumberStyle(
+            EditText contentView, LineNumberGutterView lineNumbersView) {
+        if (contentView == null || lineNumbersView == null) {
+            return;
+        }
+        lineNumbersView.applyTextMetricsFrom(contentView);
+    }
+
     private void toggleRenderMode() {
         renderModeEnabled = !renderModeEnabled;
         applyRenderMode();
@@ -137,12 +166,28 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         showRenderToggleTemporarily();
     }
 
+    private void toggleLineNumbers() {
+        if (renderModeEnabled) {
+            return;
+        }
+        lineNumbersEnabled = !lineNumbersEnabled;
+        updateLineNumbersVisibility();
+        updateLineNumbersToggleIcon();
+        showRenderToggleTemporarily();
+    }
+
     private void applyRenderMode() {
         if (renderModeEnabled) {
             sourceText.setVisibility(View.GONE);
             translatedText.setVisibility(View.GONE);
             sourceRenderedHtml.setVisibility(View.VISIBLE);
             translatedRenderedHtml.setVisibility(View.VISIBLE);
+            lineNumbersToggleButton.setEnabled(false);
+            lineNumbersToggleButton.setClickable(false);
+            sourceLineNumbers.setVisibility(View.GONE);
+            translatedLineNumbers.setVisibility(View.GONE);
+            sourceLineDivider.setVisibility(View.GONE);
+            translatedLineDivider.setVisibility(View.GONE);
             renderHtmlToWebView(sourceRenderedHtml, sourceText.getText().toString());
             renderHtmlToWebView(translatedRenderedHtml, translatedText.getText().toString());
         } else {
@@ -151,8 +196,12 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             translatedText.setVisibility(View.VISIBLE);
             sourceRenderedHtml.setVisibility(View.GONE);
             translatedRenderedHtml.setVisibility(View.GONE);
+            lineNumbersToggleButton.setEnabled(true);
+            lineNumbersToggleButton.setClickable(true);
+            updateLineNumbersVisibility();
         }
         updateNormalizeToggleIcon();
+        updateLineNumbersToggleIcon();
         updateRenderToggleIcon();
     }
 
@@ -166,6 +215,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                 normalizeModeEnabled ? normalizedTranslatedHtml : rawTranslatedHtml;
         sourceText.setText(sourceDisplay);
         translatedText.setText(translatedDisplay);
+        invalidateLineNumberGutters();
     }
 
     private boolean ensureNormalizedContentReady() {
@@ -226,26 +276,79 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                                 : R.string.compare_render_html_enable));
     }
 
+    private void updateLineNumbersToggleIcon() {
+        if (lineNumbersToggleButton == null) {
+            return;
+        }
+        lineNumbersToggleButton.setImageResource(R.drawable.ic_line_numbers);
+        int tintColor =
+                lineNumbersEnabled
+                        ? getColor(R.color.mlkit_primary)
+                        : getColor(R.color.mlkit_on_surface_variant);
+        lineNumbersToggleButton.setImageTintList(ColorStateList.valueOf(tintColor));
+        lineNumbersToggleButton.setAlpha(lineNumbersToggleButton.isEnabled() ? 1f : 0.45f);
+        lineNumbersToggleButton.setContentDescription(
+                getString(
+                        lineNumbersEnabled
+                                ? R.string.compare_line_numbers_disable
+                                : R.string.compare_line_numbers_enable));
+    }
+
+    private void updateLineNumbersVisibility() {
+        int visibility = lineNumbersEnabled ? View.VISIBLE : View.GONE;
+        sourceLineNumbers.setVisibility(visibility);
+        translatedLineNumbers.setVisibility(visibility);
+        sourceLineDivider.setVisibility(visibility);
+        translatedLineDivider.setVisibility(visibility);
+        invalidateLineNumberGutters();
+    }
+
+    private void invalidateLineNumberGutters() {
+        if (sourceLineNumbers != null && sourceLineNumbers.getVisibility() == View.VISIBLE) {
+            sourceLineNumbers.invalidate();
+        }
+        if (translatedLineNumbers != null
+                && translatedLineNumbers.getVisibility() == View.VISIBLE) {
+            translatedLineNumbers.invalidate();
+        }
+    }
+
     private void showRenderToggleTemporarily() {
-        if (normalizeToggleButton == null || renderToggleButton == null || closeButton == null) {
+        if (normalizeToggleButton == null
+                || lineNumbersToggleButton == null
+                || renderToggleButton == null
+                || closeButton == null) {
             return;
         }
         renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
         if (!isRenderToggleVisible) {
             isRenderToggleVisible = true;
             normalizeToggleButton.setVisibility(View.VISIBLE);
-            normalizeToggleButton.setClickable(true);
+            normalizeToggleButton.setClickable(normalizeToggleButton.isEnabled());
+            lineNumbersToggleButton.setVisibility(View.VISIBLE);
+            lineNumbersToggleButton.setClickable(lineNumbersToggleButton.isEnabled());
             renderToggleButton.setVisibility(View.VISIBLE);
             renderToggleButton.setClickable(true);
             closeButton.setVisibility(View.VISIBLE);
             closeButton.setClickable(true);
             normalizeToggleButton.animate().cancel();
+            lineNumbersToggleButton.animate().cancel();
             renderToggleButton.animate().cancel();
             closeButton.animate().cancel();
             normalizeToggleButton.setAlpha(0f);
+            lineNumbersToggleButton.setAlpha(0f);
             renderToggleButton.setAlpha(0f);
             closeButton.setAlpha(0f);
-            normalizeToggleButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
+            normalizeToggleButton
+                    .animate()
+                    .alpha(normalizeToggleButton.isEnabled() ? 1f : 0.45f)
+                    .setDuration(TOGGLE_FADE_DURATION_MS)
+                    .start();
+            lineNumbersToggleButton
+                    .animate()
+                    .alpha(lineNumbersToggleButton.isEnabled() ? 1f : 0.45f)
+                    .setDuration(TOGGLE_FADE_DURATION_MS)
+                    .start();
             renderToggleButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
             closeButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
         }
@@ -254,6 +357,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
 
     private void hideRenderToggle() {
         if (normalizeToggleButton == null
+                || lineNumbersToggleButton == null
                 || renderToggleButton == null
                 || closeButton == null
                 || !isRenderToggleVisible) {
@@ -261,6 +365,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         }
         renderToggleButton.removeCallbacks(hideRenderToggleRunnable);
         normalizeToggleButton.animate().cancel();
+        lineNumbersToggleButton.animate().cancel();
         renderToggleButton.animate().cancel();
         closeButton.animate().cancel();
         normalizeToggleButton
@@ -271,6 +376,16 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                         () -> {
                             normalizeToggleButton.setVisibility(View.INVISIBLE);
                             normalizeToggleButton.setClickable(false);
+                        })
+                .start();
+        lineNumbersToggleButton
+                .animate()
+                .alpha(0f)
+                .setDuration(TOGGLE_FADE_DURATION_MS)
+                .withEndAction(
+                        () -> {
+                            lineNumbersToggleButton.setVisibility(View.INVISIBLE);
+                            lineNumbersToggleButton.setClickable(false);
                         })
                 .start();
         renderToggleButton
@@ -455,6 +570,9 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         }
         if (normalizeToggleButton != null) {
             normalizeToggleButton.removeCallbacks(hideRenderToggleRunnable);
+        }
+        if (lineNumbersToggleButton != null) {
+            lineNumbersToggleButton.removeCallbacks(hideRenderToggleRunnable);
         }
         super.onDestroy();
     }

@@ -26,21 +26,44 @@
 				android:background="@drawable/preview_box_background_square"
 				android:padding="12dp">
 
-				<EditText android:id="@+id/compareSourceText"
-					android:layout_width="match_parent"
+				<LinearLayout android:layout_width="match_parent"
 					android:layout_height="match_parent"
-					android:background="@android:color/transparent"
-					android:focusable="false" android:focusableInTouchMode="false"
-					android:gravity="top|start" android:inputType="none"
-					android:scrollHorizontally="true" android:overScrollMode="always"
-					android:padding="0dp" android:scrollbarStyle="insideInset"
-					android:scrollbars="horizontal|vertical"
-					android:textColor="@color/mlkit_on_background"
-					android:textColorHint="@color/mlkit_on_surface_variant" />
+					android:orientation="horizontal">
 
-				<WebView android:id="@+id/compareSourceRenderedHtml"
-					android:layout_width="match_parent"
-					android:layout_height="match_parent" android:visibility="gone" />
+					<io.github.godsarmy.mlhtmltranslator.sample.LineNumberGutterView
+						android:id="@+id/compareSourceLineNumbers"
+						android:layout_width="wrap_content"
+						android:layout_height="match_parent" android:gravity="top|end"
+						android:paddingEnd="8dp"
+						android:textColor="@color/mlkit_on_surface_variant"
+						android:visibility="gone" />
+
+					<View android:id="@+id/compareSourceLineDivider"
+						android:layout_width="1dp" android:layout_height="match_parent"
+						android:layout_marginEnd="8dp"
+						android:background="@color/mlkit_preview_box_edge"
+						android:visibility="gone" />
+
+					<FrameLayout android:layout_width="0dp"
+						android:layout_height="match_parent" android:layout_weight="1">
+
+						<EditText android:id="@+id/compareSourceText"
+							android:layout_width="match_parent"
+							android:layout_height="match_parent"
+							android:background="@android:color/transparent"
+							android:focusable="false" android:focusableInTouchMode="false"
+							android:gravity="top|start" android:inputType="none"
+							android:scrollHorizontally="true" android:overScrollMode="always"
+							android:padding="0dp" android:scrollbarStyle="insideInset"
+							android:scrollbars="horizontal|vertical"
+							android:textColor="@color/mlkit_on_background"
+							android:textColorHint="@color/mlkit_on_surface_variant" />
+
+						<WebView android:id="@+id/compareSourceRenderedHtml"
+							android:layout_width="match_parent"
+							android:layout_height="match_parent" android:visibility="gone" />
+					</FrameLayout>
+				</LinearLayout>
 			</FrameLayout>
 		</LinearLayout>
 
@@ -65,21 +88,44 @@
 				android:background="@drawable/preview_box_background_square"
 				android:padding="12dp">
 
-				<EditText android:id="@+id/compareTranslatedText"
-					android:layout_width="match_parent"
+				<LinearLayout android:layout_width="match_parent"
 					android:layout_height="match_parent"
-					android:background="@android:color/transparent"
-					android:focusable="false" android:focusableInTouchMode="false"
-					android:gravity="top|start" android:inputType="none"
-					android:scrollHorizontally="true" android:overScrollMode="always"
-					android:padding="0dp" android:scrollbarStyle="insideInset"
-					android:scrollbars="horizontal|vertical"
-					android:textColor="@color/mlkit_on_background"
-					android:textColorHint="@color/mlkit_on_surface_variant" />
+					android:orientation="horizontal">
 
-				<WebView android:id="@+id/compareTranslatedRenderedHtml"
-					android:layout_width="match_parent"
-					android:layout_height="match_parent" android:visibility="gone" />
+					<io.github.godsarmy.mlhtmltranslator.sample.LineNumberGutterView
+						android:id="@+id/compareTranslatedLineNumbers"
+						android:layout_width="wrap_content"
+						android:layout_height="match_parent" android:gravity="top|end"
+						android:paddingEnd="8dp"
+						android:textColor="@color/mlkit_on_surface_variant"
+						android:visibility="gone" />
+
+					<View android:id="@+id/compareTranslatedLineDivider"
+						android:layout_width="1dp" android:layout_height="match_parent"
+						android:layout_marginEnd="8dp"
+						android:background="@color/mlkit_preview_box_edge"
+						android:visibility="gone" />
+
+					<FrameLayout android:layout_width="0dp"
+						android:layout_height="match_parent" android:layout_weight="1">
+
+						<EditText android:id="@+id/compareTranslatedText"
+							android:layout_width="match_parent"
+							android:layout_height="match_parent"
+							android:background="@android:color/transparent"
+							android:focusable="false" android:focusableInTouchMode="false"
+							android:gravity="top|start" android:inputType="none"
+							android:scrollHorizontally="true" android:overScrollMode="always"
+							android:padding="0dp" android:scrollbarStyle="insideInset"
+							android:scrollbars="horizontal|vertical"
+							android:textColor="@color/mlkit_on_background"
+							android:textColorHint="@color/mlkit_on_surface_variant" />
+
+						<WebView android:id="@+id/compareTranslatedRenderedHtml"
+							android:layout_width="match_parent"
+							android:layout_height="match_parent" android:visibility="gone" />
+					</FrameLayout>
+				</LinearLayout>
 			</FrameLayout>
 		</LinearLayout>
 	</LinearLayout>
@@ -95,6 +141,15 @@
 			android:background="@android:color/transparent"
 			android:contentDescription="@string/compare_normalize_enable"
 			android:padding="6dp" android:src="@drawable/ic_normalize_html"
+			android:tint="@color/mlkit_on_surface_variant" />
+
+		<androidx.appcompat.widget.AppCompatImageButton
+			android:id="@+id/compareLineNumbersToggleButton"
+			android:layout_width="40dp" android:layout_height="40dp"
+			android:layout_marginStart="4dp"
+			android:background="@android:color/transparent"
+			android:contentDescription="@string/compare_line_numbers_enable"
+			android:padding="6dp" android:src="@drawable/ic_line_numbers"
 			android:tint="@color/mlkit_on_surface_variant" />
 
 		<androidx.appcompat.widget.AppCompatImageButton
