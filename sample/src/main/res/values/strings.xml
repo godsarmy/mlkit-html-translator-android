@@ -88,6 +88,7 @@
 	<string name="download_model_icon_content_description">Download model</string>
 	<string name="delete_model_icon_content_description">Delete model</string>
 	<string name="status_translating">Translating...</string>
+	<string name="status_loading_url">Loading HTML from URL...</string>
 	<string name="translation_result_success">%1$d chars in %2$d ms • chunks: %3$d • nodes:
 		%4$d/%5$d • failed: %6$d • retries: %7$d</string>
 	<string name="translation_result_failure">Translation failed: %1$s</string>

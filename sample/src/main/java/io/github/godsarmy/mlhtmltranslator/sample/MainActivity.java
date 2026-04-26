@@ -41,6 +41,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.core.view.GravityCompat;
@@ -97,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton shareTranslatedButton;
     private View exampleSourceContainer;
     private View translationProgressContainer;
+    private TextView translationProgressText;
     private TextView translationResultText;
     private boolean isTranslating;
     private int currentRequestCharCount;
@@ -171,6 +173,7 @@ public class MainActivity extends AppCompatActivity {
         saveTranslatedButton = findViewById(R.id.saveTranslatedButton);
         shareTranslatedButton = findViewById(R.id.shareTranslatedButton);
         translationProgressContainer = findViewById(R.id.translationProgressContainer);
+        translationProgressText = findViewById(R.id.translationProgressText);
         translationResultText = findViewById(R.id.translationResultText);
         translateButton = findViewById(R.id.translateButton);
         explainButton = findViewById(R.id.explainButton);
@@ -548,9 +551,7 @@ public class MainActivity extends AppCompatActivity {
         currentRequestCharCount = htmlBody.length();
         latestTimingReport = null;
         isTranslating = true;
-        translationResultText.setText("");
-        translationResultText.setVisibility(View.INVISIBLE);
-        translationProgressContainer.setVisibility(View.VISIBLE);
+        showStatusProgress(R.string.status_translating);
         translateButton.setEnabled(false);
         updateExplainButtonState();
 
@@ -591,7 +592,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void finishTranslationState(boolean failed) {
         isTranslating = false;
-        translationProgressContainer.setVisibility(View.INVISIBLE);
+        hideStatusProgress();
         translationResultText.setVisibility(View.VISIBLE);
         translationResultText.setTextColor(
                 getColor(failed ? R.color.mlkit_error : R.color.mlkit_on_surface_variant));
@@ -1086,6 +1087,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setSourceLoading(true);
+        showStatusProgress(R.string.status_loading_url);
         new Thread(
                         () -> {
                             String content;
@@ -1095,6 +1097,7 @@ public class MainActivity extends AppCompatActivity {
                                 runOnUiThread(
                                         () -> {
                                             setSourceLoading(false);
+                                            restoreProgressStateAfterSourceLoad();
                                             Toast.makeText(
                                                             MainActivity.this,
                                                             R.string.source_mode_url_load_failed,
@@ -1108,6 +1111,7 @@ public class MainActivity extends AppCompatActivity {
                             runOnUiThread(
                                     () -> {
                                         setSourceLoading(false);
+                                        restoreProgressStateAfterSourceLoad();
                                         inputHtmlText.setText(loadedContent);
                                         refreshRenderedPreviewIfNeeded();
                                         updateExplainButtonState();
@@ -1160,6 +1164,27 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception ignored) {
             return false;
         }
+    }
+
+    private void showStatusProgress(@StringRes int messageRes) {
+        translationResultText.setText("");
+        translationResultText.setVisibility(View.INVISIBLE);
+        if (translationProgressText != null) {
+            translationProgressText.setText(messageRes);
+        }
+        translationProgressContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void hideStatusProgress() {
+        translationProgressContainer.setVisibility(View.INVISIBLE);
+    }
+
+    private void restoreProgressStateAfterSourceLoad() {
+        if (isTranslating) {
+            showStatusProgress(R.string.status_translating);
+            return;
+        }
+        hideStatusProgress();
     }
 
     private void applyRenderMode(boolean renderModeEnabled) {
