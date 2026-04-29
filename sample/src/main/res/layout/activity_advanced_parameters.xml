@@ -67,6 +67,19 @@
 
 			<TextView android:layout_width="match_parent"
 				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/label_chunk_timeout_ms"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<EditText android:id="@+id/chunkTimeoutMsInput"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="4dp"
+				android:hint="@string/hint_chunk_timeout_ms"
+				android:inputType="number" android:singleLine="true"
+				android:textColor="@color/mlkit_on_background"
+				android:textColorHint="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
 				android:text="@string/label_failure_policy"
 				android:textColor="@color/mlkit_on_surface_variant" />
 

@@ -29,7 +29,6 @@ import org.jsoup.nodes.Document;
 public final class HtmlBodyTranslationEngine {
 
     private static final int DEFAULT_MAX_IN_FLIGHT_CHUNKS = 2;
-    private static final long DEFAULT_CHUNK_TIMEOUT_MS = 10_000L;
     private static final Pattern LEGACY_MARKER_ARTIFACT_PATTERN =
             Pattern.compile("\\[\\[\\[(?:\\s*SEG\\b[^\\]]*)?\\]?\\]?\\]?");
     private static final Pattern COMPACT_MARKER_ARTIFACT_PATTERN =
@@ -245,7 +244,7 @@ public final class HtmlBodyTranslationEngine {
             for (Future<ChunkTranslationResult> future : futures) {
                 ChunkTranslationResult result;
                 try {
-                    result = future.get(DEFAULT_CHUNK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+                    result = future.get(options.getChunkTimeoutMs(), TimeUnit.MILLISECONDS);
                 } catch (TimeoutException timeoutException) {
                     throw new TranslationException(
                             TranslationErrorCode.TRANSLATION_FAILED,
@@ -311,7 +310,7 @@ public final class HtmlBodyTranslationEngine {
                                 originalText,
                                 sourceLanguage,
                                 targetLanguage,
-                                DEFAULT_CHUNK_TIMEOUT_MS);
+                                options.getChunkTimeoutMs());
 
                 if (cancelled.get()) {
                     throw new TranslationException(
@@ -341,7 +340,7 @@ public final class HtmlBodyTranslationEngine {
                             chunk.getPayload(),
                             sourceLanguage,
                             targetLanguage,
-                            DEFAULT_CHUNK_TIMEOUT_MS);
+                            options.getChunkTimeoutMs());
 
             if (cancelled.get()) {
                 throw new TranslationException(
@@ -416,7 +415,10 @@ public final class HtmlBodyTranslationEngine {
         try {
             String translated =
                     translationAdapter.translate(
-                            originalText, sourceLanguage, targetLanguage, DEFAULT_CHUNK_TIMEOUT_MS);
+                            originalText,
+                            sourceLanguage,
+                            targetLanguage,
+                            options.getChunkTimeoutMs());
             Map<Integer, String> mapped = new LinkedHashMap<>();
             mapped.put(nodeIndex, translated);
             return ChunkTranslationResult.success(mapped, 1, retryDepth + 1);

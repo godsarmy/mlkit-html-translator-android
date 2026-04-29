@@ -21,6 +21,7 @@ public final class HtmlTranslationOptions {
 
     private final Set<String> protectedTags;
     private final int maxChunkChars;
+    private final long chunkTimeoutMs;
     private final FailurePolicy failurePolicy;
     private final boolean maskUrls;
     private final boolean maskPlaceholders;
@@ -33,6 +34,7 @@ public final class HtmlTranslationOptions {
         this.protectedTags =
                 Collections.unmodifiableSet(new LinkedHashSet<>(builder.protectedTags));
         this.maxChunkChars = builder.maxChunkChars;
+        this.chunkTimeoutMs = builder.chunkTimeoutMs;
         this.failurePolicy = builder.failurePolicy;
         this.maskUrls = builder.maskUrls;
         this.maskPlaceholders = builder.maskPlaceholders;
@@ -54,6 +56,10 @@ public final class HtmlTranslationOptions {
 
     public int getMaxChunkChars() {
         return maxChunkChars;
+    }
+
+    public long getChunkTimeoutMs() {
+        return chunkTimeoutMs;
     }
 
     @NonNull
@@ -91,6 +97,7 @@ public final class HtmlTranslationOptions {
     public static final class Builder {
         private Set<String> protectedTags = new LinkedHashSet<>(DEFAULT_PROTECTED_TAGS);
         private int maxChunkChars = 3000;
+        private long chunkTimeoutMs = 20_000L;
         private FailurePolicy failurePolicy = FailurePolicy.BEST_EFFORT;
         private boolean maskUrls = true;
         private boolean maskPlaceholders = true;
@@ -110,6 +117,12 @@ public final class HtmlTranslationOptions {
         @NonNull
         public Builder setMaxChunkChars(int maxChunkChars) {
             this.maxChunkChars = Math.max(1, maxChunkChars);
+            return this;
+        }
+
+        @NonNull
+        public Builder setChunkTimeoutMs(long chunkTimeoutMs) {
+            this.chunkTimeoutMs = Math.max(1L, chunkTimeoutMs);
             return this;
         }
 

@@ -17,6 +17,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     private static final String EXTRA_MARKER_START = "extra_marker_start";
     private static final String EXTRA_MARKER_END = "extra_marker_end";
     private static final String EXTRA_MAX_CHUNK_CHARS = "extra_max_chunk_chars";
+    private static final String EXTRA_CHUNK_TIMEOUT_MS = "extra_chunk_timeout_ms";
     private static final String EXTRA_MASK_URLS = "extra_mask_urls";
     private static final String EXTRA_MASK_PLACEHOLDERS = "extra_mask_placeholders";
     private static final String EXTRA_MASK_PATHS = "extra_mask_paths";
@@ -25,6 +26,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     private EditText markerStartInput;
     private EditText markerEndInput;
     private EditText maxChunkCharsInput;
+    private EditText chunkTimeoutMsInput;
     private Spinner failurePolicySpinner;
     private SwitchMaterial maskUrlsCheck;
     private SwitchMaterial maskPlaceholdersCheck;
@@ -35,6 +37,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
             @NonNull String markerStart,
             @NonNull String markerEnd,
             int maxChunkChars,
+            long chunkTimeoutMs,
             boolean maskUrls,
             boolean maskPlaceholders,
             boolean maskPaths,
@@ -43,6 +46,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         intent.putExtra(EXTRA_MARKER_START, markerStart);
         intent.putExtra(EXTRA_MARKER_END, markerEnd);
         intent.putExtra(EXTRA_MAX_CHUNK_CHARS, maxChunkChars);
+        intent.putExtra(EXTRA_CHUNK_TIMEOUT_MS, chunkTimeoutMs);
         intent.putExtra(EXTRA_MASK_URLS, maskUrls);
         intent.putExtra(EXTRA_MASK_PLACEHOLDERS, maskPlaceholders);
         intent.putExtra(EXTRA_MASK_PATHS, maskPaths);
@@ -62,6 +66,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         markerStartInput = findViewById(R.id.markerStartInput);
         markerEndInput = findViewById(R.id.markerEndInput);
         maxChunkCharsInput = findViewById(R.id.maxChunkCharsInput);
+        chunkTimeoutMsInput = findViewById(R.id.chunkTimeoutMsInput);
         failurePolicySpinner = findViewById(R.id.failurePolicySpinner);
         maskUrlsCheck = findViewById(R.id.maskUrlsCheck);
         maskPlaceholdersCheck = findViewById(R.id.maskPlaceholdersCheck);
@@ -77,6 +82,8 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         markerEndInput.setText(getIntent().getStringExtra(EXTRA_MARKER_END));
         maxChunkCharsInput.setText(
                 String.valueOf(getIntent().getIntExtra(EXTRA_MAX_CHUNK_CHARS, 3000)));
+        chunkTimeoutMsInput.setText(
+                String.valueOf(getIntent().getLongExtra(EXTRA_CHUNK_TIMEOUT_MS, 20_000L)));
         maskUrlsCheck.setChecked(getIntent().getBooleanExtra(EXTRA_MASK_URLS, true));
         maskPlaceholdersCheck.setChecked(
                 getIntent().getBooleanExtra(EXTRA_MASK_PLACEHOLDERS, true));
@@ -105,6 +112,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         String markerStart = safeMarker(markerStartInput.getText().toString(), "[{[");
         String markerEnd = safeMarker(markerEndInput.getText().toString(), "]}]");
         int maxChunkChars = parseChunkChars(maxChunkCharsInput.getText().toString());
+        long chunkTimeoutMs = parseChunkTimeoutMs(chunkTimeoutMsInput.getText().toString());
         String failurePolicy =
                 failurePolicySpinner.getSelectedItemPosition() == 1
                         ? HtmlTranslationOptions.FailurePolicy.FAIL_FAST.name()
@@ -114,6 +122,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         result.putExtra(EXTRA_MARKER_START, markerStart);
         result.putExtra(EXTRA_MARKER_END, markerEnd);
         result.putExtra(EXTRA_MAX_CHUNK_CHARS, maxChunkChars);
+        result.putExtra(EXTRA_CHUNK_TIMEOUT_MS, chunkTimeoutMs);
         result.putExtra(EXTRA_MASK_URLS, maskUrlsCheck.isChecked());
         result.putExtra(EXTRA_MASK_PLACEHOLDERS, maskPlaceholdersCheck.isChecked());
         result.putExtra(EXTRA_MASK_PATHS, maskPathsCheck.isChecked());
@@ -141,6 +150,17 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         }
     }
 
+    private static long parseChunkTimeoutMs(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return 20_000L;
+        }
+        try {
+            return Math.max(1L, Long.parseLong(value.trim()));
+        } catch (NumberFormatException ignored) {
+            return 20_000L;
+        }
+    }
+
     public static String markerStartFromResult(@Nullable Intent data, @NonNull String fallback) {
         if (data == null) {
             return fallback;
@@ -161,6 +181,12 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         return data == null
                 ? fallback
                 : Math.max(1, data.getIntExtra(EXTRA_MAX_CHUNK_CHARS, fallback));
+    }
+
+    public static long chunkTimeoutMsFromResult(@Nullable Intent data, long fallback) {
+        return data == null
+                ? fallback
+                : Math.max(1L, data.getLongExtra(EXTRA_CHUNK_TIMEOUT_MS, fallback));
     }
 
     public static boolean maskUrlsFromResult(@Nullable Intent data, boolean fallback) {

@@ -16,6 +16,7 @@ Current options:
 
 - protected tags set
 - max chunk chars
+- chunk timeout in milliseconds (default `20000`)
 - failure policy (`FAIL_FAST`, `BEST_EFFORT`)
 - token masking flags (URLs/placeholders/paths)
 - optional timing listener

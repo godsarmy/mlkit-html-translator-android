@@ -116,12 +116,14 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_MARKER_START = "marker_start";
     private static final String KEY_MARKER_END = "marker_end";
     private static final String KEY_MAX_CHUNK_CHARS = "max_chunk_chars";
+    private static final String KEY_CHUNK_TIMEOUT_MS = "chunk_timeout_ms";
     private static final String KEY_MASK_URLS = "mask_urls";
     private static final String KEY_MASK_PLACEHOLDERS = "mask_placeholders";
     private static final String KEY_MASK_PATHS = "mask_paths";
     private static final String KEY_FAILURE_POLICY = "failure_policy";
 
     private static final int DEFAULT_MAX_CHUNK_CHARS = 3000;
+    private static final long DEFAULT_CHUNK_TIMEOUT_MS = 20_000L;
     private static final boolean DEFAULT_MASK_URLS = true;
     private static final boolean DEFAULT_MASK_PLACEHOLDERS = true;
     private static final boolean DEFAULT_MASK_PATHS = true;
@@ -654,6 +656,7 @@ public class MainActivity extends AppCompatActivity {
                 HtmlTranslationOptions.builder()
                         .setTimingListener(timingListener)
                         .setMaxChunkChars(readMaxChunkChars())
+                        .setChunkTimeoutMs(readChunkTimeoutMs())
                         .setMaskUrls(readMaskUrls())
                         .setMaskPlaceholders(readMaskPlaceholders())
                         .setMaskPaths(readMaskPaths())
@@ -692,6 +695,11 @@ public class MainActivity extends AppCompatActivity {
         return Math.max(1, markerPreferences.getInt(KEY_MAX_CHUNK_CHARS, DEFAULT_MAX_CHUNK_CHARS));
     }
 
+    private long readChunkTimeoutMs() {
+        return Math.max(
+                1L, markerPreferences.getLong(KEY_CHUNK_TIMEOUT_MS, DEFAULT_CHUNK_TIMEOUT_MS));
+    }
+
     private boolean readMaskUrls() {
         return markerPreferences.getBoolean(KEY_MASK_URLS, DEFAULT_MASK_URLS);
     }
@@ -720,6 +728,7 @@ public class MainActivity extends AppCompatActivity {
                         readMarkerStart(),
                         readMarkerEnd(),
                         readMaxChunkChars(),
+                        readChunkTimeoutMs(),
                         readMaskUrls(),
                         readMaskPlaceholders(),
                         readMaskPaths(),
@@ -786,6 +795,10 @@ public class MainActivity extends AppCompatActivity {
                         KEY_MAX_CHUNK_CHARS,
                         AdvancedParametersActivity.maxChunkCharsFromResult(
                                 data, DEFAULT_MAX_CHUNK_CHARS))
+                .putLong(
+                        KEY_CHUNK_TIMEOUT_MS,
+                        AdvancedParametersActivity.chunkTimeoutMsFromResult(
+                                data, DEFAULT_CHUNK_TIMEOUT_MS))
                 .putBoolean(
                         KEY_MASK_URLS,
                         AdvancedParametersActivity.maskUrlsFromResult(data, DEFAULT_MASK_URLS))

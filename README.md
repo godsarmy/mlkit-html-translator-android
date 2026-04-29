@@ -62,6 +62,7 @@ If you prefer source integration, check out tag `0.6.0` and include this repo's 
 ```java
 HtmlTranslationOptions options = HtmlTranslationOptions.builder()
         .setMaxChunkChars(3000)
+        .setChunkTimeoutMs(20000)
         .setFailurePolicy(HtmlTranslationOptions.FailurePolicy.BEST_EFFORT)
         .setMaskUrls(true)
         .setMaskPlaceholders(true)
