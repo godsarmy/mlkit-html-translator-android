@@ -51,6 +51,10 @@
 	<string name="compare_line_numbers_disable">Hide line numbers</string>
 	<string name="compare_open_failed">Unable to open side-by-side view for this HTML.</string>
 	<string name="compare_load_failed">Unable to load side-by-side content.</string>
+	<string name="compare_loading_preparing">Loading view…</string>
+	<string name="compare_loading_raw">Loading view…</string>
+	<string name="compare_loading_switching">Loading view…</string>
+	<string name="compare_loading_normalizing">Loading view…</string>
 	<string name="compare_normalize_failed">Could not normalize this HTML. Showing original raw
 		view.</string>
 	<string name="compare_close_icon_content_description">Close side-by-side view</string>

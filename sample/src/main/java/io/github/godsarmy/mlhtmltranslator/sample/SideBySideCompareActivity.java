@@ -19,25 +19,27 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class SideBySideCompareActivity extends AppCompatActivity {
-    private static final String EXTRA_SOURCE_HTML_PATH = "extra_source_html_path";
-    private static final String EXTRA_TRANSLATED_HTML_PATH = "extra_translated_html_path";
     private static final long TOGGLE_AUTO_HIDE_DELAY_MS = 2400L;
     private static final long TOGGLE_FADE_DURATION_MS = 180L;
 
+    private enum CompareUiState {
+        LOADING,
+        READY
+    }
+
+    private View compareContent;
     private TextView sourceText;
     private TextView translatedText;
     private WebView sourceRenderedHtml;
     private WebView translatedRenderedHtml;
+    private View compareLoadingContainer;
+    private View compareLoadingProgressBar;
+    private TextView compareLoadingText;
     private ImageButton normalizeToggleButton;
     private ImageButton lineNumbersToggleButton;
     private ImageButton renderToggleButton;
@@ -60,12 +62,8 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private final ExecutorService loadExecutor = Executors.newSingleThreadExecutor();
     private final Runnable hideRenderToggleRunnable = this::hideRenderToggle;
 
-    public static Intent createIntent(
-            Context context, String sourceHtmlPath, String translatedHtmlPath) {
-        Intent intent = new Intent(context, SideBySideCompareActivity.class);
-        intent.putExtra(EXTRA_SOURCE_HTML_PATH, sourceHtmlPath);
-        intent.putExtra(EXTRA_TRANSLATED_HTML_PATH, translatedHtmlPath);
-        return intent;
+    public static Intent createIntent(Context context, String sourceHtml, String translatedHtml) {
+        return SideBySideTransferStore.createIntent(context, sourceHtml, translatedHtml);
     }
 
     @Override
@@ -78,10 +76,14 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         hideStatusBar();
 
         View compareRoot = findViewById(R.id.compareRoot);
+        compareContent = findViewById(R.id.compareContent);
         sourceText = findViewById(R.id.compareSourceText);
         translatedText = findViewById(R.id.compareTranslatedText);
         sourceRenderedHtml = findViewById(R.id.compareSourceRenderedHtml);
         translatedRenderedHtml = findViewById(R.id.compareTranslatedRenderedHtml);
+        compareLoadingContainer = findViewById(R.id.compareLoadingContainer);
+        compareLoadingProgressBar = findViewById(R.id.compareLoadingProgressBar);
+        compareLoadingText = findViewById(R.id.compareLoadingText);
         normalizeToggleButton = findViewById(R.id.compareNormalizeToggleButton);
         lineNumbersToggleButton = findViewById(R.id.compareLineNumbersToggleButton);
         renderToggleButton = findViewById(R.id.compareRenderToggleButton);
@@ -108,9 +110,13 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         sourceText.post(this::invalidateLineNumberGutters);
 
         Intent intent = getIntent();
-        String sourceHtmlPath = intent.getStringExtra(EXTRA_SOURCE_HTML_PATH);
-        String translatedHtmlPath = intent.getStringExtra(EXTRA_TRANSLATED_HTML_PATH);
-        compareRoot.post(() -> loadHtmlFromCacheAsync(sourceHtmlPath, translatedHtmlPath));
+        SideBySideTransferStore.TransferPayload payload =
+                SideBySideTransferStore.resolveFromIntent(this, intent);
+        rawSourceHtml = valueOrEmpty(payload.sourceHtml);
+        rawTranslatedHtml = valueOrEmpty(payload.translatedHtml);
+        SideBySideTransferStore.cleanupIfBackedByFile(this, intent);
+        applyUiState(CompareUiState.LOADING, getString(R.string.compare_loading_raw));
+        compareRoot.post(this::initializeContentAfterFirstFrame);
 
         sourceText.setOnScrollChangeListener(
                 (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
@@ -133,8 +139,38 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         lineNumbersToggleButton.setOnClickListener(v -> toggleLineNumbers());
         renderToggleButton.setOnClickListener(v -> toggleRenderMode());
         closeButton.setOnClickListener(v -> finish());
+    }
+
+    private static String valueOrEmpty(@Nullable String value) {
+        return value == null ? "" : value;
+    }
+
+    private void initializeContentAfterFirstFrame() {
+        if (isFinishing() || isDestroyed()) {
+            return;
+        }
+        rawHtmlLoaded = true;
+        normalizedSourceHtml = null;
+        normalizedTranslatedHtml = null;
+        normalizeInProgress = false;
         applyRenderMode();
+        applyUiState(CompareUiState.READY, null);
         showRenderToggleTemporarily();
+    }
+
+    private void applyUiState(CompareUiState state, @Nullable String loadingMessage) {
+        if (compareLoadingContainer == null || compareLoadingText == null) {
+            return;
+        }
+        boolean loading = state == CompareUiState.LOADING;
+        compareLoadingContainer.setVisibility(loading ? View.VISIBLE : View.GONE);
+        compareLoadingText.setText(
+                valueOrEmpty(loadingMessage).isEmpty()
+                        ? getString(R.string.compare_loading_preparing)
+                        : loadingMessage);
+        if (compareLoadingProgressBar != null) {
+            compareLoadingProgressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void setupWebView(WebView webView) {
@@ -175,11 +211,25 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             return;
         }
         normalizeModeEnabled = !normalizeModeEnabled;
+        applyUiState(
+                CompareUiState.LOADING,
+                normalizeModeEnabled
+                        ? getString(R.string.compare_loading_normalizing)
+                        : getString(R.string.compare_loading_switching));
         if (normalizeModeEnabled) {
             maybeStartNormalizeAsync();
+        } else {
+            View stateHost = compareContent != null ? compareContent : sourceText;
+            stateHost.post(
+                    () -> {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+                        updateRawTextMode();
+                        updateNormalizeToggleIcon();
+                        applyUiState(CompareUiState.READY, null);
+                    });
         }
-        updateRawTextMode();
-        updateNormalizeToggleIcon();
         showRenderToggleTemporarily();
     }
 
@@ -195,6 +245,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
 
     private void applyRenderMode() {
         if (renderModeEnabled) {
+            applyUiState(CompareUiState.LOADING, getString(R.string.compare_loading_preparing));
             sourceText.setVisibility(View.GONE);
             translatedText.setVisibility(View.GONE);
             sourceRenderedHtml.setVisibility(View.VISIBLE);
@@ -207,15 +258,28 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             translatedLineDivider.setVisibility(View.GONE);
             renderHtmlToWebView(sourceRenderedHtml, sourceText.getText().toString());
             renderHtmlToWebView(translatedRenderedHtml, translatedText.getText().toString());
+            View stateHost = compareContent != null ? compareContent : sourceText;
+            stateHost.post(() -> applyUiState(CompareUiState.READY, null));
         } else {
-            updateRawTextMode();
-            sourceText.setVisibility(View.VISIBLE);
-            translatedText.setVisibility(View.VISIBLE);
+            applyUiState(CompareUiState.LOADING, getString(R.string.compare_loading_switching));
+            sourceText.setVisibility(View.GONE);
+            translatedText.setVisibility(View.GONE);
             sourceRenderedHtml.setVisibility(View.GONE);
             translatedRenderedHtml.setVisibility(View.GONE);
-            lineNumbersToggleButton.setEnabled(rawHtmlLoaded);
-            lineNumbersToggleButton.setClickable(rawHtmlLoaded);
-            updateLineNumbersVisibility();
+            View stateHost = compareContent != null ? compareContent : sourceText;
+            stateHost.post(
+                    () -> {
+                        if (isFinishing() || isDestroyed()) {
+                            return;
+                        }
+                        updateRawTextMode();
+                        sourceText.setVisibility(View.VISIBLE);
+                        translatedText.setVisibility(View.VISIBLE);
+                        lineNumbersToggleButton.setEnabled(rawHtmlLoaded);
+                        lineNumbersToggleButton.setClickable(rawHtmlLoaded);
+                        updateLineNumbersVisibility();
+                        applyUiState(CompareUiState.READY, null);
+                    });
         }
         updateNormalizeToggleIcon();
         updateLineNumbersToggleIcon();
@@ -285,6 +349,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         }
         updateRawTextMode();
         updateNormalizeToggleIcon();
+        applyUiState(CompareUiState.READY, null);
     }
 
     private void updateNormalizeToggleIcon() {
@@ -470,63 +535,6 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private void renderHtmlToWebView(WebView webView, String htmlBody) {
         String safeBody = htmlBody == null ? "" : htmlBody;
         webView.loadDataWithBaseURL(null, wrapHtmlDocument(safeBody), "text/html", "utf-8", null);
-    }
-
-    private void loadHtmlFromCacheAsync(String sourcePath, String translatedPath) {
-        loadExecutor.execute(
-                () -> {
-                    try {
-                        String sourceHtml = readUtf8File(sourcePath);
-                        String translatedHtml = readUtf8File(translatedPath);
-                        runOnUiThread(() -> applyLoadedHtml(sourceHtml, translatedHtml));
-                    } catch (IOException exception) {
-                        runOnUiThread(this::handleHtmlLoadFailure);
-                    }
-                });
-    }
-
-    private void applyLoadedHtml(String sourceHtml, String translatedHtml) {
-        if (isFinishing() || isDestroyed()) {
-            return;
-        }
-        rawSourceHtml = sourceHtml;
-        rawTranslatedHtml = translatedHtml;
-        rawHtmlLoaded = true;
-        normalizedSourceHtml = null;
-        normalizedTranslatedHtml = null;
-        normalizeInProgress = false;
-        updateRawTextMode();
-        updateNormalizeToggleIcon();
-        updateLineNumbersToggleIcon();
-        updateLineNumbersVisibility();
-        if (renderModeEnabled) {
-            renderHtmlToWebView(sourceRenderedHtml, rawSourceHtml);
-            renderHtmlToWebView(translatedRenderedHtml, rawTranslatedHtml);
-        }
-    }
-
-    private void handleHtmlLoadFailure() {
-        if (isFinishing() || isDestroyed()) {
-            return;
-        }
-        Toast.makeText(this, R.string.compare_load_failed, Toast.LENGTH_SHORT).show();
-        finish();
-    }
-
-    private static String readUtf8File(String filePath) throws IOException {
-        if (filePath == null || filePath.isEmpty()) {
-            return "";
-        }
-        StringBuilder builder = new StringBuilder();
-        char[] buffer = new char[8192];
-        int readCount;
-        try (Reader reader =
-                new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8)) {
-            while ((readCount = reader.read(buffer)) != -1) {
-                builder.append(buffer, 0, readCount);
-            }
-        }
-        return builder.toString();
     }
 
     private String wrapHtmlDocument(String body) {
