@@ -217,7 +217,20 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                         ? getString(R.string.compare_loading_normalizing)
                         : getString(R.string.compare_loading_switching));
         if (normalizeModeEnabled) {
-            maybeStartNormalizeAsync();
+            if (normalizedSourceHtml != null && normalizedTranslatedHtml != null) {
+                View stateHost = compareContent != null ? compareContent : sourceText;
+                stateHost.post(
+                        () -> {
+                            if (isFinishing() || isDestroyed()) {
+                                return;
+                            }
+                            updateRawTextMode();
+                            updateNormalizeToggleIcon();
+                            applyUiState(CompareUiState.READY, null);
+                        });
+            } else {
+                maybeStartNormalizeAsync();
+            }
         } else {
             View stateHost = compareContent != null ? compareContent : sourceText;
             stateHost.post(
