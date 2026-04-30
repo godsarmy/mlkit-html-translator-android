@@ -244,7 +244,11 @@ public final class HtmlBodyTranslationEngine {
             for (Future<ChunkTranslationResult> future : futures) {
                 ChunkTranslationResult result;
                 try {
-                    result = future.get(options.getChunkTimeoutMs(), TimeUnit.MILLISECONDS);
+                    long chunkTimeoutMs = options.getChunkTimeoutMs();
+                    result =
+                            chunkTimeoutMs == 0L
+                                    ? future.get()
+                                    : future.get(chunkTimeoutMs, TimeUnit.MILLISECONDS);
                 } catch (TimeoutException timeoutException) {
                     throw new TranslationException(
                             TranslationErrorCode.TRANSLATION_FAILED,

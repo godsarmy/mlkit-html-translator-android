@@ -83,7 +83,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         maxChunkCharsInput.setText(
                 String.valueOf(getIntent().getIntExtra(EXTRA_MAX_CHUNK_CHARS, 3000)));
         chunkTimeoutMsInput.setText(
-                String.valueOf(getIntent().getLongExtra(EXTRA_CHUNK_TIMEOUT_MS, 20_000L)));
+                String.valueOf(getIntent().getLongExtra(EXTRA_CHUNK_TIMEOUT_MS, 0L)));
         maskUrlsCheck.setChecked(getIntent().getBooleanExtra(EXTRA_MASK_URLS, true));
         maskPlaceholdersCheck.setChecked(
                 getIntent().getBooleanExtra(EXTRA_MASK_PLACEHOLDERS, true));
@@ -152,12 +152,12 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
 
     private static long parseChunkTimeoutMs(String value) {
         if (value == null || value.trim().isEmpty()) {
-            return 20_000L;
+            return 0L;
         }
         try {
-            return Math.max(1L, Long.parseLong(value.trim()));
+            return Math.max(0L, Long.parseLong(value.trim()));
         } catch (NumberFormatException ignored) {
-            return 20_000L;
+            return 0L;
         }
     }
 
@@ -186,7 +186,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     public static long chunkTimeoutMsFromResult(@Nullable Intent data, long fallback) {
         return data == null
                 ? fallback
-                : Math.max(1L, data.getLongExtra(EXTRA_CHUNK_TIMEOUT_MS, fallback));
+                : Math.max(0L, data.getLongExtra(EXTRA_CHUNK_TIMEOUT_MS, fallback));
     }
 
     public static boolean maskUrlsFromResult(@Nullable Intent data, boolean fallback) {

@@ -12,7 +12,7 @@ public class HtmlTranslationOptionsTest {
         HtmlTranslationOptions options = HtmlTranslationOptions.builder().build();
 
         assertEquals(3000, options.getMaxChunkChars());
-        assertEquals(20_000L, options.getChunkTimeoutMs());
+        assertEquals(0L, options.getChunkTimeoutMs());
         assertEquals(HtmlTranslationOptions.FailurePolicy.BEST_EFFORT, options.getFailurePolicy());
         assertTrue(options.getProtectedTags().contains("code"));
         assertTrue(options.getProtectedTags().contains("pre"));
@@ -34,5 +34,13 @@ public class HtmlTranslationOptionsTest {
         assertEquals("@[@", options.getPlaceholderMarkerStart());
         assertEquals("@]@", options.getPlaceholderMarkerEnd());
         assertEquals(45_000L, options.getChunkTimeoutMs());
+    }
+
+    @Test
+    public void chunkTimeout_allowsZeroForNoTimeout() {
+        HtmlTranslationOptions options =
+                HtmlTranslationOptions.builder().setChunkTimeoutMs(0L).build();
+
+        assertEquals(0L, options.getChunkTimeoutMs());
     }
 }

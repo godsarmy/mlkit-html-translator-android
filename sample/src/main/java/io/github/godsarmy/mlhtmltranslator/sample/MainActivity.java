@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_FAILURE_POLICY = "failure_policy";
 
     private static final int DEFAULT_MAX_CHUNK_CHARS = 3000;
-    private static final long DEFAULT_CHUNK_TIMEOUT_MS = 20_000L;
+    private static final long DEFAULT_CHUNK_TIMEOUT_MS = 0L;
     private static final boolean DEFAULT_MASK_URLS = true;
     private static final boolean DEFAULT_MASK_PLACEHOLDERS = true;
     private static final boolean DEFAULT_MASK_PATHS = true;
@@ -697,7 +697,7 @@ public class MainActivity extends AppCompatActivity {
 
     private long readChunkTimeoutMs() {
         return Math.max(
-                1L, markerPreferences.getLong(KEY_CHUNK_TIMEOUT_MS, DEFAULT_CHUNK_TIMEOUT_MS));
+                0L, markerPreferences.getLong(KEY_CHUNK_TIMEOUT_MS, DEFAULT_CHUNK_TIMEOUT_MS));
     }
 
     private boolean readMaskUrls() {

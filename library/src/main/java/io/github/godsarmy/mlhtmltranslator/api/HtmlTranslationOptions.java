@@ -97,7 +97,7 @@ public final class HtmlTranslationOptions {
     public static final class Builder {
         private Set<String> protectedTags = new LinkedHashSet<>(DEFAULT_PROTECTED_TAGS);
         private int maxChunkChars = 3000;
-        private long chunkTimeoutMs = 20_000L;
+        private long chunkTimeoutMs = 0L;
         private FailurePolicy failurePolicy = FailurePolicy.BEST_EFFORT;
         private boolean maskUrls = true;
         private boolean maskPlaceholders = true;
@@ -122,7 +122,7 @@ public final class HtmlTranslationOptions {
 
         @NonNull
         public Builder setChunkTimeoutMs(long chunkTimeoutMs) {
-            this.chunkTimeoutMs = Math.max(1L, chunkTimeoutMs);
+            this.chunkTimeoutMs = Math.max(0L, chunkTimeoutMs);
             return this;
         }
 

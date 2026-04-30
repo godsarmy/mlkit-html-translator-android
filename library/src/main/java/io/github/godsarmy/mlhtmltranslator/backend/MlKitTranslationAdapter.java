@@ -46,6 +46,9 @@ public final class MlKitTranslationAdapter implements MlTranslationAdapter, Auto
 
         Translator translator = getTranslator(source, target);
         try {
+            if (timeoutMs == 0L) {
+                return Tasks.await(translator.translate(text));
+            }
             return Tasks.await(translator.translate(text), timeoutMs, TimeUnit.MILLISECONDS);
         } catch (InterruptedException interruptedException) {
             Thread.currentThread().interrupt();

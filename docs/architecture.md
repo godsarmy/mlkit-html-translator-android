@@ -69,7 +69,7 @@ After translation, placeholders are restored exactly.
 `HtmlBodyTranslationEngine.translateChunks(...)` runs chunk tasks with bounded parallelism and timeout.
 
 - default max in-flight chunks: `2`
-- default per-chunk timeout: `20_000ms` (configurable via `HtmlTranslationOptions.setChunkTimeoutMs(...)`)
+- default per-chunk timeout: `0` (no timeout; configurable via `HtmlTranslationOptions.setChunkTimeoutMs(...)`)
 - cancellation checked before/after key stages
 
 Failure behavior depends on `FailurePolicy`:
