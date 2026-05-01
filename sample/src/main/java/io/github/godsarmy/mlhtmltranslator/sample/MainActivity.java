@@ -71,6 +71,16 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String STATE_SELECTED_SOURCE_POSITION = "state_selected_source_position";
+    private static final String STATE_RENDER_MODE = "state_render_mode";
+    private static final String STATE_SOURCE_LANGUAGE = "state_source_language";
+    private static final String STATE_TARGET_LANGUAGE = "state_target_language";
+    private static final String STATE_SELECTED_FILE_URI = "state_selected_file_uri";
+    private static final String STATE_SELECTED_FILE_NAME = "state_selected_file_name";
+    private static final String STATE_INPUT_HTML = "state_input_html";
+    private static final String STATE_OUTPUT_HTML = "state_output_html";
+    private static final String STATE_SOURCE_INPUT_TEXT = "state_source_input_text";
+
     private enum SourceEntryType {
         SAMPLE,
         LOAD_FILE,
@@ -111,6 +121,9 @@ public class MainActivity extends AppCompatActivity {
     private KeyListener sampleAssetInputKeyListener;
     private ActivityResultLauncher<String[]> htmlFilePickerLauncher;
     private String selectedFileName;
+    private Uri selectedFileUri;
+    private String pendingPreferredSourceLanguage;
+    private String pendingPreferredTargetLanguage;
 
     private static final String PREFS_NAME = "marker_config";
     private static final String KEY_MARKER_START = "marker_start";
@@ -154,6 +167,16 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
+        }
+
+        if (savedInstanceState != null) {
+            pendingPreferredSourceLanguage = savedInstanceState.getString(STATE_SOURCE_LANGUAGE);
+            pendingPreferredTargetLanguage = savedInstanceState.getString(STATE_TARGET_LANGUAGE);
+            selectedFileName = savedInstanceState.getString(STATE_SELECTED_FILE_NAME);
+            String selectedFileUriValue = savedInstanceState.getString(STATE_SELECTED_FILE_URI);
+            if (selectedFileUriValue != null && !selectedFileUriValue.isBlank()) {
+                selectedFileUri = Uri.parse(selectedFileUriValue);
+            }
         }
 
         sourceSpinner = findViewById(R.id.sourceLanguageSpinner);
@@ -325,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         sampleAssetInputKeyListener = sampleAssetInput.getKeyListener();
-        loadSelectedSample(0);
+        initializeState(savedInstanceState);
         updateSourceInputState();
         translationResultText.setText("");
         translationResultText.setVisibility(View.INVISIBLE);
@@ -334,6 +357,51 @@ public class MainActivity extends AppCompatActivity {
         updateShareButtonState();
         refreshDownloadedModels();
         updateExplainButtonState();
+    }
+
+    private void initializeState(Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            selectedSourcePosition = 0;
+            renderModeToggle.setChecked(false);
+            loadSelectedSample(0);
+            outputHtmlText.setText("");
+            return;
+        }
+
+        int restoredSourcePosition =
+                savedInstanceState.getInt(STATE_SELECTED_SOURCE_POSITION, selectedSourcePosition);
+        selectedSourcePosition =
+                Math.max(0, Math.min(restoredSourcePosition, sourceEntries.size() - 1));
+
+        boolean restoredRenderMode =
+                savedInstanceState.getBoolean(STATE_RENDER_MODE, renderModeToggle.isChecked());
+        renderModeToggle.setChecked(restoredRenderMode);
+
+        String restoredInputHtml = savedInstanceState.getString(STATE_INPUT_HTML);
+        String restoredOutputHtml = savedInstanceState.getString(STATE_OUTPUT_HTML);
+        String restoredSourceInputText = savedInstanceState.getString(STATE_SOURCE_INPUT_TEXT);
+
+        SourceSelectorEntry entry = sourceEntryAt(selectedSourcePosition);
+        if (entry.type == SourceEntryType.SAMPLE
+                && entry.sampleIndex >= 0
+                && restoredInputHtml == null) {
+            loadSelectedSample(entry.sampleIndex);
+            return;
+        }
+
+        if (restoredInputHtml != null) {
+            inputHtmlText.setText(restoredInputHtml);
+        }
+        if (restoredOutputHtml != null) {
+            outputHtmlText.setText(restoredOutputHtml);
+        }
+
+        if (isLoadUrlSelected()) {
+            sampleAssetInput.setText(
+                    restoredSourceInputText == null ? "" : restoredSourceInputText, false);
+        } else {
+            sampleAssetInput.setText(sourceSelectorDisplayLabel(isLoadFileSelected()), false);
+        }
     }
 
     private void updateShareButtonState() {
@@ -848,11 +916,13 @@ public class MainActivity extends AppCompatActivity {
                     SourceSelectorEntry entry = sourceEntryAt(position);
                     if (entry.type == SourceEntryType.SAMPLE && entry.sampleIndex >= 0) {
                         selectedFileName = null;
+                        selectedFileUri = null;
                         loadSelectedSample(entry.sampleIndex);
                     } else if (entry.type == SourceEntryType.LOAD_FILE) {
                         launchHtmlFilePicker();
                     } else if (entry.type == SourceEntryType.LOAD_URL) {
                         selectedFileName = null;
+                        selectedFileUri = null;
                         sampleAssetInput.setText("", false);
                     }
                     updateSourceInputState();
@@ -881,8 +951,11 @@ public class MainActivity extends AppCompatActivity {
         }
         SourceSelectorEntry entry = sourceEntries.get(sampleIndex);
         selectedSourcePosition = sampleIndex;
+        selectedFileName = null;
+        selectedFileUri = null;
         sampleAssetInput.setText(entry.label, false);
         inputHtmlText.setText(loadAssetHtml(entry.label));
+        outputHtmlText.setText("");
         refreshRenderedPreviewIfNeeded();
         updateExplainButtonState();
     }
@@ -1029,6 +1102,7 @@ public class MainActivity extends AppCompatActivity {
                                                 displayName == null || displayName.trim().isEmpty()
                                                         ? getString(R.string.source_mode_file)
                                                         : displayName;
+                                        selectedFileUri = fileUri;
                                         updateSourceInputState();
                                         inputHtmlText.setText(loadedContent);
                                         refreshRenderedPreviewIfNeeded();
@@ -1112,6 +1186,8 @@ public class MainActivity extends AppCompatActivity {
                                     () -> {
                                         setSourceLoading(false);
                                         restoreProgressStateAfterSourceLoad();
+                                        selectedFileName = null;
+                                        selectedFileUri = null;
                                         inputHtmlText.setText(loadedContent);
                                         refreshRenderedPreviewIfNeeded();
                                         updateExplainButtonState();
@@ -1323,8 +1399,19 @@ public class MainActivity extends AppCompatActivity {
             targetAdapter.notifyDataSetChanged();
         }
 
-        restoreSpinnerSelection(sourceSpinner, previousSource);
-        restoreSpinnerSelection(targetSpinner, previousTarget);
+        String preferredSource =
+                pendingPreferredSourceLanguage != null && !pendingPreferredSourceLanguage.isBlank()
+                        ? pendingPreferredSourceLanguage
+                        : previousSource;
+        String preferredTarget =
+                pendingPreferredTargetLanguage != null && !pendingPreferredTargetLanguage.isBlank()
+                        ? pendingPreferredTargetLanguage
+                        : previousTarget;
+
+        restoreSpinnerSelection(sourceSpinner, preferredSource);
+        restoreSpinnerSelection(targetSpinner, preferredTarget);
+        pendingPreferredSourceLanguage = null;
+        pendingPreferredTargetLanguage = null;
     }
 
     private static void restoreSpinnerSelection(Spinner spinner, String preferredLanguage) {
@@ -1507,6 +1594,44 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             return "<p>Failed to load sample asset: " + fileName + "</p>";
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(STATE_SELECTED_SOURCE_POSITION, selectedSourcePosition);
+        outState.putBoolean(
+                STATE_RENDER_MODE, renderModeToggle != null && renderModeToggle.isChecked());
+        outState.putString(
+                STATE_SOURCE_LANGUAGE,
+                sourceSpinner != null && sourceSpinner.getSelectedItem() != null
+                        ? sourceSpinner.getSelectedItem().toString()
+                        : "");
+        outState.putString(
+                STATE_TARGET_LANGUAGE,
+                targetSpinner != null && targetSpinner.getSelectedItem() != null
+                        ? targetSpinner.getSelectedItem().toString()
+                        : "");
+        outState.putString(
+                STATE_SELECTED_FILE_URI,
+                selectedFileUri == null ? null : selectedFileUri.toString());
+        outState.putString(STATE_SELECTED_FILE_NAME, selectedFileName);
+        outState.putString(
+                STATE_INPUT_HTML, inputHtmlText == null ? "" : inputHtmlText.getText().toString());
+        outState.putString(
+                STATE_OUTPUT_HTML,
+                outputHtmlText == null ? "" : outputHtmlText.getText().toString());
+        outState.putString(
+                STATE_SOURCE_INPUT_TEXT,
+                sampleAssetInput == null ? "" : sampleAssetInput.getText().toString());
+    }
+
+    @Override
+    protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        applyRenderMode(renderModeToggle != null && renderModeToggle.isChecked());
+        updateShareButtonState();
+        updateExplainButtonState();
     }
 
     @Override
