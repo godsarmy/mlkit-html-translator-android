@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.TooltipCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
@@ -43,6 +44,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private ImageButton normalizeToggleButton;
     private ImageButton lineNumbersToggleButton;
     private ImageButton renderToggleButton;
+    private ImageButton scrollSyncToggleButton;
     private ImageButton closeButton;
     private LineNumberGutterView sourceLineNumbers;
     private LineNumberGutterView translatedLineNumbers;
@@ -52,6 +54,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     private boolean renderModeEnabled;
     private boolean normalizeModeEnabled;
     private boolean lineNumbersEnabled;
+    private boolean scrollSyncEnabled = true;
     private boolean rawHtmlLoaded;
     private boolean normalizeInProgress;
     private boolean isRenderToggleVisible;
@@ -87,6 +90,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         normalizeToggleButton = findViewById(R.id.compareNormalizeToggleButton);
         lineNumbersToggleButton = findViewById(R.id.compareLineNumbersToggleButton);
         renderToggleButton = findViewById(R.id.compareRenderToggleButton);
+        scrollSyncToggleButton = findViewById(R.id.compareScrollSyncToggleButton);
         closeButton = findViewById(R.id.compareCloseButton);
         sourceLineNumbers = findViewById(R.id.compareSourceLineNumbers);
         translatedLineNumbers = findViewById(R.id.compareTranslatedLineNumbers);
@@ -138,6 +142,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         normalizeToggleButton.setOnClickListener(v -> toggleNormalizeMode());
         lineNumbersToggleButton.setOnClickListener(v -> toggleLineNumbers());
         renderToggleButton.setOnClickListener(v -> toggleRenderMode());
+        scrollSyncToggleButton.setOnClickListener(v -> toggleScrollSync());
         closeButton.setOnClickListener(v -> finish());
     }
 
@@ -297,6 +302,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         updateNormalizeToggleIcon();
         updateLineNumbersToggleIcon();
         updateRenderToggleIcon();
+        updateScrollSyncToggleIcon();
     }
 
     private void updateRawTextMode() {
@@ -437,6 +443,32 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         invalidateLineNumberGutters();
     }
 
+    private void toggleScrollSync() {
+        scrollSyncEnabled = !scrollSyncEnabled;
+        updateScrollSyncToggleIcon();
+        showRenderToggleTemporarily();
+    }
+
+    private void updateScrollSyncToggleIcon() {
+        if (scrollSyncToggleButton == null) {
+            return;
+        }
+        scrollSyncToggleButton.setImageResource(R.drawable.ic_scroll_sync);
+        int tintColor =
+                scrollSyncEnabled
+                        ? getColor(R.color.mlkit_primary)
+                        : getColor(R.color.mlkit_on_surface_variant);
+        scrollSyncToggleButton.setImageTintList(ColorStateList.valueOf(tintColor));
+        scrollSyncToggleButton.setAlpha(scrollSyncEnabled ? 1f : 0.45f);
+        int contentDescriptionRes =
+                scrollSyncEnabled
+                        ? R.string.compare_scroll_sync_disable
+                        : R.string.compare_scroll_sync_enable;
+        String description = getString(contentDescriptionRes);
+        scrollSyncToggleButton.setContentDescription(description);
+        TooltipCompat.setTooltipText(scrollSyncToggleButton, description);
+    }
+
     private void invalidateLineNumberGutters() {
         if (sourceLineNumbers != null && sourceLineNumbers.getVisibility() == View.VISIBLE) {
             sourceLineNumbers.invalidate();
@@ -451,6 +483,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         if (normalizeToggleButton == null
                 || lineNumbersToggleButton == null
                 || renderToggleButton == null
+                || scrollSyncToggleButton == null
                 || closeButton == null) {
             return;
         }
@@ -463,15 +496,19 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
             lineNumbersToggleButton.setClickable(lineNumbersToggleButton.isEnabled());
             renderToggleButton.setVisibility(View.VISIBLE);
             renderToggleButton.setClickable(true);
+            scrollSyncToggleButton.setVisibility(View.VISIBLE);
+            scrollSyncToggleButton.setClickable(true);
             closeButton.setVisibility(View.VISIBLE);
             closeButton.setClickable(true);
             normalizeToggleButton.animate().cancel();
             lineNumbersToggleButton.animate().cancel();
             renderToggleButton.animate().cancel();
+            scrollSyncToggleButton.animate().cancel();
             closeButton.animate().cancel();
             normalizeToggleButton.setAlpha(0f);
             lineNumbersToggleButton.setAlpha(0f);
             renderToggleButton.setAlpha(0f);
+            scrollSyncToggleButton.setAlpha(0f);
             closeButton.setAlpha(0f);
             normalizeToggleButton
                     .animate()
@@ -484,6 +521,11 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                     .setDuration(TOGGLE_FADE_DURATION_MS)
                     .start();
             renderToggleButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
+            scrollSyncToggleButton
+                    .animate()
+                    .alpha(scrollSyncEnabled ? 1f : 0.45f)
+                    .setDuration(TOGGLE_FADE_DURATION_MS)
+                    .start();
             closeButton.animate().alpha(1f).setDuration(TOGGLE_FADE_DURATION_MS).start();
         }
         renderToggleButton.postDelayed(hideRenderToggleRunnable, TOGGLE_AUTO_HIDE_DELAY_MS);
@@ -493,6 +535,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         if (normalizeToggleButton == null
                 || lineNumbersToggleButton == null
                 || renderToggleButton == null
+                || scrollSyncToggleButton == null
                 || closeButton == null
                 || !isRenderToggleVisible) {
             return;
@@ -501,6 +544,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
         normalizeToggleButton.animate().cancel();
         lineNumbersToggleButton.animate().cancel();
         renderToggleButton.animate().cancel();
+        scrollSyncToggleButton.animate().cancel();
         closeButton.animate().cancel();
         normalizeToggleButton
                 .animate()
@@ -531,6 +575,16 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
                             renderToggleButton.setVisibility(View.INVISIBLE);
                             renderToggleButton.setClickable(false);
                             isRenderToggleVisible = false;
+                        })
+                .start();
+        scrollSyncToggleButton
+                .animate()
+                .alpha(0f)
+                .setDuration(TOGGLE_FADE_DURATION_MS)
+                .withEndAction(
+                        () -> {
+                            scrollSyncToggleButton.setVisibility(View.INVISIBLE);
+                            scrollSyncToggleButton.setClickable(false);
                         })
                 .start();
         closeButton
@@ -623,7 +677,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void syncScroll(View source, View target, int sourceScrollX, int sourceScrollY) {
-        if (syncingScroll) {
+        if (!scrollSyncEnabled || syncingScroll) {
             return;
         }
         int targetMaxScrollX = calculateMaxHorizontalScroll(target);

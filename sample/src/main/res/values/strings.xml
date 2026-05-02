@@ -49,6 +49,8 @@
 	<string name="compare_normalize_disable">Show original raw HTML lines</string>
 	<string name="compare_line_numbers_enable">Show line numbers</string>
 	<string name="compare_line_numbers_disable">Hide line numbers</string>
+	<string name="compare_scroll_sync_enable">Enable scroll sync</string>
+	<string name="compare_scroll_sync_disable">Disable scroll sync</string>
 	<string name="compare_open_failed">Unable to open side-by-side view for this HTML.</string>
 	<string name="compare_load_failed">Unable to load side-by-side content.</string>
 	<string name="compare_loading_preparing">Loading view…</string>
