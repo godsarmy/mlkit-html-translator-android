@@ -397,10 +397,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private void updateRenderToggleIcon() {
-        renderToggleButton.setImageResource(
-                renderModeEnabled
-                        ? R.drawable.ic_render_preview_on
-                        : R.drawable.ic_render_preview_off);
+        renderToggleButton.setImageResource(R.drawable.ic_render_preview_on);
         int tintColor =
                 renderModeEnabled
                         ? getColor(R.color.mlkit_primary)
