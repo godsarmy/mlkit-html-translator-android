@@ -9,7 +9,7 @@
   - `TranslationCallback`
   - `TranslationException`
   - `TranslationErrorCode`
-  - `TranslationTimingListener` / `TranslationTimingReport`
+  - `TranslationMetricsListener` / `TranslationMetricsReport`
   - `ExplainHtmlResult` / `ExplainHtmlNode` / `ExplainHtmlChunk`
 
 ## Main entry point
@@ -31,7 +31,7 @@ Current options:
 - chunk timeout in milliseconds (default `0`, which disables timeout)
 - failure policy (`FAIL_FAST`, `BEST_EFFORT`)
 - token masking flags (URLs/placeholders/paths)
-- optional timing listener
+- optional metrics listener
 
 ## Callback contract
 
@@ -67,9 +67,9 @@ Current options:
 - `CANCELLED`
 - `INTERNAL_ERROR`
 
-## Timing report
+## Metrics report
 
-When timing is enabled via `TranslationTimingListener`, `TranslationTimingReport` provides:
+When metrics are enabled via `TranslationMetricsListener`, `TranslationMetricsReport` provides:
 
 - `startedAtEpochMs`
 - `completedAtEpochMs`

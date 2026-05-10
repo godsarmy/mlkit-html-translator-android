@@ -9,7 +9,7 @@ import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlResult;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
-import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingReport;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationMetricsReport;
 import io.github.godsarmy.mlhtmltranslator.backend.IdentityTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlKitTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
@@ -87,18 +87,18 @@ public final class MlKitHtmlTranslator implements AutoCloseable {
             String translatedHtml = pipelineResult.getTranslatedHtml();
             callback.onSuccess(translatedHtml);
 
-            if (options.getTimingListener() != null) {
+            if (options.getMetricsListener() != null) {
                 HtmlBodyTranslationEngine.Diagnostics diagnostics = pipelineResult.getDiagnostics();
-                options.getTimingListener()
-                        .onTimingReady(
-                                new TranslationTimingReport(
-                                        startedAt,
-                                        System.currentTimeMillis(),
-                                        diagnostics.getChunkCount(),
-                                        diagnostics.getTotalNodes(),
-                                        diagnostics.getTranslatedNodes(),
-                                        diagnostics.getFailedNodes(),
-                                        diagnostics.getRetryCount()));
+                TranslationMetricsReport metricsReport =
+                        new TranslationMetricsReport(
+                                startedAt,
+                                System.currentTimeMillis(),
+                                diagnostics.getChunkCount(),
+                                diagnostics.getTotalNodes(),
+                                diagnostics.getTranslatedNodes(),
+                                diagnostics.getFailedNodes(),
+                                diagnostics.getRetryCount());
+                options.getMetricsListener().onMetricsReady(metricsReport);
             }
         } catch (TranslationException translationException) {
             callback.onFailure(translationException);

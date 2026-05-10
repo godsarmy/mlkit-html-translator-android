@@ -122,7 +122,7 @@ This project intentionally aligns with markdown-translator ergonomics and bounda
 - callback-based `translate*` entrypoint
 - typed exception + error code enum
 - explicit `close()` lifecycle hook
-- optional timing listener/report
+- optional metrics listener/report
 
 ### Architecture parity
 

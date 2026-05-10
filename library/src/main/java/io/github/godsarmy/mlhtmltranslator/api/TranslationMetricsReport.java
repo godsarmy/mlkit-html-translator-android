@@ -1,6 +1,6 @@
 package io.github.godsarmy.mlhtmltranslator.api;
 
-public final class TranslationTimingReport {
+public final class TranslationMetricsReport {
 
     private final long startedAtEpochMs;
     private final long completedAtEpochMs;
@@ -10,11 +10,12 @@ public final class TranslationTimingReport {
     private final int failedNodes;
     private final int retryCount;
 
-    public TranslationTimingReport(long startedAtEpochMs, long completedAtEpochMs, int chunkCount) {
+    public TranslationMetricsReport(
+            long startedAtEpochMs, long completedAtEpochMs, int chunkCount) {
         this(startedAtEpochMs, completedAtEpochMs, chunkCount, 0, 0, 0, 0);
     }
 
-    public TranslationTimingReport(
+    public TranslationMetricsReport(
             long startedAtEpochMs,
             long completedAtEpochMs,
             int chunkCount,

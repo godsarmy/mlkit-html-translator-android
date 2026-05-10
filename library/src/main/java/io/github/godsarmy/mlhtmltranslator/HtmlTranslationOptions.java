@@ -2,7 +2,7 @@ package io.github.godsarmy.mlhtmltranslator;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingListener;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationMetricsListener;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -29,7 +29,7 @@ public final class HtmlTranslationOptions {
     private final boolean maskPaths;
     private final String placeholderMarkerStart;
     private final String placeholderMarkerEnd;
-    private final TranslationTimingListener timingListener;
+    private final TranslationMetricsListener metricsListener;
 
     private HtmlTranslationOptions(Builder builder) {
         this.protectedTags =
@@ -42,7 +42,7 @@ public final class HtmlTranslationOptions {
         this.maskPaths = builder.maskPaths;
         this.placeholderMarkerStart = builder.placeholderMarkerStart;
         this.placeholderMarkerEnd = builder.placeholderMarkerEnd;
-        this.timingListener = builder.timingListener;
+        this.metricsListener = builder.metricsListener;
     }
 
     @NonNull
@@ -91,8 +91,8 @@ public final class HtmlTranslationOptions {
     }
 
     @Nullable
-    public TranslationTimingListener getTimingListener() {
-        return timingListener;
+    public TranslationMetricsListener getMetricsListener() {
+        return metricsListener;
     }
 
     public static final class Builder {
@@ -105,7 +105,7 @@ public final class HtmlTranslationOptions {
         private boolean maskPaths = true;
         private String placeholderMarkerStart = "[{[";
         private String placeholderMarkerEnd = "]}]";
-        private TranslationTimingListener timingListener;
+        private TranslationMetricsListener metricsListener;
 
         private Builder() {}
 
@@ -170,8 +170,8 @@ public final class HtmlTranslationOptions {
         }
 
         @NonNull
-        public Builder setTimingListener(@Nullable TranslationTimingListener timingListener) {
-            this.timingListener = timingListener;
+        public Builder setMetricsListener(@Nullable TranslationMetricsListener metricsListener) {
+            this.metricsListener = metricsListener;
             return this;
         }
 

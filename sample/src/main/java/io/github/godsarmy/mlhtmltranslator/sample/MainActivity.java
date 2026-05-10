@@ -53,8 +53,8 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.mlkit.nl.translate.TranslateLanguage;
 import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.MlKitHtmlTranslator;
-import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingListener;
-import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingReport;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationMetricsListener;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationMetricsReport;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -110,8 +110,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView translationResultText;
     private boolean isTranslating;
     private int currentRequestCharCount;
-    private TranslationTimingReport latestTimingReport;
-    private TranslationTimingListener timingListener;
+    private TranslationMetricsReport latestTimingReport;
+    private TranslationMetricsListener timingListener;
     private TranslationRepository translationRepository;
     private SharedPreferences markerPreferences;
     private boolean isSourceLoading;
@@ -616,7 +616,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showSuccessStatus() {
-        TranslationTimingReport report = latestTimingReport;
+        TranslationMetricsReport report = latestTimingReport;
         long durationMs = report != null ? report.getDurationMs() : 0L;
         int chunkCount = report != null ? report.getChunkCount() : 0;
         int translatedNodes = report != null ? report.getTranslatedNodes() : 0;
@@ -722,7 +722,7 @@ public class MainActivity extends AppCompatActivity {
 
         HtmlTranslationOptions options =
                 HtmlTranslationOptions.builder()
-                        .setTimingListener(timingListener)
+                        .setMetricsListener(timingListener)
                         .setMaxChunkChars(readMaxChunkChars())
                         .setChunkTimeoutMs(readChunkTimeoutMs())
                         .setMaskUrls(readMaskUrls())

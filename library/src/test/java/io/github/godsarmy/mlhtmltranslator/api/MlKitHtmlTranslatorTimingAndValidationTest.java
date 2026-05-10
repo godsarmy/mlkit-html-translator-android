@@ -9,7 +9,7 @@ import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlResult;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
-import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingReport;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationMetricsReport;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,9 +39,9 @@ public class MlKitHtmlTranslatorTimingAndValidationTest {
                     return text.replace("Hello", "Hola");
                 };
 
-        List<TranslationTimingReport> reports = new ArrayList<>();
+        List<TranslationMetricsReport> reports = new ArrayList<>();
         HtmlTranslationOptions options =
-                HtmlTranslationOptions.builder().setTimingListener(reports::add).build();
+                HtmlTranslationOptions.builder().setMetricsListener(reports::add).build();
         MlKitHtmlTranslator translator = new MlKitHtmlTranslator(options, adapter);
 
         CapturingCallback callback = new CapturingCallback();
@@ -63,9 +63,9 @@ public class MlKitHtmlTranslatorTimingAndValidationTest {
                     return text.replace("Hello", "Hola");
                 };
 
-        List<TranslationTimingReport> reports = new ArrayList<>();
+        List<TranslationMetricsReport> reports = new ArrayList<>();
         HtmlTranslationOptions options =
-                HtmlTranslationOptions.builder().setTimingListener(reports::add).build();
+                HtmlTranslationOptions.builder().setMetricsListener(reports::add).build();
         MlKitHtmlTranslator translator = new MlKitHtmlTranslator(options, adapter);
 
         translator.translateHtml("<p>Hello world</p>", "en", "es", new CapturingCallback());
