@@ -110,8 +110,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView translationResultText;
     private boolean isTranslating;
     private int currentRequestCharCount;
-    private TranslationMetricsReport latestTimingReport;
-    private TranslationMetricsListener timingListener;
+    private TranslationMetricsReport latestMetricsReport;
+    private TranslationMetricsListener metricsListener;
     private TranslationRepository translationRepository;
     private SharedPreferences markerPreferences;
     private boolean isSourceLoading;
@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
 
         setupLanguageSpinners();
 
-        timingListener = report -> latestTimingReport = report;
+        metricsListener = report -> latestMetricsReport = report;
 
         MlKitHtmlTranslator translator = buildTranslator();
         translationRepository = new TranslationRepository(translator);
@@ -606,7 +606,7 @@ public class MainActivity extends AppCompatActivity {
         translationRepository.setTranslator(buildTranslator());
 
         currentRequestCharCount = htmlBody.length();
-        latestTimingReport = null;
+        latestMetricsReport = null;
         isTranslating = true;
         showStatusProgress(R.string.status_translating);
         translateButton.setEnabled(false);
@@ -616,7 +616,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showSuccessStatus() {
-        TranslationMetricsReport report = latestTimingReport;
+        TranslationMetricsReport report = latestMetricsReport;
         long durationMs = report != null ? report.getDurationMs() : 0L;
         int chunkCount = report != null ? report.getChunkCount() : 0;
         int translatedNodes = report != null ? report.getTranslatedNodes() : 0;
@@ -722,7 +722,7 @@ public class MainActivity extends AppCompatActivity {
 
         HtmlTranslationOptions options =
                 HtmlTranslationOptions.builder()
-                        .setMetricsListener(timingListener)
+                        .setMetricsListener(metricsListener)
                         .setMaxChunkChars(readMaxChunkChars())
                         .setChunkTimeoutMs(readChunkTimeoutMs())
                         .setMaskUrls(readMaskUrls())
