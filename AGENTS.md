@@ -40,6 +40,7 @@ Use this flow when publishing a new library version.
 1. **Bump version references**
    - Update all user-facing version strings (for example `README.md` dependency snippet and any sample app `versionName`).
    - Keep versioning consistent across docs and build metadata.
+   - there is no 'v' before version
 
 2. **Verify locally**
    - Run a scoped build before release:
