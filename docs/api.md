@@ -1,5 +1,17 @@
 # API Reference — mlkit-html-translator-android
 
+## Package layout
+
+- Root package (`io.github.godsarmy.mlhtmltranslator`):
+  - `MlKitHtmlTranslator`
+  - `HtmlTranslationOptions`
+- API models/callbacks (`io.github.godsarmy.mlhtmltranslator.api`):
+  - `TranslationCallback`
+  - `TranslationException`
+  - `TranslationErrorCode`
+  - `TranslationTimingListener` / `TranslationTimingReport`
+  - `ExplainHtmlResult` / `ExplainHtmlNode` / `ExplainHtmlChunk`
+
 ## Main entry point
 
 - `MlKitHtmlTranslator()`

@@ -18,8 +18,10 @@ High-level flow:
 
 ## Package map
 
+- `io.github.godsarmy.mlhtmltranslator` (root)
+  - Public entry points: `MlKitHtmlTranslator`, `HtmlTranslationOptions`
 - `api/`
-  - Public surface: `MlKitHtmlTranslator`, options, callback, error/timing models
+  - Public models/contracts: callback, error/timing, explain result types
 - `core/`
   - DOM traversal, eligibility, orchestration, retries/fallbacks
 - `batch/`

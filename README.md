@@ -60,6 +60,11 @@ If you prefer source integration, check out tag `0.6.8` and include this repo's 
 ### 1) Create translator
 
 ```java
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
+import io.github.godsarmy.mlhtmltranslator.MlKitHtmlTranslator;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
+
 HtmlTranslationOptions options = HtmlTranslationOptions.builder()
         .setMaxChunkChars(3000)
         .setChunkTimeoutMs(0)
