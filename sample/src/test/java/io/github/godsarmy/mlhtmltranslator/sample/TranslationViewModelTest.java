@@ -3,7 +3,7 @@ package io.github.godsarmy.mlhtmltranslator.sample;
 import static org.junit.Assert.assertEquals;
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
-import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
+import io.github.godsarmy.mlhtmltranslator.MlKitHtmlTranslator;
 import org.junit.Rule;
 import org.junit.Test;
 

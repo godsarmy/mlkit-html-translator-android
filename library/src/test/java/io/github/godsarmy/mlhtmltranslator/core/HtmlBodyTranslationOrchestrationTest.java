@@ -2,7 +2,7 @@ package io.github.godsarmy.mlhtmltranslator.core;
 
 import static org.junit.Assert.assertTrue;
 
-import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;

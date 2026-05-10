@@ -1,8 +1,15 @@
-package io.github.godsarmy.mlhtmltranslator.api;
+package io.github.godsarmy.mlhtmltranslator;
 
 import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlChunk;
+import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlNode;
+import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlResult;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationTimingReport;
 import io.github.godsarmy.mlhtmltranslator.backend.IdentityTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlKitTranslationAdapter;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;

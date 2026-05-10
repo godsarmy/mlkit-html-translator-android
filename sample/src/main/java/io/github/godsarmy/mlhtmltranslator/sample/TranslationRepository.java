@@ -1,6 +1,6 @@
 package io.github.godsarmy.mlhtmltranslator.sample;
 
-import io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator;
+import io.github.godsarmy.mlhtmltranslator.MlKitHtmlTranslator;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
 
 public final class TranslationRepository implements AutoCloseable {

@@ -1,7 +1,7 @@
 package io.github.godsarmy.mlhtmltranslator.core;
 
 import androidx.annotation.NonNull;
-import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import java.util.ArrayList;
 import java.util.List;
 import org.jsoup.nodes.Node;

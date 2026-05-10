@@ -83,7 +83,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
     private void setupViewModel() {
         TranslationRepository translationRepository =
                 new TranslationRepository(
-                        new io.github.godsarmy.mlhtmltranslator.api.MlKitHtmlTranslator(
+                        new io.github.godsarmy.mlhtmltranslator.MlKitHtmlTranslator(
                                 getApplicationContext(), null));
         viewModel = new TranslationViewModel(translationRepository, new ModelLifecycleManager());
     }

@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jsoup.Jsoup;

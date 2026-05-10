@@ -3,6 +3,7 @@ package io.github.godsarmy.mlhtmltranslator.api;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import org.junit.Test;
 
 public class HtmlTranslationOptionsTest {

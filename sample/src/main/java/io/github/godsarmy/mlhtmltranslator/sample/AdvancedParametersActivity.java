@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
-import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 
 public final class AdvancedParametersActivity extends AppCompatActivity {
     private static final String EXTRA_MARKER_START = "extra_marker_start";

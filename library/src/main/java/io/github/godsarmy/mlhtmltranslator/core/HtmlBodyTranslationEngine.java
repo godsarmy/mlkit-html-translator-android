@@ -1,7 +1,7 @@
 package io.github.godsarmy.mlhtmltranslator.core;
 
 import androidx.annotation.NonNull;
-import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;

@@ -3,7 +3,7 @@ package io.github.godsarmy.mlhtmltranslator.core;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import io.github.godsarmy.mlhtmltranslator.api.HtmlTranslationOptions;
+import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
 import java.util.LinkedHashSet;
 import java.util.Locale;

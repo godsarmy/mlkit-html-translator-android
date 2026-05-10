@@ -1,8 +1,11 @@
-package io.github.godsarmy.mlhtmltranslator.api;
+package io.github.godsarmy.mlhtmltranslator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
+import io.github.godsarmy.mlhtmltranslator.api.TranslationException;
 import io.github.godsarmy.mlhtmltranslator.backend.MlTranslationAdapter;
 import org.junit.Test;
 
