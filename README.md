@@ -8,7 +8,7 @@ Android library for translating **HTML body content** with an ML-backed pipeline
 
 ## Release
 
-- Current release: **0.7.1**
+- Current release: **0.7.2**
 - Stable surface for first public integration:
   - `MlKitHtmlTranslator`
   - `HtmlTranslationOptions`
@@ -24,7 +24,7 @@ This library intentionally mirrors `mlkit-markdown-translator-android` ergonomic
 - typed exception and error codes
 - explicit `close()` lifecycle and optional timing report
 
-## Integrate in your Android app (0.7.1)
+## Integrate in your Android app (0.7.2)
 
 ### Option A: JitPack artifact
 
@@ -47,13 +47,13 @@ Add dependency in your app module `build.gradle`:
 
 ```gradle
 dependencies {
-    implementation 'com.github.godsarmy.mlkit-html-translator-android:library:0.7.1'
+    implementation 'com.github.godsarmy.mlkit-html-translator-android:library:0.7.2'
 }
 ```
 
-### Option B: source-module integration (tag `0.7.1`)
+### Option B: source-module integration (tag `0.7.2`)
 
-If you prefer source integration, check out tag `0.7.1` and include this repo's `library/` module in your app workspace, then depend on it as a Gradle project module.
+If you prefer source integration, check out tag `0.7.2` and include this repo's `library/` module in your app workspace, then depend on it as a Gradle project module.
 
 ## Quickstart
 
