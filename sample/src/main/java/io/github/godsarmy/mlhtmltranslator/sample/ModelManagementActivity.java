@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.mlkit.nl.translate.TranslateLanguage;
@@ -326,12 +327,30 @@ public final class ModelManagementActivity extends AppCompatActivity {
             return;
         }
         String language = selectedDownloadedLanguage;
+        String displayLanguage = formatLanguageLabel(language);
         String normalizedLanguageCode = normalizeLanguageCode(language);
+        if (normalizedLanguageCode == null) {
+            return;
+        }
         if (BUILT_IN_LANGUAGE.equals(normalizedLanguageCode)) {
             Toast.makeText(this, R.string.model_built_in_not_deletable, Toast.LENGTH_SHORT).show();
             return;
         }
 
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.delete_model_dialog_title)
+                .setMessage(getString(R.string.delete_model_dialog_message, displayLanguage))
+                .setNegativeButton(android.R.string.cancel, (dialog, which) -> dialog.dismiss())
+                .setPositiveButton(
+                        R.string.delete_model_confirm_action,
+                        (dialog, which) ->
+                                performDeleteModel(
+                                        language, displayLanguage, normalizedLanguageCode))
+                .show();
+    }
+
+    private void performDeleteModel(
+            String language, String displayLanguage, String normalizedLanguageCode) {
         setBusy(true);
         viewModel.deleteModel(
                 language,
@@ -346,7 +365,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
                                                     ModelManagementActivity.this,
                                                     getString(
                                                             R.string.model_delete_success_message,
-                                                            language),
+                                                            displayLanguage),
                                                     Toast.LENGTH_SHORT)
                                             .show();
                                 });
@@ -361,7 +380,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
                                                     ModelManagementActivity.this,
                                                     getString(
                                                             R.string.model_delete_failed_message,
-                                                            language),
+                                                            displayLanguage),
                                                     Toast.LENGTH_SHORT)
                                             .show();
                                 });

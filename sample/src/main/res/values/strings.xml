@@ -108,6 +108,9 @@
 	<string name="cancel_download">Cancel</string>
 	<string name="model_download_success_message">Downloaded model for %1$s</string>
 	<string name="model_download_failed_message">Failed to download model for %1$s</string>
+	<string name="delete_model_dialog_title">Delete downloaded model?</string>
+	<string name="delete_model_dialog_message">Remove downloaded model for %1$s from device?</string>
+	<string name="delete_model_confirm_action">Delete</string>
 	<string name="model_delete_success_message">Deleted model for %1$s</string>
 	<string name="model_delete_failed_message">Failed to delete model for %1$s</string>
 	<string name="model_built_in_not_deletable">This language is built-in and cannot be deleted.</string>
