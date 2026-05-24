@@ -91,8 +91,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
 
     private void setupLanguageLists() {
         availableModelsAdapter =
-                new ArrayAdapter<>(
-                        this, android.R.layout.simple_list_item_single_choice, availableModels) {
+                new ArrayAdapter<>(this, R.layout.item_model_single_choice, availableModels) {
                     @NonNull
                     @Override
                     public View getView(
@@ -104,10 +103,7 @@ public final class ModelManagementActivity extends AppCompatActivity {
                 };
 
         downloadedModelsAdapter =
-                new ArrayAdapter<>(
-                        this,
-                        android.R.layout.simple_list_item_single_choice,
-                        downloadedModelsList) {
+                new ArrayAdapter<>(this, R.layout.item_model_single_choice, downloadedModelsList) {
                     @Override
                     public boolean areAllItemsEnabled() {
                         return false;

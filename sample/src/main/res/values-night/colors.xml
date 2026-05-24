@@ -3,6 +3,7 @@
 	<color name="mlkit_bg_canvas">#0B1220</color>
 	<color name="mlkit_bg_elevated">#111A2B</color>
 	<color name="mlkit_surface">#16233A</color>
+	<color name="mlkit_dropdown_surface">#2F3238</color>
 	<color name="mlkit_outline">#2A3B5F</color>
 	<color name="mlkit_preview_box_edge">#665F6A7D</color>
 	<color name="mlkit_primary">#4285F4</color>

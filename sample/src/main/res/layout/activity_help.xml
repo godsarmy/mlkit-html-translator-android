@@ -44,6 +44,7 @@
 				android:id="@+id/openProjectPageButton"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:elevation="0dp" android:stateListAnimator="@null"
 				android:text="@string/open_project_page" android:textAllCaps="false"
 				app:cornerRadius="12dp" />
 
@@ -51,6 +52,7 @@
 				android:id="@+id/sendFeedbackButton"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:elevation="0dp" android:stateListAnimator="@null"
 				android:text="@string/help_send_feedback"
 				android:textAllCaps="false" app:cornerRadius="12dp" />
 		</LinearLayout>

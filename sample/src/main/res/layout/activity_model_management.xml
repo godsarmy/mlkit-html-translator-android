@@ -3,9 +3,7 @@
 	xmlns:android="http://schemas.android.com/apk/res/android"
 	xmlns:app="http://schemas.android.com/apk/res-auto"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:background="@color/mlkit_bg_canvas"
-	android:fitsSystemWindows="true" android:orientation="vertical">
+	android:layout_height="match_parent" android:orientation="vertical">
 
 	<com.google.android.material.appbar.MaterialToolbar
 		android:id="@+id/modelManagementToolbar"
@@ -15,32 +13,35 @@
 		android:contentInsetStartWithNavigation="0dp"
 		android:paddingHorizontal="16dp"
 		app:navigationIcon="?attr/homeAsUpIndicator"
-		app:title="@string/model_management_title" app:titleMarginStart="8dp"
-		app:titleTextAppearance="@style/TextAppearance.MlKitHtmlTranslator.ToolbarTitle" />
+		app:titleMarginStart="8dp"
+		app:titleTextAppearance="@style/TextAppearance.MlKitHtmlTranslator.ToolbarTitle"
+		app:title="@string/model_management_title" />
 
 	<LinearLayout android:layout_width="match_parent"
 		android:layout_height="match_parent" android:orientation="vertical"
 		android:padding="16dp">
 
 		<com.google.android.material.card.MaterialCardView
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content"
+			android:layout_width="match_parent" android:layout_height="0dp"
+			android:layout_weight="1" app:cardElevation="0dp"
+			app:cardCornerRadius="14dp"
 			app:cardBackgroundColor="@color/mlkit_surface"
-			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp">
+			app:strokeColor="@color/mlkit_preview_box_edge" app:strokeWidth="1dp">
 
 			<LinearLayout android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:orientation="vertical"
+				android:layout_height="match_parent" android:orientation="vertical"
 				android:padding="16dp">
 
 				<TextView android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:text="@string/available_models_label"
-					android:textColor="@color/mlkit_on_background"
-					android:textStyle="bold" />
+					android:textAppearance="?attr/textAppearanceSubtitle1"
+					android:textColor="@color/mlkit_on_background" />
 
 				<ListView android:id="@+id/availableModelsList"
-					android:layout_width="match_parent" android:layout_height="120dp"
-					android:layout_marginTop="8dp" android:choiceMode="singleChoice"
+					android:layout_width="match_parent" android:layout_height="0dp"
+					android:layout_weight="1" android:layout_marginTop="8dp"
+					android:choiceMode="singleChoice"
 					android:divider="@android:color/transparent"
 					android:dividerHeight="4dp" />
 
@@ -57,28 +58,31 @@
 			android:id="@+id/downloadTargetModelButton"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="12dp"
-			android:text="@string/download_model_button"
+			android:elevation="0dp" android:stateListAnimator="@null"
+			app:cornerRadius="14dp" android:text="@string/download_model_button"
 			android:textAllCaps="false" />
 
 		<com.google.android.material.card.MaterialCardView
-			android:layout_width="match_parent"
-			android:layout_height="wrap_content" android:layout_marginTop="16dp"
+			android:layout_width="match_parent" android:layout_height="0dp"
+			android:layout_marginTop="16dp" android:layout_weight="1"
+			app:cardElevation="0dp" app:cardCornerRadius="14dp"
 			app:cardBackgroundColor="@color/mlkit_surface"
-			app:strokeColor="@color/mlkit_outline" app:strokeWidth="1dp">
+			app:strokeColor="@color/mlkit_preview_box_edge" app:strokeWidth="1dp">
 
 			<LinearLayout android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:orientation="vertical"
+				android:layout_height="match_parent" android:orientation="vertical"
 				android:padding="16dp">
 
 				<TextView android:layout_width="wrap_content"
 					android:layout_height="wrap_content"
 					android:text="@string/downloaded_models_label"
-					android:textColor="@color/mlkit_on_background"
-					android:textStyle="bold" />
+					android:textAppearance="?attr/textAppearanceSubtitle1"
+					android:textColor="@color/mlkit_on_background" />
 
 				<ListView android:id="@+id/downloadedModelsList"
-					android:layout_width="match_parent" android:layout_height="120dp"
-					android:layout_marginTop="8dp" android:choiceMode="singleChoice"
+					android:layout_width="match_parent" android:layout_height="0dp"
+					android:layout_weight="1" android:layout_marginTop="8dp"
+					android:choiceMode="singleChoice"
 					android:divider="@android:color/transparent"
 					android:dividerHeight="4dp" />
 
@@ -96,12 +100,12 @@
 			style="?attr/materialButtonOutlinedStyle"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="12dp"
-			android:text="@string/delete_model_button"
+			android:elevation="0dp" android:stateListAnimator="@null"
+			app:cornerRadius="14dp" android:text="@string/delete_model_button"
 			android:textAllCaps="false" />
 
 		<LinearLayout android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="16dp"
-			android:background="@color/mlkit_surface"
 			android:gravity="center_vertical" android:orientation="horizontal"
 			android:paddingHorizontal="12dp" android:paddingVertical="10dp">
 
@@ -115,6 +119,8 @@
 			<TextView android:id="@+id/modelStatusText"
 				android:layout_width="0dp" android:layout_height="wrap_content"
 				android:layout_marginStart="8dp" android:layout_weight="1"
+				android:gravity="center_vertical" android:minLines="2"
+				android:maxLines="2"
 				android:textColor="@color/mlkit_on_surface_variant" />
 		</LinearLayout>
 	</LinearLayout>
