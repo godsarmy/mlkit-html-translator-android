@@ -122,7 +122,7 @@
 	<string name="download_model_button">Download selected language</string>
 	<string name="delete_model_button">Delete selected language</string>
 	<string name="model_management_status">%1$d installed · %2$d available</string>
-	<string name="explain_html_screen_title">Explain HTML preprocess</string>
+	<string name="explain_html_screen_title">Explain translation plan</string>
 	<string name="explain_loading">Preparing explain result...</string>
 	<string name="explain_counts_label">Counts</string>
 	<string name="explain_options_label">Options</string>
