@@ -41,6 +41,7 @@ Use this flow when publishing a new library version.
    - Update all user-facing version strings (for example `README.md` dependency snippet and any sample app `versionName`).
    - Keep versioning consistent across docs and build metadata.
    - there is no 'v' before version
+   - upload `versionCode` for example app
 
 2. **Verify locally**
    - Run a scoped build before release:
