@@ -24,9 +24,75 @@
 			android:layout_height="wrap_content" android:orientation="vertical"
 			android:paddingHorizontal="16dp" android:paddingBottom="16dp">
 
-			<TextView android:id="@+id/helpDocumentText"
-				android:layout_width="match_parent"
+			<TextView android:layout_width="match_parent"
 				android:layout_height="wrap_content" android:layout_marginTop="8dp"
+				android:text="@string/help_intro"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_usage_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_usage_body"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_html_support_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_html_support_body"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_translation_tips_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_translation_tips_body"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_model_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_model_body"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_troubleshooting_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_troubleshooting_body"
+				android:textColor="@color/mlkit_on_surface_variant" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="16dp"
+				android:text="@string/help_developer_notes_title"
+				android:textColor="@color/mlkit_on_background"
+				android:textStyle="bold" />
+
+			<TextView android:layout_width="match_parent"
+				android:layout_height="wrap_content" android:layout_marginTop="6dp"
+				android:text="@string/help_developer_notes_body"
 				android:textColor="@color/mlkit_on_surface_variant" />
 
 			<TextView android:layout_width="match_parent"

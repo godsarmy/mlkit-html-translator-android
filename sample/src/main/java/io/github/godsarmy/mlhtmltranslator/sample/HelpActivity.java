@@ -4,17 +4,11 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 
 public final class HelpActivity extends AppCompatActivity {
 
@@ -31,7 +25,6 @@ public final class HelpActivity extends AppCompatActivity {
         }
         setupToolbar();
         setupButtons();
-        bindHelpDocument();
     }
 
     private void setupToolbar() {
@@ -45,27 +38,6 @@ public final class HelpActivity extends AppCompatActivity {
 
         openProjectPageButton.setOnClickListener(v -> openProjectPage());
         sendFeedbackButton.setOnClickListener(v -> sendFeedback());
-    }
-
-    private void bindHelpDocument() {
-        TextView helpDocumentText = findViewById(R.id.helpDocumentText);
-        helpDocumentText.setText(readHelpDocument());
-    }
-
-    private CharSequence readHelpDocument() {
-        try (InputStream inputStream = getAssets().open("docs/help_feedback.txt");
-                BufferedReader reader =
-                        new BufferedReader(
-                                new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
-            StringBuilder builder = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                builder.append(line).append('\n');
-            }
-            return builder.toString().trim();
-        } catch (IOException error) {
-            return getString(R.string.help_document_unavailable);
-        }
     }
 
     private void openProjectPage() {
