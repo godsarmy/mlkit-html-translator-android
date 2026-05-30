@@ -33,6 +33,7 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
     private MlKitHtmlTranslator translator;
+    private String originalHtmlBody;
     private View loadingContainer;
     private TextView errorText;
     private TextView optionsValue;
@@ -94,13 +95,13 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
         }
         translator = new MlKitHtmlTranslator(optionsBuilder.build());
 
-        String htmlBody = getIntent().getStringExtra(EXTRA_HTML_BODY);
-        if (htmlBody == null) {
+        originalHtmlBody = getIntent().getStringExtra(EXTRA_HTML_BODY);
+        if (originalHtmlBody == null) {
             showError(getString(R.string.explain_error_missing_html));
             return;
         }
 
-        loadExplainResult(htmlBody);
+        loadExplainResult(originalHtmlBody);
     }
 
     private void bindViews() {
@@ -144,11 +145,22 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
         List<ExplainPageItem> pages =
                 List.of(
                         new ExplainPageItem(
-                                getString(R.string.explain_prepared_html_label),
-                                List.of(
-                                        new ExplainPageItem.ExplainPageRow(
-                                                getString(R.string.explain_prepared_html_label),
-                                                result.getNormalizedHtmlBody()))),
+                                getString(R.string.explain_html_body_label),
+                                new ExplainPageItem.ToggleRows(
+                                        getString(R.string.explain_html_body_original),
+                                        List.of(
+                                                new ExplainPageItem.ExplainPageRow(
+                                                        getString(
+                                                                R.string
+                                                                        .explain_html_body_original),
+                                                        originalHtmlBody)),
+                                        getString(R.string.explain_html_body_normalized),
+                                        List.of(
+                                                new ExplainPageItem.ExplainPageRow(
+                                                        getString(
+                                                                R.string
+                                                                        .explain_html_body_normalized),
+                                                        result.getNormalizedHtmlBody())))),
                         new ExplainPageItem(
                                 withCount(
                                         getString(R.string.explain_chunks_label),

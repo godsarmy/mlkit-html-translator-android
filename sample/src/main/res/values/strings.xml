@@ -199,7 +199,10 @@
 	<string name="explain_loading">Preparing explain result...</string>
 	<string name="explain_counts_label">Counts</string>
 	<string name="explain_options_label">Options</string>
-	<string name="explain_prepared_html_label">Normalized HTML body</string>
+	<string name="explain_html_body_label">HTML body</string>
+	<string name="explain_html_body_original">Original</string>
+	<string name="explain_html_body_normalized">Normalized</string>
+	<string name="explain_html_body_normalized_toggle">Normalized HTML</string>
 	<string name="explain_chunks_label">Chunks</string>
 	<string name="explain_nodes_label">Nodes</string>
 	<string name="explain_none">(none)</string>
