@@ -47,10 +47,13 @@
 		style="@style/Widget.MlKitHtmlTranslator.Sample.ExplainTabs"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content" android:layout_marginTop="16dp"
-		app:tabMode="scrollable" />
+		app:tabGravity="start" app:tabIndicatorAnimationMode="elastic"
+		app:tabIndicatorFullWidth="false" app:tabMode="scrollable" />
 
 	<View android:layout_width="match_parent"
-		android:layout_height="1dp" android:background="@color/mlkit_surface" />
+		android:layout_height="1dp" android:layout_marginStart="2dp"
+		android:layout_marginEnd="2dp"
+		android:background="@color/mlkit_outline" />
 
 	<androidx.viewpager2.widget.ViewPager2
 		android:id="@+id/explainPager" android:layout_width="match_parent"

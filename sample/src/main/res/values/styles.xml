@@ -41,7 +41,11 @@
 
 	<style name="Widget.MlKitHtmlTranslator.Sample.ExplainTabs"
 		parent="Widget.MaterialComponents.TabLayout">
+		<item name="tabPaddingStart">12dp</item>
+		<item name="tabPaddingEnd">12dp</item>
+		<item name="tabIndicatorFullWidth">false</item>
 		<item name="tabIndicatorColor">@color/mlkit_primary</item>
+		<item name="tabIndicatorHeight">3dp</item>
 		<item name="tabTextColor">@color/mlkit_on_surface_variant</item>
 		<item name="tabSelectedTextColor">@color/mlkit_on_background</item>
 		<item name="tabRippleColor">@color/mlkit_primary</item>
