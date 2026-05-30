@@ -205,6 +205,7 @@
 	<string name="explain_none">(none)</string>
 	<string name="explain_error_missing_html">No HTML provided.</string>
 	<string name="explain_error_template">Explain failed: %1$s</string>
+	<string name="explain_copied_to_clipboard">Copied to clipboard</string>
 	<string name="explain_html_counts_value">nodes: %1$d • chunks: %2$d</string>
 	<string name="explain_html_options_value">maskUrls=%1$b • maskPlaceholders=%2$b •
 		maskPaths=%3$b

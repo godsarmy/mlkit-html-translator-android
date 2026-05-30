@@ -7,6 +7,9 @@ import android.view.View;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import io.github.godsarmy.mlhtmltranslator.HtmlTranslationOptions;
 import io.github.godsarmy.mlhtmltranslator.MlKitHtmlTranslator;
 import io.github.godsarmy.mlhtmltranslator.api.ExplainHtmlChunk;
@@ -32,11 +35,11 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     private MlKitHtmlTranslator translator;
     private View loadingContainer;
     private TextView errorText;
-    private TextView countsValue;
     private TextView optionsValue;
-    private TextView normalizedHtmlValue;
-    private TextView chunksValue;
-    private TextView nodesValue;
+    private TabLayout explainTabs;
+    private ViewPager2 explainPager;
+    private ExplainPagerAdapter pagerAdapter;
+    private TabLayoutMediator tabLayoutMediator;
 
     public static Intent createIntent(
             Context context,
@@ -103,11 +106,11 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     private void bindViews() {
         loadingContainer = findViewById(R.id.explainLoadingContainer);
         errorText = findViewById(R.id.explainErrorText);
-        countsValue = findViewById(R.id.explainCountsValue);
         optionsValue = findViewById(R.id.explainOptionsValue);
-        normalizedHtmlValue = findViewById(R.id.explainNormalizedHtmlValue);
-        chunksValue = findViewById(R.id.explainChunksValue);
-        nodesValue = findViewById(R.id.explainNodesValue);
+        explainTabs = findViewById(R.id.explainTabs);
+        explainPager = findViewById(R.id.explainPager);
+        pagerAdapter = new ExplainPagerAdapter(this);
+        explainPager.setAdapter(pagerAdapter);
     }
 
     private void loadExplainResult(String htmlBody) {
@@ -127,11 +130,6 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
         showLoading(false);
         errorText.setVisibility(View.GONE);
 
-        countsValue.setText(
-                getString(
-                        R.string.explain_html_counts_value,
-                        result.getTotalNodeCount(),
-                        result.getTotalChunkCount()));
         optionsValue.setText(
                 getString(
                         R.string.explain_html_options_value,
@@ -139,9 +137,38 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
                         result.isMaskPlaceholders(),
                         result.isMaskPaths(),
                         result.getProtectedTags()));
-        normalizedHtmlValue.setText(result.getNormalizedHtmlBody());
-        chunksValue.setText(formatChunks(result.getChunks()));
-        nodesValue.setText(formatNodes(result.getNodes()));
+        bindPages(result);
+    }
+
+    private void bindPages(ExplainHtmlResult result) {
+        List<ExplainPageItem> pages =
+                List.of(
+                        new ExplainPageItem(
+                                getString(R.string.explain_prepared_html_label),
+                                List.of(
+                                        new ExplainPageItem.ExplainPageRow(
+                                                getString(R.string.explain_prepared_html_label),
+                                                result.getNormalizedHtmlBody()))),
+                        new ExplainPageItem(
+                                withCount(
+                                        getString(R.string.explain_chunks_label),
+                                        result.getChunks().size()),
+                                formatChunkRows(result.getChunks())),
+                        new ExplainPageItem(
+                                withCount(
+                                        getString(R.string.explain_nodes_label),
+                                        result.getNodes().size()),
+                                formatNodeRows(result.getNodes())));
+        pagerAdapter.setItems(pages);
+        if (tabLayoutMediator != null) {
+            tabLayoutMediator.detach();
+        }
+        tabLayoutMediator =
+                new TabLayoutMediator(
+                        explainTabs,
+                        explainPager,
+                        (tab, position) -> tab.setText(pagerAdapter.getItem(position).getTitle()));
+        tabLayoutMediator.attach();
     }
 
     private void showError(String message) {
@@ -155,55 +182,49 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
         loadingContainer.setVisibility(loading ? View.VISIBLE : View.GONE);
     }
 
-    private String formatChunks(List<ExplainHtmlChunk> chunks) {
-        if (chunks.isEmpty()) {
-            return getString(R.string.explain_none);
-        }
-
-        StringBuilder builder = new StringBuilder();
+    private List<ExplainPageItem.ExplainPageRow> formatChunkRows(List<ExplainHtmlChunk> chunks) {
+        List<ExplainPageItem.ExplainPageRow> rows = new java.util.ArrayList<>();
         for (ExplainHtmlChunk chunk : chunks) {
-            if (builder.length() > 0) {
-                builder.append("\n\n");
-            }
-            builder.append("#")
-                    .append(chunk.getIndex())
-                    .append(" • len=")
-                    .append(chunk.getPlainTextLength())
-                    .append(" • nodeIndexes=")
-                    .append(chunk.getNodeIndexes())
-                    .append("\n")
-                    .append(chunk.getPayload());
+            String value =
+                    new StringBuilder()
+                            .append("#")
+                            .append(chunk.getIndex())
+                            .append(" • len=")
+                            .append(chunk.getPlainTextLength())
+                            .append(" • nodeIndexes=")
+                            .append(chunk.getNodeIndexes())
+                            .append("\n")
+                            .append(chunk.getPayload())
+                            .toString();
+            rows.add(new ExplainPageItem.ExplainPageRow("Chunk " + chunk.getIndex(), value));
         }
-        return builder.toString();
+        return rows;
     }
 
-    private String formatNodes(List<ExplainHtmlNode> nodes) {
-        if (nodes.isEmpty()) {
-            return getString(R.string.explain_none);
-        }
-
-        StringBuilder builder = new StringBuilder();
+    private List<ExplainPageItem.ExplainPageRow> formatNodeRows(List<ExplainHtmlNode> nodes) {
+        List<ExplainPageItem.ExplainPageRow> rows = new java.util.ArrayList<>();
         for (ExplainHtmlNode node : nodes) {
-            if (builder.length() > 0) {
-                builder.append("\n\n");
-            }
-            builder.append("#")
-                    .append(node.getIndex())
-                    .append(" • leading=")
-                    .append(printableWhitespace(node.getLeadingWhitespace()))
-                    .append(" • trailing=")
-                    .append(printableWhitespace(node.getTrailingWhitespace()))
-                    .append("\n")
-                    .append("text: ")
-                    .append(node.getTranslatableText())
-                    .append("\n")
-                    .append("masked: ")
-                    .append(node.getMaskedText())
-                    .append("\n")
-                    .append("placeholders: ")
-                    .append(formatPlaceholders(node.getPlaceholders()));
+            String value =
+                    new StringBuilder()
+                            .append("#")
+                            .append(node.getIndex())
+                            .append(" • leading=")
+                            .append(printableWhitespace(node.getLeadingWhitespace()))
+                            .append(" • trailing=")
+                            .append(printableWhitespace(node.getTrailingWhitespace()))
+                            .append("\n")
+                            .append("text: ")
+                            .append(node.getTranslatableText())
+                            .append("\n")
+                            .append("masked: ")
+                            .append(node.getMaskedText())
+                            .append("\n")
+                            .append("placeholders: ")
+                            .append(formatPlaceholders(node.getPlaceholders()))
+                            .toString();
+            rows.add(new ExplainPageItem.ExplainPageRow("Node " + node.getIndex(), value));
         }
-        return builder.toString();
+        return rows;
     }
 
     private static String formatPlaceholders(Map<String, String> placeholders) {
@@ -217,10 +238,17 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
         return value.replace("\n", "\\n").replace("\t", "\\t");
     }
 
+    private static String withCount(String title, int count) {
+        return title + " (" + count + ")";
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
         executorService.shutdownNow();
+        if (tabLayoutMediator != null) {
+            tabLayoutMediator.detach();
+        }
         if (translator != null) {
             translator.close();
         }
