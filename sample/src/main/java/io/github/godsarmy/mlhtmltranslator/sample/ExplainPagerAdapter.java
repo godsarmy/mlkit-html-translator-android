@@ -52,26 +52,28 @@ public final class ExplainPagerAdapter
 
     static final class PageViewHolder extends RecyclerView.ViewHolder {
         private final LinearLayout content;
+        private final TextView emptyText;
 
         PageViewHolder(@NonNull View itemView) {
             super(itemView);
             content = itemView.findViewById(R.id.explainPageContent);
+            emptyText = itemView.findViewById(R.id.explainPageEmptyText);
         }
 
         void bind(ExplainPageItem item) {
             Context context = itemView.getContext();
-            content.removeAllViews();
+            content.removeViews(1, Math.max(0, content.getChildCount() - 1));
 
             if (item.getRows().isEmpty()) {
-                TextView empty = createValue(context);
-                empty.setText(R.string.explain_none);
-                content.addView(empty);
+                emptyText.setText(R.string.explain_none);
+                emptyText.setVisibility(View.VISIBLE);
                 return;
             }
+            emptyText.setVisibility(View.GONE);
 
             for (int index = 0; index < item.getRows().size(); index++) {
                 ExplainPageItem.ExplainPageRow row = item.getRows().get(index);
-                TextView value = createValue(context);
+                TextView value = createValue(context, index > 0);
                 value.setText(row.getValue());
                 value.setOnLongClickListener(
                         v -> {
@@ -79,24 +81,18 @@ public final class ExplainPagerAdapter
                             return true;
                         });
                 content.addView(value);
-
-                if (index < item.getRows().size() - 1) {
-                    View spacer = new View(context);
-                    spacer.setLayoutParams(
-                            new LinearLayout.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT, dpToPx(context, 10)));
-                    content.addView(spacer);
-                }
             }
         }
 
-        private static TextView createValue(Context context) {
+        private static TextView createValue(Context context, boolean addTopMargin) {
             TextView textView = new TextView(context);
             LinearLayout.LayoutParams params =
                     new LinearLayout.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.topMargin = dpToPx(context, 4);
+            if (addTopMargin) {
+                params.topMargin = dpToPx(context, 10);
+            }
             textView.setLayoutParams(params);
             textView.setBackgroundResource(R.drawable.preview_box_background);
             textView.setPadding(
