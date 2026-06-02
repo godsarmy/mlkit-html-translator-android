@@ -32,21 +32,11 @@
 		android:layout_height="wrap_content" android:layout_marginTop="10dp"
 		android:textColor="@color/mlkit_error" android:visibility="gone" />
 
-	<TextView android:layout_width="match_parent"
-		android:layout_height="wrap_content" android:layout_marginTop="10dp"
-		android:text="@string/explain_options_label"
-		android:textColor="@color/mlkit_on_surface_variant" />
-
-	<TextView android:id="@+id/explainOptionsValue"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content" android:layout_marginTop="4dp"
-		android:textColor="@color/mlkit_on_background" />
-
 	<com.google.android.material.tabs.TabLayout
 		android:id="@+id/explainTabs"
 		style="@style/Widget.MlKitHtmlTranslator.Sample.ExplainTabs"
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content" android:layout_marginTop="16dp"
+		android:layout_height="wrap_content" android:layout_marginTop="14dp"
 		app:tabGravity="start" app:tabIndicatorAnimationMode="elastic"
 		app:tabIndicatorFullWidth="false" app:tabMode="scrollable" />
 

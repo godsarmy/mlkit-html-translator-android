@@ -36,7 +36,6 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     private String originalHtmlBody;
     private View loadingContainer;
     private TextView errorText;
-    private TextView optionsValue;
     private TabLayout explainTabs;
     private ViewPager2 explainPager;
     private ExplainPagerAdapter pagerAdapter;
@@ -107,7 +106,6 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     private void bindViews() {
         loadingContainer = findViewById(R.id.explainLoadingContainer);
         errorText = findViewById(R.id.explainErrorText);
-        optionsValue = findViewById(R.id.explainOptionsValue);
         explainTabs = findViewById(R.id.explainTabs);
         explainPager = findViewById(R.id.explainPager);
         pagerAdapter = new ExplainPagerAdapter(this);
@@ -130,14 +128,6 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     private void bindExplainResult(ExplainHtmlResult result) {
         showLoading(false);
         errorText.setVisibility(View.GONE);
-
-        optionsValue.setText(
-                getString(
-                        R.string.explain_html_options_value,
-                        result.isMaskUrls(),
-                        result.isMaskPlaceholders(),
-                        result.isMaskPaths(),
-                        result.getProtectedTags()));
         bindPages(result);
     }
 
@@ -162,14 +152,10 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
                                                                         .explain_html_body_normalized),
                                                         result.getNormalizedHtmlBody())))),
                         new ExplainPageItem(
-                                withCount(
-                                        getString(R.string.explain_chunks_label),
-                                        result.getChunks().size()),
+                                getString(R.string.explain_chunks_label),
                                 formatChunkRows(result.getChunks())),
                         new ExplainPageItem(
-                                withCount(
-                                        getString(R.string.explain_nodes_label),
-                                        result.getNodes().size()),
+                                getString(R.string.explain_nodes_label),
                                 formatNodeRows(result.getNodes())));
         pagerAdapter.setItems(pages);
         if (tabLayoutMediator != null) {
@@ -248,10 +234,6 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
 
     private static String printableWhitespace(String value) {
         return value.replace("\n", "\\n").replace("\t", "\\t");
-    }
-
-    private static String withCount(String title, int count) {
-        return title + " (" + count + ")";
     }
 
     @Override

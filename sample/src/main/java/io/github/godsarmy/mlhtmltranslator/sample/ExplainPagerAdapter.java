@@ -63,6 +63,7 @@ public final class ExplainPagerAdapter
 
     static final class PageViewHolder extends RecyclerView.ViewHolder {
         private final LinearLayout content;
+        private final SwitchMaterial normalizedToggle;
         private final TextView emptyText;
 
         interface OnToggleChange {
@@ -72,18 +73,26 @@ public final class ExplainPagerAdapter
         PageViewHolder(@NonNull View itemView) {
             super(itemView);
             content = itemView.findViewById(R.id.explainPageContent);
+            normalizedToggle = itemView.findViewById(R.id.explainPageNormalizedToggle);
             emptyText = itemView.findViewById(R.id.explainPageEmptyText);
         }
 
         void bind(ExplainPageItem item, boolean showSecondary, OnToggleChange onToggleChange) {
             Context context = itemView.getContext();
-            content.removeViews(1, Math.max(0, content.getChildCount() - 1));
+            content.removeViews(2, Math.max(0, content.getChildCount() - 2));
 
             List<ExplainPageItem.ExplainPageRow> rows = item.getRows();
+            normalizedToggle.setOnCheckedChangeListener(null);
             if (item.hasToggleRows()) {
                 ExplainPageItem.ToggleRows toggleRows = item.getToggleRows();
                 rows = showSecondary ? toggleRows.getSecondaryRows() : toggleRows.getPrimaryRows();
-                content.addView(createToggleSwitch(context, showSecondary, onToggleChange));
+                normalizedToggle.setVisibility(View.VISIBLE);
+                normalizedToggle.setUseMaterialThemeColors(true);
+                normalizedToggle.setChecked(showSecondary);
+                normalizedToggle.setOnCheckedChangeListener(
+                        (buttonView, isChecked) -> onToggleChange.onChanged(isChecked));
+            } else {
+                normalizedToggle.setVisibility(View.GONE);
             }
 
             if (rows.isEmpty()) {
@@ -95,7 +104,7 @@ public final class ExplainPagerAdapter
 
             for (int index = 0; index < rows.size(); index++) {
                 ExplainPageItem.ExplainPageRow row = rows.get(index);
-                TextView value = createValue(context, index > 0 || item.hasToggleRows());
+                TextView value = createValue(context, index > 0);
                 value.setText(row.getValue());
                 value.setOnLongClickListener(
                         v -> {
@@ -104,24 +113,6 @@ public final class ExplainPagerAdapter
                         });
                 content.addView(value);
             }
-        }
-
-        private static View createToggleSwitch(
-                Context context, boolean showSecondary, OnToggleChange onToggleChange) {
-            SwitchMaterial toggle = new SwitchMaterial(context);
-            LinearLayout.LayoutParams toggleParams =
-                    new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT);
-            toggleParams.topMargin = dpToPx(context, 2);
-            toggle.setLayoutParams(toggleParams);
-            toggle.setText(R.string.explain_html_body_normalized_toggle);
-            toggle.setTextColor(context.getColor(R.color.mlkit_on_background));
-            toggle.setUseMaterialThemeColors(true);
-            toggle.setChecked(showSecondary);
-            toggle.setOnCheckedChangeListener(
-                    (buttonView, isChecked) -> onToggleChange.onChanged(isChecked));
-            return toggle;
         }
 
         private static TextView createValue(Context context, boolean addTopMargin) {

@@ -9,6 +9,14 @@
 		android:layout_height="wrap_content" android:orientation="vertical"
 		android:paddingBottom="8dp">
 
+		<com.google.android.material.switchmaterial.SwitchMaterial
+			android:id="@+id/explainPageNormalizedToggle"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" android:layout_marginTop="-6dp"
+			android:text="@string/explain_html_body_normalized_toggle"
+			android:textColor="@color/mlkit_on_background"
+			android:visibility="gone" />
+
 		<TextView android:id="@+id/explainPageEmptyText"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content" android:layout_marginTop="10dp"
