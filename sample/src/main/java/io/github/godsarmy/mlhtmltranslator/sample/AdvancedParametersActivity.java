@@ -3,9 +3,7 @@ package io.github.godsarmy.mlhtmltranslator.sample;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.Spinner;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -27,7 +25,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     private EditText markerEndInput;
     private EditText maxChunkCharsInput;
     private EditText chunkTimeoutMsInput;
-    private Spinner failurePolicySpinner;
+    private SwitchMaterial bestEffortFallbackCheck;
     private SwitchMaterial maskUrlsCheck;
     private SwitchMaterial maskPlaceholdersCheck;
     private SwitchMaterial maskPathsCheck;
@@ -67,16 +65,10 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         markerEndInput = findViewById(R.id.markerEndInput);
         maxChunkCharsInput = findViewById(R.id.maxChunkCharsInput);
         chunkTimeoutMsInput = findViewById(R.id.chunkTimeoutMsInput);
-        failurePolicySpinner = findViewById(R.id.failurePolicySpinner);
+        bestEffortFallbackCheck = findViewById(R.id.bestEffortFallbackCheck);
         maskUrlsCheck = findViewById(R.id.maskUrlsCheck);
         maskPlaceholdersCheck = findViewById(R.id.maskPlaceholdersCheck);
         maskPathsCheck = findViewById(R.id.maskPathsCheck);
-
-        ArrayAdapter<CharSequence> adapter =
-                ArrayAdapter.createFromResource(
-                        this, R.array.failure_policy_options, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        failurePolicySpinner.setAdapter(adapter);
 
         markerStartInput.setText(getIntent().getStringExtra(EXTRA_MARKER_START));
         markerEndInput.setText(getIntent().getStringExtra(EXTRA_MARKER_END));
@@ -92,7 +84,7 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         String failurePolicy = getIntent().getStringExtra(EXTRA_FAILURE_POLICY);
         boolean isFailFast =
                 HtmlTranslationOptions.FailurePolicy.FAIL_FAST.name().equals(failurePolicy);
-        failurePolicySpinner.setSelection(isFailFast ? 1 : 0);
+        bestEffortFallbackCheck.setChecked(!isFailFast);
 
         findViewById(R.id.cancelAdvancedParametersButton)
                 .setOnClickListener(
@@ -114,9 +106,9 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
         int maxChunkChars = parseChunkChars(maxChunkCharsInput.getText().toString());
         long chunkTimeoutMs = parseChunkTimeoutMs(chunkTimeoutMsInput.getText().toString());
         String failurePolicy =
-                failurePolicySpinner.getSelectedItemPosition() == 1
-                        ? HtmlTranslationOptions.FailurePolicy.FAIL_FAST.name()
-                        : HtmlTranslationOptions.FailurePolicy.BEST_EFFORT.name();
+                bestEffortFallbackCheck.isChecked()
+                        ? HtmlTranslationOptions.FailurePolicy.BEST_EFFORT.name()
+                        : HtmlTranslationOptions.FailurePolicy.FAIL_FAST.name();
 
         Intent result = new Intent();
         result.putExtra(EXTRA_MARKER_START, markerStart);

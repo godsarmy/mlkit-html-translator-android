@@ -78,18 +78,17 @@
 				android:textColor="@color/mlkit_on_background"
 				android:textColorHint="@color/mlkit_on_surface_variant" />
 
-			<TextView android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="10dp"
-				android:text="@string/label_failure_policy"
-				android:textColor="@color/mlkit_on_surface_variant" />
-
-			<Spinner android:id="@+id/failurePolicySpinner"
+			<com.google.android.material.switchmaterial.SwitchMaterial
+				android:id="@+id/bestEffortFallbackCheck"
 				android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="4dp" />
+				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:text="@string/label_best_effort_fallback"
+				android:textColor="@color/mlkit_on_background"
+				app:useMaterialThemeColors="true" />
 
 			<com.google.android.material.switchmaterial.SwitchMaterial
 				android:id="@+id/maskUrlsCheck" android:layout_width="match_parent"
-				android:layout_height="wrap_content" android:layout_marginTop="10dp"
+				android:layout_height="wrap_content"
 				android:text="@string/label_mask_urls"
 				android:textColor="@color/mlkit_on_background"
 				app:useMaterialThemeColors="true" />

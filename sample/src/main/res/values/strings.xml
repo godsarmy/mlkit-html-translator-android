@@ -152,9 +152,7 @@
 	<string name="hint_max_chunk_chars">e.g. 3000</string>
 	<string name="label_chunk_timeout_ms">Chunk timeout (ms)</string>
 	<string name="hint_chunk_timeout_ms">e.g. 0 (no timeout)</string>
-	<string name="label_failure_policy">Failure policy</string>
-	<string name="failure_policy_best_effort">Best effort</string>
-	<string name="failure_policy_fail_fast">Fail fast</string>
+	<string name="label_best_effort_fallback">Best effort content fallback</string>
 	<string name="label_mask_urls">Mask URLs</string>
 	<string name="label_mask_placeholders">Mask placeholders</string>
 	<string name="label_mask_paths">Mask paths</string>
@@ -234,8 +232,4 @@
 		<item>huge-document.html</item>
 	</string-array>
 
-	<string-array name="failure_policy_options">
-		<item>@string/failure_policy_best_effort</item>
-		<item>@string/failure_policy_fail_fast</item>
-	</string-array>
 </resources>
