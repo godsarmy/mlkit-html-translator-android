@@ -32,6 +32,16 @@ This repository uses a specialist-agent workflow for coding tasks.
 - Run language diagnostics first (`lsp_diagnostics`) when applicable.
 - Run project build/tests for changed scope.
 - Confirm no unrelated regressions were introduced.
+- Root project uses generated Gradle wrapper (`./gradlew`) and Android SDK from `local.properties`.
+- `local.properties` is intentionally gitignored and required for local Android builds.
+- Running Gradle tasks may generate Eclipse metadata (`.project`, `.classpath`, `.settings/`); these are ignored.
+
+## Project Implementation Notes
+
+- `MlKitHtmlTranslator` should execute translation per request without internal result caching.
+- If caching is desired, implement it in app/repository logic so each app controls lifetime and eviction policy.
+- ML translation can mutate structural marker text; avoid relying on verbose natural-language marker tokens for chunk reassembly.
+- For reliability, use marker-free translation for single-node chunks and sanitize orphan marker fragments before final DOM write-back.
 
 ## Release + JitPack Publishing
 
