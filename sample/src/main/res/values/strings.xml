@@ -213,14 +213,29 @@
 		• protectedTags=%4$s</string>
 
 	<string-array name="language_codes">
-		<item>de</item>
 		<item>en</item>
 		<item>es</item>
 		<item>fr</item>
+		<item>de</item>
+		<item>pt</item>
+		<item>it</item>
+		<item>zh</item>
 		<item>ja</item>
 		<item>ko</item>
 		<item>ru</item>
-		<item>zh</item>
+		<item>hi</item>
+		<item>id</item>
+		<item>tr</item>
+		<item>vi</item>
+		<item>th</item>
+		<item>nl</item>
+		<item>pl</item>
+		<item>uk</item>
+		<item>sv</item>
+		<item>bn</item>
+		<item>ta</item>
+		<item>te</item>
+		<item>ms</item>
 	</string-array>
 
 	<string-array name="sample_assets">

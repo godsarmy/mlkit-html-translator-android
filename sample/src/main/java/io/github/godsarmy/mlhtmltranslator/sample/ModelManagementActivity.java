@@ -207,6 +207,10 @@ public final class ModelManagementActivity extends AppCompatActivity {
             }
         }
 
+        sortLanguagesByDisplayLabel(availableModels);
+        sortLanguagesByDisplayLabel(downloadedModelsList);
+        moveBuiltInLanguageFirst(downloadedModelsList);
+
         if (selectedAvailableLanguage == null
                 || !availableModels.contains(selectedAvailableLanguage)) {
             selectedAvailableLanguage = availableModels.isEmpty() ? null : availableModels.get(0);
@@ -224,6 +228,22 @@ public final class ModelManagementActivity extends AppCompatActivity {
         updateListSelection(availableModelsListView, availableModels, selectedAvailableLanguage);
         updateListSelection(
                 downloadedModelsListView, downloadedModelsList, selectedDownloadedLanguage);
+    }
+
+    private void sortLanguagesByDisplayLabel(List<String> languages) {
+        Collections.sort(
+                languages,
+                (left, right) ->
+                        formatLanguageLabel(left).compareToIgnoreCase(formatLanguageLabel(right)));
+    }
+
+    private static void moveBuiltInLanguageFirst(List<String> languages) {
+        for (int index = 0; index < languages.size(); index++) {
+            if (BUILT_IN_LANGUAGE.equals(normalizeLanguageCode(languages.get(index)))) {
+                languages.add(0, languages.remove(index));
+                return;
+            }
+        }
     }
 
     @Nullable
