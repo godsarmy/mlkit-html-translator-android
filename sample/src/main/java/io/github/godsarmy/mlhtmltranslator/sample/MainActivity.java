@@ -731,6 +731,9 @@ public class MainActivity extends AppCompatActivity {
                         .setFailurePolicy(failurePolicy)
                         .setPlaceholderMarkerStart(markerStart)
                         .setPlaceholderMarkerEnd(markerEnd)
+                        .setOutputDirectionMode(
+                                HtmlTranslationOptions.OutputDirectionMode
+                                        .AUTO_FROM_TARGET_LANGUAGE)
                         .build();
         return new MlKitHtmlTranslator(getApplicationContext(), options);
     }
@@ -1300,11 +1303,14 @@ public class MainActivity extends AppCompatActivity {
                         + "<style>"
                         + "html,body{margin:0;padding:0;background:transparent !important;color:"
                         + textColor
-                        + " !important;}"
+                        + " !important;overflow-x:auto;}"
+                        + "body{text-align:start;}"
                         + "a{color:"
                         + linkColor
                         + ";}"
                         + "img,table{max-width:100%;height:auto;}"
+                        + "pre,code{white-space:pre;}"
+                        + "table{display:block;overflow-x:auto;}"
                         + "</style></head><body>"
                         + safeBody
                         + "</body></html>";
@@ -1326,9 +1332,21 @@ public class MainActivity extends AppCompatActivity {
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
         webView.setBackgroundColor(Color.TRANSPARENT);
+        webView.setVerticalScrollBarEnabled(true);
+        webView.setHorizontalScrollBarEnabled(true);
+        webView.setScrollbarFadingEnabled(false);
+        webView.setScrollBarStyle(View.SCROLLBARS_INSIDE_INSET);
     }
 
     private void setupRawOutputScrolling() {
+        inputHtmlText.setHorizontallyScrolling(true);
+        inputHtmlText.setHorizontalScrollBarEnabled(true);
+        inputHtmlText.setVerticalScrollBarEnabled(true);
+        inputHtmlText.setScrollbarFadingEnabled(false);
+        outputHtmlText.setHorizontallyScrolling(true);
+        outputHtmlText.setHorizontalScrollBarEnabled(true);
+        outputHtmlText.setVerticalScrollBarEnabled(true);
+        outputHtmlText.setScrollbarFadingEnabled(false);
         outputHtmlText.setMovementMethod(new ScrollingMovementMethod());
         outputHtmlText.setOnTouchListener(
                 (view, event) -> {

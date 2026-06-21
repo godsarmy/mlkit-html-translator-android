@@ -113,6 +113,7 @@ HtmlTranslationOptions options = HtmlTranslationOptions.builder()
         .setMaskUrls(true)
         .setMaskPlaceholders(true)
         .setMaskPaths(true)
+        .setOutputDirectionMode(HtmlTranslationOptions.OutputDirectionMode.AUTO_FROM_TARGET_LANGUAGE)
         .build();
 
 MlKitHtmlTranslator translator = new MlKitHtmlTranslator(context, options);
@@ -230,6 +231,7 @@ Known practical limits:
 
 - input is treated as HTML body content, not a full browser document shell
 - protected tags should be configured for app-specific elements that must not be translated
+- RTL layout metadata is opt-in with `OutputDirectionMode.AUTO_FROM_TARGET_LANGUAGE`, `FORCE_RTL`, or `FORCE_LTR`; the default `PRESERVE` mode does not add `dir` or `lang`
 - very large or deeply nested documents may need app-specific chunk-size validation
 - translation can mutate structural marker text, so single-node chunks use a marker-free path for reliability
 - URL, placeholder, and path masking reduce accidental translation of machine-readable tokens but cannot cover every app-specific token format

@@ -214,6 +214,7 @@
 
 	<string-array name="language_codes">
 		<item>en</item>
+		<item>ar</item>
 		<item>es</item>
 		<item>fr</item>
 		<item>de</item>
@@ -224,6 +225,7 @@
 		<item>ko</item>
 		<item>ru</item>
 		<item>hi</item>
+		<item>ur</item>
 		<item>id</item>
 		<item>tr</item>
 		<item>vi</item>

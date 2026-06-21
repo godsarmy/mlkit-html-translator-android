@@ -31,6 +31,7 @@ Current options:
 - chunk timeout in milliseconds (default `0`, which disables timeout)
 - failure policy (`FAIL_FAST`, `BEST_EFFORT`)
 - token masking flags (URLs/placeholders/paths)
+- output direction mode (`PRESERVE`, `AUTO_FROM_TARGET_LANGUAGE`, `FORCE_LTR`, `FORCE_RTL`)
 - optional metrics listener
 
 ## Callback contract
@@ -85,6 +86,7 @@ When metrics are enabled via `TranslationMetricsListener`, `TranslationMetricsRe
 - The library executes the translation pipeline for each request.
 - It does not cache translated results internally.
 - If caching is needed, implement it at the app/repository layer.
+- Direction metadata is opt-in. `AUTO_FROM_TARGET_LANGUAGE` adds `dir` and `lang` based on the target language, including RTL for Arabic (`ar`) and Urdu (`ur`).
 
 ## Lifecycle boundary
 

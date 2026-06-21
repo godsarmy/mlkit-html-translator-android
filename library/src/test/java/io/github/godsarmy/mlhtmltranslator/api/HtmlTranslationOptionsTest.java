@@ -21,6 +21,9 @@ public class HtmlTranslationOptionsTest {
         assertTrue(options.getProtectedTags().contains("style"));
         assertEquals("[{[", options.getPlaceholderMarkerStart());
         assertEquals("]}]", options.getPlaceholderMarkerEnd());
+        assertEquals(
+                HtmlTranslationOptions.OutputDirectionMode.PRESERVE,
+                options.getOutputDirectionMode());
     }
 
     @Test
@@ -43,5 +46,19 @@ public class HtmlTranslationOptionsTest {
                 HtmlTranslationOptions.builder().setChunkTimeoutMs(0L).build();
 
         assertEquals(0L, options.getChunkTimeoutMs());
+    }
+
+    @Test
+    public void outputDirectionMode_isConfigurable() {
+        HtmlTranslationOptions options =
+                HtmlTranslationOptions.builder()
+                        .setOutputDirectionMode(
+                                HtmlTranslationOptions.OutputDirectionMode
+                                        .AUTO_FROM_TARGET_LANGUAGE)
+                        .build();
+
+        assertEquals(
+                HtmlTranslationOptions.OutputDirectionMode.AUTO_FROM_TARGET_LANGUAGE,
+                options.getOutputDirectionMode());
     }
 }

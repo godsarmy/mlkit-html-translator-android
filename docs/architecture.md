@@ -12,7 +12,8 @@ High-level flow:
 4. Build markerized chunks (`ChunkBuilder`, `SegmentMarkerCodec`)
 5. Translate chunks via backend adapter (`MlTranslationAdapter`)
 6. Map results back, unmask, and restore DOM (`ChunkResultMapper`)
-7. Emit translated HTML + diagnostics/timing
+7. Optionally apply output `dir`/`lang` metadata
+8. Emit translated HTML + diagnostics/timing
 
 ---
 
@@ -84,6 +85,8 @@ Failure behavior depends on `FailurePolicy`:
 Translated text is unmasked and reinserted into DOM while preserving whitespace boundaries.
 
 Diagnostics include: total/translated/failed nodes, retries, chunk count, and stage durations.
+
+When enabled through `HtmlTranslationOptions.OutputDirectionMode`, output direction metadata is applied after reconstruction. The default `PRESERVE` mode leaves output unchanged; `AUTO_FROM_TARGET_LANGUAGE` marks RTL targets such as Arabic and Urdu with `dir="rtl"` and `lang`.
 
 ---
 

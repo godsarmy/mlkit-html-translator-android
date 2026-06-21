@@ -40,6 +40,7 @@ public final class HtmlBodyTranslationEngine {
     private final TokenMasker tokenMasker = new TokenMasker();
     private final ChunkBuilder chunkBuilder = new ChunkBuilder();
     private final ChunkResultMapper chunkResultMapper = new ChunkResultMapper();
+    private final HtmlDirectionApplier directionApplier = new HtmlDirectionApplier();
 
     @NonNull
     public List<CollectedTextNode> collectEligibleTextNodes(
@@ -101,6 +102,8 @@ public final class HtmlBodyTranslationEngine {
         Preparation preparation = preparePipeline(htmlBody, options);
 
         if (preparation.nodes.isEmpty()) {
+            directionApplier.apply(
+                    preparation.document, targetLanguage, options.getOutputDirectionMode());
             return new PipelineResult(
                     preparation.document.body().html(),
                     new Diagnostics(
@@ -145,6 +148,9 @@ public final class HtmlBodyTranslationEngine {
             String restored = node.getLeadingWhitespace() + unmasked + node.getTrailingWhitespace();
             node.getTextNode().text(restored);
         }
+
+        directionApplier.apply(
+                preparation.document, targetLanguage, options.getOutputDirectionMode());
 
         Diagnostics diagnostics =
                 new Diagnostics(

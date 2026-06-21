@@ -15,6 +15,13 @@ public final class HtmlTranslationOptions {
         BEST_EFFORT
     }
 
+    public enum OutputDirectionMode {
+        PRESERVE,
+        AUTO_FROM_TARGET_LANGUAGE,
+        FORCE_LTR,
+        FORCE_RTL
+    }
+
     private static final Set<String> DEFAULT_PROTECTED_TAGS =
             Collections.unmodifiableSet(
                     new LinkedHashSet<>(
@@ -29,6 +36,7 @@ public final class HtmlTranslationOptions {
     private final boolean maskPaths;
     private final String placeholderMarkerStart;
     private final String placeholderMarkerEnd;
+    private final OutputDirectionMode outputDirectionMode;
     private final TranslationMetricsListener metricsListener;
 
     private HtmlTranslationOptions(Builder builder) {
@@ -42,6 +50,7 @@ public final class HtmlTranslationOptions {
         this.maskPaths = builder.maskPaths;
         this.placeholderMarkerStart = builder.placeholderMarkerStart;
         this.placeholderMarkerEnd = builder.placeholderMarkerEnd;
+        this.outputDirectionMode = builder.outputDirectionMode;
         this.metricsListener = builder.metricsListener;
     }
 
@@ -90,6 +99,11 @@ public final class HtmlTranslationOptions {
         return placeholderMarkerEnd;
     }
 
+    @NonNull
+    public OutputDirectionMode getOutputDirectionMode() {
+        return outputDirectionMode;
+    }
+
     @Nullable
     public TranslationMetricsListener getMetricsListener() {
         return metricsListener;
@@ -105,6 +119,7 @@ public final class HtmlTranslationOptions {
         private boolean maskPaths = true;
         private String placeholderMarkerStart = "[{[";
         private String placeholderMarkerEnd = "]}]";
+        private OutputDirectionMode outputDirectionMode = OutputDirectionMode.PRESERVE;
         private TranslationMetricsListener metricsListener;
 
         private Builder() {}
@@ -166,6 +181,12 @@ public final class HtmlTranslationOptions {
                 throw new IllegalArgumentException("placeholderMarkerEnd cannot be blank");
             }
             this.placeholderMarkerEnd = placeholderMarkerEnd;
+            return this;
+        }
+
+        @NonNull
+        public Builder setOutputDirectionMode(@NonNull OutputDirectionMode outputDirectionMode) {
+            this.outputDirectionMode = outputDirectionMode;
             return this;
         }
 
