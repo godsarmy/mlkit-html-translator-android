@@ -1380,7 +1380,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter =
                 new ArrayAdapter<>(
                         this, android.R.layout.simple_spinner_item, downloadedLanguageOptions);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.item_language_spinner_dropdown);
         sourceSpinner.setAdapter(adapter);
         targetSpinner.setAdapter(adapter);
     }
