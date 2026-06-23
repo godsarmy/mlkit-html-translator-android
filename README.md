@@ -21,7 +21,7 @@ This library prepares HTML body fragments for translation, sends only translatab
 
 Requirements: Android `minSdk 24`, Java 17, and an app-level ML Kit model download flow.
 
-Current release: **0.8.0**
+Current release: **0.8.1**
 
 ## Example app
 
@@ -71,7 +71,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.8.0"
+    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.8.1"
 }
 ```
 
@@ -85,7 +85,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.godsarmy.mlkit-html-translator-android:library:0.8.0")
+    implementation("com.github.godsarmy.mlkit-html-translator-android:library:0.8.1")
 }
 ```
 
@@ -197,7 +197,7 @@ When integrating through JitPack, you can pin a newer ML Kit or jsoup version in
 
 ```gradle
 dependencies {
-    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.8.0"
+    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.8.1"
     implementation "com.google.mlkit:translate:17.0.4"
     implementation "org.jsoup:jsoup:1.17.2"
 }
