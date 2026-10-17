@@ -33,7 +33,18 @@ final class SampleEdgeToEdge {
 
     static void applyContentInsets(AppCompatActivity activity) {
         ViewGroup content = activity.findViewById(android.R.id.content);
+        applyInsets(content.getChildAt(0), true);
+    }
+
+    static void applyScrollingContentInsets(AppCompatActivity activity) {
+        ViewGroup content = activity.findViewById(android.R.id.content);
         View root = content.getChildAt(0);
+        // Scroll pages reserve their own bottom safe area inside the scrolling content.
+        root.setPadding(root.getPaddingLeft(), root.getPaddingTop(), root.getPaddingRight(), 0);
+        applyInsets(root, false);
+    }
+
+    private static void applyInsets(View root, boolean insetBottom) {
         int left = root.getPaddingLeft();
         int top = root.getPaddingTop();
         int right = root.getPaddingRight();
@@ -50,9 +61,9 @@ final class SampleEdgeToEdge {
                             left + safeInsets.left,
                             top + safeInsets.top,
                             right + safeInsets.right,
-                            bottom + safeInsets.bottom);
-                    // The root handles the safe area once, including drawer and toolbar children.
-                    return WindowInsetsCompat.CONSUMED;
+                            bottom + (insetBottom ? safeInsets.bottom : 0));
+                    // Scrolling pages can handle the bottom inset inside their own padding.
+                    return insetBottom ? WindowInsetsCompat.CONSUMED : windowInsets;
                 });
         ViewCompat.requestApplyInsets(root);
     }

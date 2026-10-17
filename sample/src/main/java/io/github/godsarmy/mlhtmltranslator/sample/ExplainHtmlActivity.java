@@ -68,9 +68,8 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_explain_html);
-        SampleEdgeToEdge.applyContentInsets(this);
-
         bindViews();
+        SampleEdgeToEdge.applyScrollingContentInsets(this);
         String markerStart = getIntent().getStringExtra(EXTRA_MARKER_START);
         String markerEnd = getIntent().getStringExtra(EXTRA_MARKER_END);
         int maxChunkChars = Math.max(1, getIntent().getIntExtra(EXTRA_MAX_CHUNK_CHARS, 3000));

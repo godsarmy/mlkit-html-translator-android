@@ -11,6 +11,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import java.util.ArrayList;
@@ -41,6 +43,24 @@ public final class ExplainPagerAdapter
     @Override
     public PageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = inflater.inflate(R.layout.item_explain_page, parent, false);
+        int bottomPadding = view.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(
+                view,
+                (page, insets) -> {
+                    int bottomInset =
+                            insets.getInsets(
+                                            WindowInsetsCompat.Type.navigationBars()
+                                                    | WindowInsetsCompat.Type.displayCutout()
+                                                    | WindowInsetsCompat.Type.ime())
+                                    .bottom;
+                    page.setPadding(
+                            page.getPaddingLeft(),
+                            page.getPaddingTop(),
+                            page.getPaddingRight(),
+                            bottomPadding + bottomInset);
+                    return insets;
+                });
+        ViewCompat.requestApplyInsets(view);
         return new PageViewHolder(view);
     }
 
