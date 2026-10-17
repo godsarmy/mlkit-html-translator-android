@@ -196,6 +196,10 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     }
 
     private static void setupRawCompareText(TextView textView) {
+        // Keep HTML source lines anchored left, including paragraphs beginning with RTL text.
+        textView.setTextDirection(View.TEXT_DIRECTION_LTR);
+        textView.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+        textView.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
         textView.setIncludeFontPadding(false);
         textView.setLineSpacing(0f, 1f);
         textView.setHorizontallyScrolling(true);
