@@ -2,6 +2,7 @@ package io.github.godsarmy.mlhtmltranslator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import io.github.godsarmy.mlhtmltranslator.api.TranslationCallback;
 import io.github.godsarmy.mlhtmltranslator.api.TranslationErrorCode;
@@ -46,6 +47,28 @@ public class MlKitHtmlTranslatorLifecycleTest {
     }
 
     @Test
+    public void repeatedRequestOnSameTranslator_callsBackendAndUsesFreshResult() {
+        AtomicInteger callCount = new AtomicInteger();
+        MlTranslationAdapter adapter =
+                (text, sourceLanguage, targetLanguage, timeoutMs) ->
+                        "Translation " + callCount.incrementAndGet();
+        try (MlKitHtmlTranslator translator =
+                new MlKitHtmlTranslator(HtmlTranslationOptions.builder().build(), adapter)) {
+            CapturingCallback first = new CapturingCallback();
+            CapturingCallback second = new CapturingCallback();
+
+            translator.translateHtml("<p>Hello</p>", "en", "es", first);
+            translator.translateHtml("<p>Hello</p>", "en", "es", second);
+
+            assertNull(first.exception);
+            assertNull(second.exception);
+            assertEquals(2, callCount.get());
+            assertEquals("<p>Translation 1</p>", first.translatedHtml);
+            assertEquals("<p>Translation 2</p>", second.translatedHtml);
+        }
+    }
+
+    @Test
     public void differentMaskOptionsDoNotShareTranslatorState() {
         AtomicInteger callCount = new AtomicInteger(0);
         MlTranslationAdapter adapter =
@@ -70,9 +93,12 @@ public class MlKitHtmlTranslatorLifecycleTest {
 
     private static final class CapturingCallback implements TranslationCallback {
         private TranslationException exception;
+        private String translatedHtml;
 
         @Override
-        public void onSuccess(String translatedHtml) {}
+        public void onSuccess(String translatedHtml) {
+            this.translatedHtml = translatedHtml;
+        }
 
         @Override
         public void onFailure(TranslationException exception) {
