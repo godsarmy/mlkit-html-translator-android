@@ -10,7 +10,8 @@
 		android:id="@+id/mainDrawerLayout" android:layout_width="match_parent"
 		android:layout_height="match_parent">
 
-		<LinearLayout android:layout_width="match_parent"
+		<LinearLayout android:id="@+id/mainContent"
+			android:layout_width="match_parent"
 			android:layout_height="match_parent"
 			android:background="@color/mlkit_bg_canvas"
 			android:orientation="vertical" android:padding="16dp">
@@ -250,7 +251,7 @@
 			android:layout_width="wrap_content"
 			android:layout_height="match_parent" android:layout_gravity="start"
 			android:background="@color/mlkit_bg_canvas"
-
+			android:fitsSystemWindows="true"
 			app:headerLayout="@layout/nav_header_main"
 			app:itemIconTint="@color/mlkit_on_surface_variant"
 			app:itemTextColor="@color/mlkit_on_background"

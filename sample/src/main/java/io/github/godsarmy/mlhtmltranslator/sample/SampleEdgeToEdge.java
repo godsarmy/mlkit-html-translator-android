@@ -33,7 +33,7 @@ final class SampleEdgeToEdge {
 
     static void applyContentInsets(AppCompatActivity activity) {
         ViewGroup content = activity.findViewById(android.R.id.content);
-        applyInsets(content.getChildAt(0), true);
+        applyInsets(content.getChildAt(0));
     }
 
     static void applyScrollingContentInsets(AppCompatActivity activity) {
@@ -42,6 +42,10 @@ final class SampleEdgeToEdge {
         // Scroll pages reserve their own bottom safe area inside the scrolling content.
         root.setPadding(root.getPaddingLeft(), root.getPaddingTop(), root.getPaddingRight(), 0);
         applyInsets(root, false);
+    }
+
+    static void applyInsets(View root) {
+        applyInsets(root, true);
     }
 
     private static void applyInsets(View root, boolean insetBottom) {
