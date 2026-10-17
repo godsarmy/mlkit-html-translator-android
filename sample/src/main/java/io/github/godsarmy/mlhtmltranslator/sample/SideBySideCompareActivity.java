@@ -78,7 +78,7 @@ public final class SideBySideCompareActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_side_by_side_compare);
         setTitle(R.string.compare_screen_title);
 

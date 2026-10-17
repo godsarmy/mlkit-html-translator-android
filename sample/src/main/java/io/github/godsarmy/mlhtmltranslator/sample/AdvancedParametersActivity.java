@@ -55,7 +55,9 @@ public final class AdvancedParametersActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_advanced_parameters);
+        SampleEdgeToEdge.applyContentInsets(this);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }

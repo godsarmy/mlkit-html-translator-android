@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
 	<style name="Theme.MlKitHtmlTranslator.Sample"
 		parent="Theme.MaterialComponents.DayNight.NoActionBar">
 		<item name="colorPrimary">@color/mlkit_primary</item>
@@ -14,9 +14,6 @@
 		<item name="android:textColorPrimary">@color/mlkit_on_background</item>
 		<item name="android:textColorSecondary">@color/mlkit_on_surface_variant</item>
 		<item name="android:textColorHint">@color/mlkit_on_surface_variant</item>
-		<item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-		<item name="android:windowOptOutEdgeToEdgeEnforcement"
-			tools:targetApi="35">true</item>
 		<item name="materialAlertDialogTheme">@style/ThemeOverlay.MlKitHtmlTranslator.Sample.AlertDialog</item>
 	</style>
 

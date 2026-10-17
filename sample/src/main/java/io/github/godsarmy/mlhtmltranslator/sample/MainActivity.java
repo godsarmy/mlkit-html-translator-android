@@ -45,8 +45,6 @@ import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatAutoCompleteTextView;
 import androidx.core.view.GravityCompat;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.switchmaterial.SwitchMaterial;
@@ -164,7 +162,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+        SampleEdgeToEdge.applyContentInsets(this);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }
@@ -184,7 +184,6 @@ public class MainActivity extends AppCompatActivity {
         leftMenuButton = findViewById(R.id.leftMenuButton);
         mainDrawerLayout = findViewById(R.id.mainDrawerLayout);
         leftNavigationView = findViewById(R.id.leftNavigationView);
-        applyDrawerHeaderInsets();
         sampleAssetInput = findViewById(R.id.sampleAssetInput);
         exampleSourceContainer = findViewById(R.id.exampleSourceContainer);
         inputHtmlText = findViewById(R.id.inputHtml);
@@ -578,26 +577,6 @@ public class MainActivity extends AppCompatActivity {
     private String targetLanguage() {
         Object selected = targetSpinner.getSelectedItem();
         return selected == null ? "" : String.valueOf(selected);
-    }
-
-    private void applyDrawerHeaderInsets() {
-        if (leftNavigationView.getHeaderCount() == 0) {
-            return;
-        }
-        View header = leftNavigationView.getHeaderView(0);
-        int initialTopPadding = header.getPaddingTop();
-        ViewCompat.setOnApplyWindowInsetsListener(
-                header,
-                (view, insets) -> {
-                    int statusBarInset = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                    view.setPadding(
-                            view.getPaddingLeft(),
-                            initialTopPadding + statusBarInset,
-                            view.getPaddingRight(),
-                            view.getPaddingBottom());
-                    return insets;
-                });
-        ViewCompat.requestApplyInsets(header);
     }
 
     private void startTranslation(String sourceLanguage) {

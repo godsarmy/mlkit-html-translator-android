@@ -53,7 +53,9 @@ public final class ModelManagementActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_model_management);
+        SampleEdgeToEdge.applyContentInsets(this);
         if (getSupportActionBar() != null) {
             getSupportActionBar().hide();
         }

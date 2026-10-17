@@ -66,7 +66,9 @@ public final class ExplainHtmlActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SampleEdgeToEdge.enable(this);
         setContentView(R.layout.activity_explain_html);
+        SampleEdgeToEdge.applyContentInsets(this);
 
         bindViews();
         String markerStart = getIntent().getStringExtra(EXTRA_MARKER_START);
