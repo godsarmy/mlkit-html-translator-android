@@ -5,7 +5,9 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.text.Editable;
 import android.text.Layout;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.TextView;
@@ -15,6 +17,20 @@ public final class LineNumberGutterView extends View {
     private static final int DEFAULT_TEXT_COLOR = 0xFF757575;
     private final Paint lineNumberPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     @Nullable private TextView attachedTextView;
+    private int lineNumberDigits = 1;
+    private final TextWatcher textWatcher =
+            new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence text, int start, int count, int after) {}
+
+                @Override
+                public void onTextChanged(CharSequence text, int start, int before, int count) {
+                    updateLineCount(text);
+                }
+
+                @Override
+                public void afterTextChanged(Editable text) {}
+            };
 
     public LineNumberGutterView(Context context) {
         super(context);
@@ -32,7 +48,12 @@ public final class LineNumberGutterView extends View {
     }
 
     public void bindTo(TextView textView) {
+        if (attachedTextView != null) {
+            attachedTextView.removeTextChangedListener(textWatcher);
+        }
         attachedTextView = textView;
+        textView.addTextChangedListener(textWatcher);
+        updateLineCount(textView.getText());
         applyTextMetricsFrom(textView);
         requestLayout();
         invalidate();
@@ -61,14 +82,25 @@ public final class LineNumberGutterView extends View {
         lineNumberPaint.setColor(textColor);
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+    private void updateLineCount(CharSequence text) {
+        // Raw comparison disables wrapping, so newlines determine the displayed line count.
         int lineCount = 1;
-        if (attachedTextView != null) {
-            lineCount = Math.max(1, attachedTextView.getLineCount());
+        for (int index = 0; index < text.length(); index++) {
+            if (text.charAt(index) == '\n') {
+                lineCount++;
+            }
         }
         int digits = String.valueOf(lineCount).length();
-        float textWidth = lineNumberPaint.measureText("8".repeat(Math.max(1, digits)));
+        if (digits != lineNumberDigits) {
+            lineNumberDigits = digits;
+            requestLayout();
+        }
+        invalidate();
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        float textWidth = lineNumberPaint.measureText("8".repeat(lineNumberDigits));
         int desiredWidth = getPaddingLeft() + getPaddingRight() + (int) Math.ceil(textWidth);
         int measuredWidth = resolveSize(desiredWidth, widthMeasureSpec);
         int measuredHeight = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
