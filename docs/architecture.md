@@ -133,6 +133,11 @@ This project intentionally aligns with markdown-translator ergonomics and bounda
 - token protection stage
 - chunking + marker mapping stage
 - translation orchestration + fallback policy stage
+- translation runs per request without internal result caching; apps own result-cache policy
+
+Shared Android tooling and sample behavior follow the Markdown translator’s `1.3.0`
+release. HTML parsing remains DOM-based with jsoup; Markdown-specific Flexmark
+compatibility rules and directional-isolate reconstruction are not applicable.
 
 ### Boundary and operational parity
 

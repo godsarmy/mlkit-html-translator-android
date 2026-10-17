@@ -21,7 +21,7 @@ This library prepares HTML body fragments for translation, sends only translatab
 
 Requirements: Android `minSdk 24`, Java 17, and an app-level ML Kit model download flow.
 
-Current release: **0.8.1**
+Current release: **0.9.0**
 
 ## Example app
 
@@ -71,7 +71,7 @@ repositories {
 }
 
 dependencies {
-    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.8.1"
+    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.9.0"
 }
 ```
 
@@ -85,7 +85,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.godsarmy.mlkit-html-translator-android:library:0.8.1")
+    implementation("com.github.godsarmy.mlkit-html-translator-android:library:0.9.0")
 }
 ```
 
@@ -188,17 +188,23 @@ Log.d("MLHTML", "nodes=" + explain.getTotalNodeCount()
 
 ## Version notes
 
+The 0.9.0 upgrade follows the Markdown translator’s 1.3.0 release for shared Android
+tooling, dependencies, edge-to-edge handling, and sample release optimization.
+
+Build requirements: Android SDK 36, Android Gradle Plugin 8.9.1, Gradle 8.11.1,
+and Java 17. The sample targets SDK 36; the library still supports minSdk 24.
+
 The library currently defaults to:
 
 - `com.google.mlkit:translate:17.0.3`
 - `org.jsoup:jsoup:1.17.2`
 
-When integrating through JitPack, you can pin a newer ML Kit or jsoup version in your app if needed:
+When integrating through JitPack, you can pin ML Kit and jsoup versions explicitly in your app:
 
 ```gradle
 dependencies {
-    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.8.1"
-    implementation "com.google.mlkit:translate:17.0.4"
+    implementation "com.github.godsarmy.mlkit-html-translator-android:library:0.9.0"
+    implementation "com.google.mlkit:translate:17.0.3"
     implementation "org.jsoup:jsoup:1.17.2"
 }
 ```
@@ -206,7 +212,7 @@ dependencies {
 For local-module development, override versions in root `gradle.properties`:
 
 ```properties
-mlkitTranslateVersion=17.0.4
+mlkitTranslateVersion=17.0.3
 jsoupVersion=1.17.2
 ```
 
@@ -216,6 +222,7 @@ jsoupVersion=1.17.2
 - Integration guide: [`docs/integration.md`](docs/integration.md)
 - Architecture and pipeline notes: [`docs/architecture.md`](docs/architecture.md)
 - Benchmark summary: [`docs/bench-report.md`](docs/bench-report.md)
+- Upgrade verification and device-test limits: [`docs/upgrade-verification.md`](docs/upgrade-verification.md)
 
 Repository layout:
 
